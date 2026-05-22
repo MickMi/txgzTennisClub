@@ -4,7 +4,7 @@
       <view class="empty-icon"><icon name="tennis" size="112" /></view>
       <view class="empty-title">还没有活动</view>
       <view class="empty-desc">组织一场网球活动，邀请社团伙伴一起运动吧</view>
-      <button class="btn-primary empty-btn" bindtap="goCreate">创建活动</button>
+      <button class="cta-primary" style="width: 320rpx;" bindtap="goCreate">创建活动</button>
     </view>
   </block>
 
@@ -15,16 +15,17 @@
     data-id="{{item._id}}"
     bindtap="goDetail"
   >
-    <view class="row-between">
-      <view class="title">{{item.title}}</view>
-      <view class="tag {{item.status === 'closed' ? 'tag-gray' : ''}}">
-        {{item.status === 'closed' ? '已结束' : '报名中'}}
-      </view>
+    <view class="card-eyebrow">{{item.weekdayText}} · {{item.dateShort}}</view>
+    <view class="card-title">{{item.title}}</view>
+    <view class="card-meta">
+      <view class="meta-item"><icon name="pin" size="28" /><text>{{item.location}}</text></view>
+      <view class="meta-item"><icon name="people" size="28" /><text>{{item.joinedCount}}/{{item.maxPeople || '∞'}}</text></view>
     </view>
-    <view class="meta"><icon name="clock" size="32" /> {{item.startTimeText}}</view>
-    <view class="meta"><icon name="pin" size="32" /> {{item.location}}</view>
-    <view class="meta">
-      <icon name="people" size="32" /> {{item.joinedCount}}/{{item.maxPeople || '∞'}} 人
+    <view class="card-foot">
+      <view class="card-status {{item.status === 'closed' ? 'tag--closed' : ''}}">
+        {{item.status === 'closed' ? '已结束' : '报名中'}} · {{item.joinedCount}} 人
+      </view>
+      <icon name="arrow-right" size="32" class="card-arrow" />
     </view>
   </view>
 </view>

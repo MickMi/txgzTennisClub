@@ -1,111 +1,47 @@
-.big {
-  font-size: 38rpx;
-  margin-bottom: 16rpx;
+/* activity-detail 页面样式 */
+.page {
+  background: var(--color-bg);
+  min-height: 100vh;
+  padding-bottom: 200rpx;
 }
 
-.meta {
-  color: #555;
-  margin-top: 10rpx;
-  font-size: 28rpx;
+.content {
+  padding: 0 var(--space-5);
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16rpx;
+.event-meta {
+  margin-bottom: 48rpx;
 }
 
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
+.section {
+  margin-top: 48rpx;
 }
 
-.export-btn {
-  font-size: 26rpx;
-  color: #1aad19;
-  padding: 6rpx 16rpx;
-  border: 1rpx solid #1aad19;
-  border-radius: 8rpx;
+/* 管理区 */
+.admin-section {
+  margin-top: 64rpx;
 }
-
-.participant {
-  display: flex;
-  align-items: center;
-  padding: 14rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
-}
-
-.participant:last-child {
-  border-bottom: none;
-}
-
-.participant-info {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-.participant-name {
-  font-size: 28rpx;
-  color: #333;
-}
-
-.participant-rating {
-  margin-left: 12rpx;
-  font-size: 22rpx;
-  padding: 2rpx 12rpx;
-  border-radius: 6rpx;
-  background: #e8f5e9;
-  color: #1aad19;
-  font-weight: 500;
-}
-
-.participant-rating.no-rating {
-  background: #f5f5f5;
-  color: #bbb;
-  font-weight: 400;
-}
-
-.dot {
-  width: 50rpx;
-  height: 50rpx;
-  background: #e8f5e9;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 50rpx;
-  margin-right: 16rpx;
-  font-size: 26rpx;
-}
-
-.actions {
-  margin-top: 30rpx;
-}
-
-.admin-actions {
-  margin-top: 30rpx;
+.admin-btns {
   display: flex;
   gap: 20rpx;
 }
-
-.btn-edit {
+.admin-btn {
   flex: 1;
-  background: #fff;
-  color: #576b95;
-  border: 1rpx solid #576b95;
-  border-radius: 12rpx;
-  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
   height: 80rpx;
-  line-height: 80rpx;
+  font-size: var(--text-body-sm);
+  padding: 0 16rpx;
 }
 
-.btn-delete {
-  flex: 1;
-  background: #fff;
-  color: #e53935;
-  border: 1rpx solid #e53935;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  height: 80rpx;
-  line-height: 80rpx;
+/* CTA 底栏 */
+.cta-status {
+  line-height: 1.1;
+}
+.cta-cancel {
+  padding: 24rpx 36rpx;
+  border-radius: 0;
+  font-size: var(--text-body-lg);
 }

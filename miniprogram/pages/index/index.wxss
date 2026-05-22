@@ -1,5 +1,12 @@
-.meta {
-  color: #666;
-  font-size: 26rpx;
-  margin-top: 10rpx;
+/* index 活动列表页 */
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.card-status {
+  color: var(--color-fg);
+}
+.card-status.tag--closed {
+  color: var(--color-muted);
 }

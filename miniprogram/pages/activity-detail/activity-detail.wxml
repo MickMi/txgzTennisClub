@@ -1,44 +1,127 @@
-<view class="container" wx:if="{{detail}}">
-  <view class="card">
-    <view class="title big">{{detail.title}}</view>
-    <view class="meta"><icon name="clock" size="32" /> {{detail.startTimeText}}</view>
-    <view class="meta"><icon name="pin" size="32" /> {{detail.location}}</view>
-    <view class="meta">
-      <icon name="people" size="32" /> {{detail.participants.length}}/{{detail.maxPeople || '∞'}} 人
-    </view>
-    <view class="meta" wx:if="{{detail.note}}"><icon name="note" size="32" /> {{detail.note}}</view>
-    <view class="meta muted">由 {{detail.creatorName}} 创建</view>
-  </view>
-
-  <view class="card">
-    <view class="section-header">
-      <view class="section-title">已报名（{{detail.participants.length}}）</view>
-      <view class="export-btn" bindtap="onExport" wx:if="{{detail.participants.length > 0}}">
-        <icon name="list" size="32" /> 导出名单
-      </view>
-    </view>
-    <view wx:if="{{detail.participants.length === 0}}" class="muted">暂无报名</view>
-    <view wx:for="{{detail.participants}}" wx:key="openid" class="participant">
-      <view class="dot"></view>
-      <view class="participant-info">
-        <text class="participant-name">{{item.wecomName}}</text>
-        <text class="participant-rating" wx:if="{{item.rating}}">{{item.rating}}</text>
-        <text class="participant-rating no-rating" wx:else>未评级</text>
-      </view>
+<view class="page" wx:if="{{detail}}">
+  <!-- Hero -->
+  <view class="hero">
+    <view class="hero-kicker">ACTIVITY</view>
+    <view class="hero-title">{{detail.title}}</view>
+    <view class="hero-organiser">
+      <text>{{detail.creatorName}}</text>
+      <text class="sep"></text>
+      <text>{{detail.status === 'open' ? '开放报名中' : '已结束'}}</text>
     </view>
   </view>
 
-  <view class="actions">
-    <button wx:if="{{!joined}}" class="btn-primary"
-      bindtap="onJoin" disabled="{{full}}">
-      {{full ? '已满员' : '我要报名'}}
+  <!-- 日期戳 -->
+  <view class="content">
+    <view class="datestamp">
+      <view class="datestamp-day">
+        {{detail.dayNum}}
+        <text class="datestamp-month">{{detail.monthText}}</text>
+      </view>
+      <view class="datestamp-right">
+        <view class="datestamp-when">{{detail.timeText}}</view>
+        <view class="datestamp-session">{{detail.title}}</view>
+      </view>
+    </view>
+
+    <!-- Meta 信息 -->
+    <view class="event-meta">
+      <view class="meta-row">
+        <icon name="pin" size="36" class="meta-icon" />
+        <view>
+          <text class="meta-label">场地</text>
+          <text class="meta-value">{{detail.location}}</text>
+        </view>
+        <view></view>
+      </view>
+      <view class="meta-row">
+        <icon name="people" size="36" class="meta-icon" />
+        <view>
+          <text class="meta-label">规模</text>
+          <text class="meta-value">{{detail.participants.length}} / {{detail.maxPeople || '∞'}} 人</text>
+        </view>
+        <view></view>
+      </view>
+      <view class="meta-row" wx:if="{{detail.note}}">
+        <icon name="note" size="36" class="meta-icon" />
+        <view>
+          <text class="meta-label">备注</text>
+          <text class="meta-value">{{detail.note}}</text>
+        </view>
+        <view></view>
+      </view>
+    </view>
+
+    <!-- 已报名 Section -->
+    <view class="section">
+      <view class="section-eyebrow">
+        <text>已报名</text>
+        <text class="meta">ROSTER · {{detail.participants.length}} / {{detail.maxPeople || '∞'}}</text>
+      </view>
+
+      <!-- 容量条 -->
+      <view class="capacity" wx:if="{{detail.maxPeople > 0}}">
+        <view class="capacity-num">{{detail.participants.length}} <em>/ {{detail.maxPeople}}</em></view>
+        <view class="capacity-meta">FILLED {{detail.fillPercent}}%</view>
+        <view class="capacity-bar" style="--fill: {{detail.fillPercent}}%"></view>
+      </view>
+
+      <!-- 玩家名册 -->
+      <view wx:if="{{detail.participants.length === 0}}" class="muted" style="padding: 48rpx 0; text-align: center;">暂无报名</view>
+      <view class="roster" wx:else style="margin-top: 48rpx;">
+        <view
+          wx:for="{{detail.participants}}"
+          wx:key="openid"
+          class="player"
+          data-gender="{{item.gender}}"
+        >
+          <view class="avatar">{{item.wecomName[0]}}</view>
+          <view class="player-info">
+            <text class="player-name">{{item.wecomName}}</text>
+            <text class="player-rating {{item.rating ? '' : 'unrated'}}">
+              {{item.rating ? 'NTRP ' + item.rating : '未评级'}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 管理操作 -->
+    <view class="admin-section" wx:if="{{isOwner}}">
+      <view class="section-eyebrow">
+        <text>管理</text>
+        <text class="meta">ADMIN</text>
+      </view>
+      <view class="admin-btns">
+        <button class="btn-default admin-btn" bindtap="onExport">
+          <icon name="list" size="32" /> 导出名单
+        </button>
+        <button class="btn-default admin-btn" bindtap="onEdit">
+          <icon name="pencil" size="32" /> 编辑
+        </button>
+        <button class="btn-danger admin-btn" bindtap="onDelete">
+          <icon name="trash" size="32" /> 删除
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部 CTA 栏 -->
+  <view class="cta-bar">
+    <view class="cta-status">
+      <view class="status-num">{{detail.participants.length}}<em> / {{detail.maxPeople || '∞'}}</em></view>
+      <text class="status-label">已报名</text>
+    </view>
+    <button
+      wx:if="{{!joined}}"
+      class="cta-primary"
+      bindtap="onJoin"
+      disabled="{{full || detail.status === 'closed'}}"
+    >
+      <text>{{detail.status === 'closed' ? '活动已结束' : (full ? '已满员' : '立即报名')}}</text>
+      <icon name="arrow-right" size="32" />
     </button>
-    <button wx:else class="btn-danger" bindtap="onLeave">取消报名</button>
-  </view>
-
-  <!-- 管理操作：仅创建者/管理员可见 -->
-  <view class="admin-actions" wx:if="{{isOwner}}">
-    <button class="btn-edit" bindtap="onEdit"><icon name="pencil" size="32" /> 编辑活动</button>
-    <button class="btn-delete" bindtap="onDelete"><icon name="trash" size="32" /> 删除活动</button>
+    <button wx:else class="btn-danger cta-cancel" bindtap="onLeave">
+      取消报名
+    </button>
   </view>
 </view>

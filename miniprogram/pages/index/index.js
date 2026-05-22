@@ -22,14 +22,22 @@ Page({
   },
 
   loadList() {
+    const WEEKDAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
     return api
       .listActivities()
       .then(list => {
-        const formatted = (list || []).map(it => ({
-          ...it,
-          startTimeText: formatDateTime(it.startTime),
-          joinedCount: (it.participants || []).length
-        }));
+        const formatted = (list || []).map(it => {
+          const d = new Date(it.startTime);
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          return {
+            ...it,
+            startTimeText: formatDateTime(it.startTime),
+            joinedCount: (it.participants || []).length,
+            weekdayText: WEEKDAYS[d.getDay()],
+            dateShort: `${mm}/${dd}`
+          };
+        });
         this.setData({ list: formatted, loading: false });
       })
       .catch(() => {

@@ -29,8 +29,29 @@ Page({
       const full =
         detail.maxPeople > 0 && participants.length >= detail.maxPeople;
       const isOwner = !!(me && (detail.creator === me.openid || me.role === 'admin'));
+
+      // 派生字段：日期戳
+      const d = new Date(detail.startTime);
+      const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const dayNum = d.getDate();
+      const monthText = MONTHS[d.getMonth()] + ' · ' + WEEKDAYS[d.getDay()];
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      const timeText = `${hh}:${mm}`;
+      const fillPercent = detail.maxPeople > 0
+        ? Math.round(participants.length * 100 / detail.maxPeople)
+        : 0;
+
       this.setData({
-        detail: { ...detail, startTimeText: formatDateTime(detail.startTime) },
+        detail: {
+          ...detail,
+          startTimeText: formatDateTime(detail.startTime),
+          dayNum,
+          monthText,
+          timeText,
+          fillPercent
+        },
         joined,
         full,
         isOwner,
