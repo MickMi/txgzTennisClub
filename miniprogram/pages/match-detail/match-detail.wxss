@@ -1,0 +1,166 @@
+.big {
+  font-size: 38rpx;
+  margin-bottom: 16rpx;
+}
+
+.meta {
+  color: #555;
+  margin-top: 10rpx;
+  font-size: 28rpx;
+}
+
+.handicap-rule {
+  color: #e65100;
+  font-weight: 500;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+/* 报名列表 */
+.player-item {
+  display: flex;
+  align-items: center;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  font-size: 28rpx;
+}
+
+.player-item:last-child {
+  border-bottom: none;
+}
+
+.player-gender {
+  margin-right: 12rpx;
+  font-size: 28rpx;
+}
+
+.actions {
+  margin-top: 24rpx;
+}
+
+.randomize-btn {
+  margin-top: 20rpx;
+}
+
+/* VS 对阵 */
+.vs {
+  display: flex;
+  align-items: stretch;
+  margin-top: 16rpx;
+}
+
+.team-block {
+  flex: 1;
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  text-align: center;
+}
+
+.team-block.win {
+  background: #e8f5e9;
+}
+
+.team-label {
+  font-size: 26rpx;
+  color: #888;
+  margin-bottom: 10rpx;
+}
+
+.player {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin: 8rpx 0;
+}
+
+.vs-text {
+  align-self: center;
+  margin: 0 16rpx;
+  color: #aaa;
+}
+
+/* 比分展示 */
+.score-display {
+  text-align: center;
+  padding: 20rpx 0;
+}
+
+.score-big {
+  font-size: 64rpx;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 8rpx;
+}
+
+.winner-badge {
+  margin-top: 16rpx;
+  padding: 12rpx 24rpx;
+  background: #e8f5e9;
+  color: #1aad19;
+  border-radius: 12rpx;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.points-info {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+}
+
+.points-win {
+  color: #1aad19;
+  margin-right: 24rpx;
+}
+
+.points-lose {
+  color: #999;
+}
+
+/* 录分输入 */
+.score-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20rpx;
+}
+
+.score-side {
+  text-align: center;
+}
+
+.score-side-label {
+  font-size: 24rpx;
+  color: #888;
+  margin-bottom: 8rpx;
+}
+
+.score-input {
+  width: 140rpx;
+  height: 100rpx;
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  text-align: center;
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.score-colon {
+  font-size: 48rpx;
+  font-weight: 700;
+  margin: 30rpx 24rpx 0;
+  color: #333;
+}
+
+.btns {
+  margin-top: 24rpx;
+}
+
+.flex1 { flex: 1; }
+
+.link {
+  color: #1aad19;
+  font-size: 26rpx;
+}

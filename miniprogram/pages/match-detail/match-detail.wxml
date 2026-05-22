@@ -1,0 +1,110 @@
+<view class="container" wx:if="{{detail}}">
+  <!-- 比赛信息 -->
+  <view class="card">
+    <view class="title big">{{detail.title}}</view>
+    <view class="meta">📅 {{detail.dateText}}</view>
+    <view class="meta">🎾 {{detail.type === 'doubles' ? '双打' : '单打'}} · 先赢 {{detail.bestOf}} 盘</view>
+    <view class="meta">🏅 {{detail.levelText}} · 胜者 +{{detail.winPts}} / 负者 +{{detail.losePts}}</view>
+    <view class="meta handicap-rule" wx:if="{{detail.handicapRule}}">⚖️ 让分规则：{{detail.handicapRule}}</view>
+    <view class="meta muted">由 {{detail.creatorName}} 创建</view>
+  </view>
+
+  <!-- 报名阶段 -->
+  <block wx:if="{{detail.status === 'signup'}}">
+    <view class="card">
+      <view class="section-title">已报名（{{detail.signups.length}}/{{detail.need}}）</view>
+      <view wx:if="{{detail.signups.length === 0}}" class="muted">暂无报名</view>
+      <view wx:for="{{detail.signups}}" wx:key="openid" class="player-item">
+        <text class="player-gender">{{item.gender === 'female' ? '♀' : '♂'}}</text>
+        <text>{{item.wecomName}}</text>
+      </view>
+
+      <view class="actions">
+        <button wx:if="{{!signed}}" class="btn-primary" bindtap="onSignup"
+          disabled="{{detail.signups.length >= detail.need}}">
+          {{detail.signups.length >= detail.need ? '人数已满' : '我要报名'}}
+        </button>
+        <button wx:else class="btn-danger" bindtap="onLeave">取消报名</button>
+      </view>
+
+      <!-- 管理员随机分组 -->
+      <button wx:if="{{canManage && detail.signups.length >= detail.need}}"
+        class="btn-primary randomize-btn" bindtap="onRandomize">
+        🎲 随机分组
+      </button>
+      <view wx:if="{{canManage && detail.signups.length < detail.need}}" class="muted" style="margin-top: 16rpx; text-align: center;">
+        人齐后可随机分组
+      </view>
+    </view>
+  </block>
+
+  <!-- 已分组 / 已结束 -->
+  <block wx:if="{{detail.status === 'ready' || detail.status === 'finished'}}">
+    <view class="card">
+      <view class="section-title">对阵</view>
+      <view class="vs">
+        <view class="team-block {{detail.winner === 'A' ? 'win' : ''}}">
+          <view class="team-label">A 方</view>
+          <view wx:for="{{detail.teamA}}" wx:key="openid" wx:for-item="p" class="player">
+            {{p.wecomName}}
+          </view>
+        </view>
+
+        <view class="vs-text">VS</view>
+
+        <view class="team-block {{detail.winner === 'B' ? 'win' : ''}}">
+          <view class="team-label">B 方</view>
+          <view wx:for="{{detail.teamB}}" wx:key="openid" wx:for-item="p" class="player">
+            {{p.wecomName}}
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 比分 -->
+    <view class="card">
+      <view class="row-between">
+        <view class="section-title">比分</view>
+        <view wx:if="{{!editing && canEditScore && detail.status === 'ready'}}"
+          class="link" bindtap="onEditScore">录入比分</view>
+      </view>
+
+      <block wx:if="{{!editing}}">
+        <view wx:if="{{detail.status === 'ready' && !detail.winner}}" class="muted">
+          暂无比分
+        </view>
+        <view wx:if="{{detail.winner}}" class="score-display">
+          <view class="score-big">{{detail.scoreA}} : {{detail.scoreB}}</view>
+          <view class="winner-badge">🏆 {{detail.winner}} 方获胜</view>
+          <view wx:if="{{detail.pointsAwarded}}" class="points-info">
+            <text class="points-win">胜者 +{{detail.pointsAwarded.winPoints}}</text>
+            <text class="points-lose">负者 +{{detail.pointsAwarded.losePoints}}</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 录分输入 -->
+      <block wx:if="{{editing}}">
+        <view class="score-input-row">
+          <view class="score-side">
+            <view class="score-side-label">A 方</view>
+            <input class="score-input" type="number" placeholder="0" value="{{scoreAInput}}" bindinput="onScoreAInput" />
+          </view>
+          <view class="score-colon">:</view>
+          <view class="score-side">
+            <view class="score-side-label">B 方</view>
+            <input class="score-input" type="number" placeholder="0" value="{{scoreBInput}}" bindinput="onScoreBInput" />
+          </view>
+        </view>
+        <view class="muted" style="text-align: center; margin-top: 12rpx;">
+          先赢 {{detail.bestOf}} 盘制（如4:3表示抢7胜出）
+        </view>
+        <view class="row btns">
+          <button class="btn-default flex1" bindtap="onCancelEdit">取消</button>
+          <view style="width: 20rpx;"></view>
+          <button class="btn-primary flex1" bindtap="onSaveScore">保存</button>
+        </view>
+      </block>
+    </view>
+  </block>
+</view>

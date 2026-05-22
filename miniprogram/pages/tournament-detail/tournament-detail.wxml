@@ -1,0 +1,211 @@
+<view class="container" wx:if="{{t}}">
+  <!-- 赛事信息 -->
+  <view class="card">
+    <view class="title big">{{t.title}}</view>
+    <view class="meta">📅 {{t.dateText}} · {{t.levelText}}</view>
+    <view class="meta">🎾 {{t.type === 'doubles' ? '双打' : '单打'}} · 先赢 {{t.bestOf}} 盘</view>
+    <view class="meta">📋 {{t.config.groupCount}}组 · 每组前{{t.config.advanceCount}}名晋级 · {{t.config.seedCount > 0 ? t.config.seedCount + '种子' : '随机分组'}}</view>
+    <view class="meta handicap-rule" wx:if="{{t.handicapRule}}">⚖️ 让分规则：{{t.handicapRule}}</view>
+    <view class="status-badge {{t.status}}">{{t.statusText}}</view>
+  </view>
+
+  <!-- Tab 切换（抽签后显示） -->
+  <view class="tab-bar" wx:if="{{t.status !== 'signup'}}">
+    <view class="tab-item {{activeTab === 0 ? 'tab-active' : ''}}" data-tab="0" bindtap="onTabChange">赛况</view>
+    <view class="tab-item {{activeTab === 1 ? 'tab-active' : ''}}" data-tab="1" bindtap="onTabChange">签表</view>
+  </view>
+
+  <!-- ========== Tab 0: 赛况 ========== -->
+  <view wx:if="{{activeTab === 0}}">
+
+    <!-- 报名阶段 -->
+    <block wx:if="{{t.status === 'signup'}}">
+      <view class="card">
+        <view class="section-title">已报名（{{t.players.length}}人）</view>
+        <view wx:if="{{t.players.length === 0}}" class="muted">暂无报名</view>
+        <view wx:for="{{t.players}}" wx:key="openid" class="player-row">
+          <text class="player-gender">{{item.gender === 'female' ? '♀' : '♂'}}</text>
+          <text class="player-name">{{index + 1}}. {{item.wecomName}}</text>
+          <text class="player-pts" wx:if="{{item.totalPoints}}">{{item.totalPoints}}分</text>
+          <text class="player-rating" wx:if="{{item.rating}}">{{item.rating}}</text>
+        </view>
+
+        <view class="actions" style="margin-top: 24rpx;">
+          <button wx:if="{{!signed}}" class="btn-primary" bindtap="onSignup">我要报名</button>
+          <button wx:else class="btn-danger" bindtap="onCancelSignup">取消报名</button>
+        </view>
+      </view>
+
+      <!-- 管理员抽签设置 -->
+      <view class="card" wx:if="{{isOwner}}">
+        <view class="section-title">分组设置</view>
+        <view class="draw-setting">
+          <view class="draw-row">
+            <text class="draw-label">分组数量</text>
+            <picker bindchange="onDrawGroupCountChange" value="{{0}}" range="{{groupCountOptions}}">
+              <view class="draw-picker">{{drawGroupCount}} 组</view>
+            </picker>
+          </view>
+          <view class="draw-row">
+            <text class="draw-label">每组晋级</text>
+            <picker bindchange="onDrawAdvanceChange" value="{{0}}" range="{{advanceOptions}}">
+              <view class="draw-picker">前 {{drawAdvanceCount}} 名</view>
+            </picker>
+          </view>
+          <view class="draw-row" wx:if="{{t.level === 'major'}}">
+            <text class="draw-label">种子数</text>
+            <input class="draw-input" type="number" value="{{drawSeedCount}}" bindinput="onDrawSeedInput" placeholder="0" />
+          </view>
+          <view class="draw-hint muted">
+            {{t.players.length}} 人报名，分 {{drawGroupCount}} 组
+          </view>
+        </view>
+        <button class="btn-primary" style="margin-top: 24rpx;" bindtap="onDraw">
+          {{drawSeedCount > 0 ? '抽签分组（种子制）' : '随机抽签分组'}}
+        </button>
+      </view>
+    </block>
+
+    <!-- 小组赛阶段 -->
+    <block wx:if="{{t.status === 'group' || t.status === 'knockout' || t.status === 'finished'}}">
+      <view class="card" wx:for="{{t.groups}}" wx:key="name" wx:for-item="group" wx:for-index="gi">
+        <view class="section-title">{{group.name}} 组</view>
+
+        <!-- 排名表 -->
+        <view class="standings">
+          <view class="standings-header">
+            <text class="st-rank">#</text>
+            <text class="st-name">选手</text>
+            <text class="st-stat">胜</text>
+            <text class="st-stat">负</text>
+            <text class="st-stat">净盘</text>
+          </view>
+          <view wx:for="{{group.standings}}" wx:key="openid" wx:for-item="s" wx:for-index="rank" class="standings-row {{rank < t.config.advanceCount ? 'advance' : ''}}">
+            <text class="st-rank">{{rank + 1}}</text>
+            <text class="st-name">{{s.wecomName}}</text>
+            <text class="st-stat">{{s.wins}}</text>
+            <text class="st-stat">{{s.losses}}</text>
+            <text class="st-stat">{{s.setsWon - s.setsLost}}</text>
+          </view>
+        </view>
+
+        <!-- 小组赛对阵 -->
+        <view class="match-list">
+          <view wx:for="{{group.matches}}" wx:key="id" wx:for-item="m" class="match-row">
+            <view class="match-players">
+              <text class="{{m.winner === 'A' ? 'winner-name' : ''}}">{{m.playerA.wecomName}}</text>
+              <text class="match-vs">vs</text>
+              <text class="{{m.winner === 'B' ? 'winner-name' : ''}}">{{m.playerB.wecomName}}</text>
+            </view>
+            <view wx:if="{{m.winner}}" class="match-score">{{m.scoreSummary}}</view>
+            <view wx:elif="{{editingGroup && editingGroup.groupIndex === gi && editingGroup.matchId === m.id}}" class="score-edit">
+              <view class="score-edit-simple">
+                <input class="score-input" type="number" placeholder="A" value="{{groupScoreA}}" bindinput="onGroupScoreAInput" />
+                <text class="dash">:</text>
+                <input class="score-input" type="number" placeholder="B" value="{{groupScoreB}}" bindinput="onGroupScoreBInput" />
+              </view>
+              <view class="row btns">
+                <button class="btn-default flex1" bindtap="onCancelGroupScore">取消</button>
+                <view style="width: 16rpx;"></view>
+                <button class="btn-primary flex1" bindtap="onSaveGroupScore">保存</button>
+              </view>
+            </view>
+            <view wx:elif="{{t.status === 'group'}}" class="match-action" data-gi="{{gi}}" data-mid="{{m.id}}" bindtap="onEditGroupScore">录入比分</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 管理员：进入淘汰赛 -->
+      <view class="card" wx:if="{{isOwner && t.status === 'group'}}">
+        <button class="btn-primary" bindtap="onStartKnockout">小组赛结束，进入淘汰赛</button>
+      </view>
+    </block>
+
+    <!-- 淘汰赛阶段 -->
+    <block wx:if="{{t.status === 'knockout' || t.status === 'finished'}}">
+      <view wx:if="{{t.knockout}}" class="card">
+        <view class="section-title">淘汰赛</view>
+        <view wx:for="{{t.knockout.rounds}}" wx:key="name" wx:for-item="round" wx:for-index="ri" class="ko-round">
+          <view class="ko-round-title">{{round.name}}</view>
+          <view wx:for="{{round.matches}}" wx:key="id" wx:for-item="m" class="match-row">
+            <view class="match-players">
+              <text class="{{m.winner === 'A' ? 'winner-name' : ''}}">{{m.playerA.wecomName || '待定'}}</text>
+              <text class="match-vs">vs</text>
+              <text class="{{m.winner === 'B' ? 'winner-name' : ''}}">{{m.playerB.wecomName || '待定'}}</text>
+            </view>
+            <view wx:if="{{m.winner}}" class="match-score">{{m.scoreSummary || '轮空'}}</view>
+            <view wx:elif="{{editingKO && editingKO.roundIndex === ri && editingKO.matchId === m.id}}" class="score-edit">
+              <view class="score-edit-simple">
+                <input class="score-input" type="number" placeholder="A" value="{{koScoreA}}" bindinput="onKOScoreAInput" />
+                <text class="dash">:</text>
+                <input class="score-input" type="number" placeholder="B" value="{{koScoreB}}" bindinput="onKOScoreBInput" />
+              </view>
+              <view class="row btns">
+                <button class="btn-default flex1" bindtap="onCancelKOScore">取消</button>
+                <view style="width: 16rpx;"></view>
+                <button class="btn-primary flex1" bindtap="onSaveKOScore">保存</button>
+              </view>
+            </view>
+            <view wx:elif="{{m.playerA && m.playerB && !m.winner && t.status === 'knockout'}}" class="match-action" data-ri="{{ri}}" data-mid="{{m.id}}" bindtap="onEditKOScore">录入比分</view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 赛事结束 -->
+    <view wx:if="{{t.status === 'finished'}}" class="card champion-card">
+      <view class="champion-icon">🏆</view>
+      <view class="champion-text">赛事已结束</view>
+    </view>
+
+  </view>
+
+  <!-- ========== Tab 1: 签表 ========== -->
+  <view wx:if="{{activeTab === 1}}">
+
+    <!-- 小组分组签表 -->
+    <view class="card">
+      <view class="section-title">小组分组</view>
+      <view class="group-draw">
+        <view wx:for="{{t.groups}}" wx:key="name" wx:for-item="group" class="draw-group">
+          <view class="draw-group-title">{{group.name}} 组</view>
+          <view wx:for="{{group.players}}" wx:key="openid" wx:for-item="p" class="draw-player {{p.seed > 0 ? 'seed' : ''}}">
+            <text wx:if="{{p.seed > 0}}" class="seed-badge">[{{p.seed}}]</text>
+            <text>{{p.wecomName}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 淘汰赛 Bracket 树形图 -->
+    <block wx:if="{{t.knockout}}">
+      <view class="card bracket-card">
+        <view class="section-title">淘汰赛对阵</view>
+        <scroll-view scroll-x class="bracket-scroll">
+          <view class="bracket">
+            <view wx:for="{{t.knockout.rounds}}" wx:key="name" wx:for-item="round" wx:for-index="ri" class="bracket-round">
+              <view class="bracket-round-title">{{round.name}}</view>
+              <view class="bracket-matches">
+                <view wx:for="{{round.matches}}" wx:key="id" wx:for-item="m" class="bracket-match">
+                  <view class="bracket-slot {{m.winner === 'A' ? 'slot-win' : ''}}">
+                    <text class="bracket-name">{{m.playerA.wecomName || 'TBD'}}</text>
+                    <text class="bracket-score" wx:if="{{m.scoreA !== undefined && m.scoreA !== null}}">{{m.scoreA}}</text>
+                  </view>
+                  <view class="bracket-slot {{m.winner === 'B' ? 'slot-win' : ''}}">
+                    <text class="bracket-name">{{m.playerB.wecomName || 'TBD'}}</text>
+                    <text class="bracket-score" wx:if="{{m.scoreB !== undefined && m.scoreB !== null}}">{{m.scoreB}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </block>
+
+    <view wx:if="{{!t.knockout}}" class="card">
+      <view class="muted" style="text-align: center; padding: 40rpx;">淘汰赛尚未开始</view>
+    </view>
+
+  </view>
+</view>

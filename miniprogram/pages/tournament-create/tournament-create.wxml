@@ -1,0 +1,80 @@
+<view class="container">
+  <view class="card">
+    <view class="field">
+      <view class="label">赛事名称 *</view>
+      <input class="input" placeholder="例如：5月月赛" value="{{form.title}}" data-key="title" bindinput="onInput" maxlength="40" />
+    </view>
+
+    <view class="field">
+      <view class="label">比赛级别 *</view>
+      <picker bindchange="onLevelChange" value="{{levelIndex}}" range="{{levelOptions}}" range-key="label">
+        <view class="picker">{{levelOptions[levelIndex].label}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">类型 *</view>
+      <picker bindchange="onTypeChange" value="{{typeIndex}}" range="{{typeOptions}}" range-key="label">
+        <view class="picker">{{typeOptions[typeIndex].label}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">赛制 *</view>
+      <picker bindchange="onBestOfChange" value="{{bestOfIndex}}" range="{{bestOfOptions}}">
+        <view class="picker">先赢 {{bestOfOptions[bestOfIndex]}} 盘</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">比赛日期 *</view>
+      <picker mode="date" value="{{form.matchDate}}" bindchange="onDateChange">
+        <view class="picker">{{form.matchDate || '请选择'}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">让分规则（可选）</view>
+      <input class="input" placeholder="如：男让女每盘 2 局" value="{{form.handicapRule}}" data-key="handicapRule" bindinput="onInput" maxlength="100" />
+      <view class="field-hint">仅作提示展示，不影响比分计算</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">赛制设置（可选，抽签时再决定）</view>
+
+    <view class="field">
+      <view class="label">分组数量</view>
+      <picker bindchange="onGroupCountChange" value="{{groupCountIndex}}" range="{{groupCountOptions}}">
+        <view class="picker">{{groupCountOptions[groupCountIndex]}} 组</view>
+      </picker>
+      <view class="field-hint">可在报名结束后根据实际人数调整</view>
+    </view>
+
+    <view class="field">
+      <view class="label">每组晋级人数</view>
+      <picker bindchange="onAdvanceChange" value="{{advanceIndex}}" range="{{advanceOptions}}">
+        <view class="picker">每组前 {{advanceOptions[advanceIndex]}} 名晋级</view>
+      </picker>
+    </view>
+
+    <view class="field" wx:if="{{form.level === 'major'}}">
+      <view class="label">种子选手数</view>
+      <input class="input" type="number" value="{{form.seedCount}}" data-key="seedCount" bindinput="onInput" placeholder="按积分排名前N名为种子" />
+      <view class="field-hint">种子选手按积分排名分散到各组，避免强强提前相遇</view>
+    </view>
+  </view>
+
+  <view class="muted tip">
+    <block wx:if="{{form.level === 'major'}}">
+      赛制说明：种子选手按积分排名分散到各组 → 小组循环赛（两两对战）→ 各组前N名晋级 → 淘汰赛决出冠军。
+    </block>
+    <block wx:else>
+      赛制说明：随机抽签分组 → 小组循环赛（两两对战）→ 各组前N名晋级 → 淘汰赛决出冠军。
+    </block>
+  </view>
+
+  <button class="btn-primary submit" bindtap="onSubmit" disabled="{{submitting}}">
+    创建赛事
+  </button>
+</view>

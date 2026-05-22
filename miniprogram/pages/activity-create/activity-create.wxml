@@ -1,0 +1,45 @@
+<view class="container">
+  <view class="card">
+    <view class="field">
+      <view class="label">活动标题 *</view>
+      <input class="input" placeholder="例如：周三晚训"
+        value="{{form.title}}" data-key="title" bindinput="onInput" maxlength="40" />
+    </view>
+
+    <view class="field">
+      <view class="label">日期 *</view>
+      <picker mode="date" value="{{form.date}}" bindchange="onDateChange">
+        <view class="picker">{{form.date || '请选择'}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">时间 *</view>
+      <picker mode="time" value="{{form.time}}" bindchange="onTimeChange">
+        <view class="picker">{{form.time || '请选择'}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">地点 *</view>
+      <input class="input" placeholder="例如：T.I.T 球场 2 号"
+        value="{{form.location}}" data-key="location" bindinput="onInput" maxlength="50" />
+    </view>
+
+    <view class="field">
+      <view class="label">人数上限（不限填 0）</view>
+      <input class="input" type="number" placeholder="0"
+        value="{{form.maxPeople}}" data-key="maxPeople" bindinput="onInput" />
+    </view>
+
+    <view class="field">
+      <view class="label">备注</view>
+      <textarea class="textarea" placeholder="自带球拍/费用 AA 等"
+        value="{{form.note}}" data-key="note" bindinput="onInput" maxlength="200" />
+    </view>
+  </view>
+
+  <button class="btn-primary submit" bindtap="onSubmit" disabled="{{submitting}}">
+    {{isEdit ? '保存修改' : '创建活动'}}
+  </button>
+</view>

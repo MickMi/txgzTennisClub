@@ -1,0 +1,403 @@
+.profile-card {
+  text-align: center;
+  padding: 50rpx 24rpx;
+}
+
+.avatar {
+  width: 140rpx;
+  height: 140rpx;
+  margin: 0 auto;
+  background: #e8f5e9;
+  border-radius: 50%;
+  font-size: 80rpx;
+  line-height: 140rpx;
+}
+
+.name {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-top: 20rpx;
+}
+
+.gender-tag {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 8rpx;
+}
+
+.gender-edit {
+  margin-top: 20rpx;
+}
+
+.gender-group-inline {
+  display: flex;
+  justify-content: center;
+  gap: 32rpx;
+}
+
+.gender-opt {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  background: #f5f6f7;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.gender-opt.sel {
+  background: #e8f5e9;
+}
+
+.edit-btn {
+  margin-top: 30rpx;
+  width: 60%;
+}
+
+.input {
+  height: 80rpx;
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  margin-top: 30rpx;
+  font-size: 30rpx;
+  text-align: center;
+}
+
+.btns {
+  margin-top: 24rpx;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+/* 评级 */
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.rating-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #1aad19;
+}
+
+.rating-edit-btn {
+  font-size: 24rpx;
+  color: #1aad19;
+  padding: 6rpx 16rpx;
+  border: 1rpx solid #1aad19;
+  border-radius: 8rpx;
+}
+
+.rating-cancel-btn {
+  font-size: 24rpx;
+  color: #999;
+  padding: 6rpx 16rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+}
+
+.rating-hint {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+}
+
+.total-points {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #ff9800;
+}
+
+.stats-inline {
+  display: flex;
+  justify-content: space-around;
+  padding: 16rpx 0;
+}
+
+.stat-inline-item {
+  text-align: center;
+}
+
+.stat-inline-num {
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.stat-inline-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 6rpx;
+}
+
+.points-color {
+  color: #ff9800;
+}
+
+.elo-color {
+  color: #1976d2;
+}
+
+/* 趋势图表 */
+.chart-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.chart-tabs {
+  display: flex;
+  border-bottom: 1rpx solid #eee;
+}
+
+.chart-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 26rpx;
+  color: #666;
+  position: relative;
+}
+
+.chart-tab-active {
+  font-weight: 600;
+}
+
+.chart-tab-active.elo-active {
+  color: #1976d2;
+}
+
+.chart-tab-active.elo-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 4rpx;
+  background: #1976d2;
+  border-radius: 2rpx;
+}
+
+.chart-tab-active.pts-active {
+  color: #ff9800;
+}
+
+.chart-tab-active.pts-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 4rpx;
+  background: #ff9800;
+  border-radius: 2rpx;
+}
+
+.chart-container {
+  padding: 16rpx;
+}
+
+.trend-canvas {
+  width: 100%;
+  height: 300rpx;
+}
+
+/* 战绩统计 */
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 20rpx 0;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.win-color {
+  color: #1aad19;
+}
+
+.loss-color {
+  color: #e64340;
+}
+
+/* Tab */
+.tab-card {
+  padding-bottom: 0;
+}
+
+.tab-bar {
+  display: flex;
+  border-bottom: 1rpx solid #eee;
+  margin: -24rpx -24rpx 0 -24rpx;
+  padding: 0 24rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-active {
+  color: #1aad19;
+  font-weight: 600;
+}
+
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 4rpx;
+  background: #1aad19;
+  border-radius: 2rpx;
+}
+
+/* 列表项 */
+.list-item {
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list-item-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.list-item-meta {
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+.result-tag {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+.result-tag.win {
+  background: #e8f5e9;
+  color: #1aad19;
+}
+
+.result-tag.loss {
+  background: #fde8e8;
+  color: #e64340;
+}
+
+.result-tag.pending {
+  background: #fff3e0;
+  color: #ff9800;
+}
+
+.status-tag {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+.status-tag.open {
+  background: #e8f5e9;
+  color: #1aad19;
+}
+
+.status-tag.closed {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  font-size: 26rpx;
+}
+
+/* 空状态引导 - 紧凑版（卡片内使用） */
+.empty-state-sm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 24rpx 40rpx;
+}
+
+.empty-icon-sm {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-title-sm {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc-sm {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.empty-btn-sm {
+  width: 260rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  font-size: 26rpx;
+  padding: 0;
+}
+
+.item {
+  padding: 16rpx 0;
+}
+
+.tip {
+  text-align: center;
+  margin-top: 30rpx;
+  padding: 0 30rpx;
+  line-height: 1.6;
+}

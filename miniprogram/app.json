@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/match-list/match-list",
+    "pages/profile/profile",
+    "pages/onboarding/onboarding",
+    "pages/activity-create/activity-create",
+    "pages/activity-detail/activity-detail",
+    "pages/match-create/match-create",
+    "pages/match-detail/match-detail",
+    "pages/tournament-create/tournament-create",
+    "pages/tournament-detail/tournament-detail",
+    "pages/ranking/ranking"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1aad19",
+    "navigationBarTitleText": "腾讯广州网球社",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#1aad19",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "活动"
+      },
+      {
+        "pagePath": "pages/match-list/match-list",
+        "text": "赛事"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "__usePrivacyCheck__": true
+}

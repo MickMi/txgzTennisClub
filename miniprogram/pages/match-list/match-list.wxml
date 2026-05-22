@@ -1,0 +1,39 @@
+<view class="container">
+  <!-- 排行榜入口 -->
+  <view class="ranking-entry" bindtap="goRanking">
+    <view class="ranking-entry-left">
+      <text class="ranking-icon">🏆</text>
+      <text class="ranking-text">积分排行榜</text>
+    </view>
+    <text class="ranking-arrow">›</text>
+  </view>
+
+  <!-- 赛事列表 -->
+  <block wx:if="{{!loading && tournaments.length === 0}}">
+    <view class="empty-state">
+      <view class="empty-icon">🏅</view>
+      <view class="empty-title">还没有赛事</view>
+      <view class="empty-desc">组织一场赛事，抽签分组自动化管理</view>
+      <button class="btn-primary empty-btn" bindtap="goCreate">创建赛事</button>
+    </view>
+  </block>
+
+  <view
+    wx:for="{{tournaments}}"
+    wx:key="_id"
+    class="card"
+    data-id="{{item._id}}"
+    bindtap="goTournamentDetail"
+  >
+    <view class="row-between">
+      <view class="title">{{item.title}}</view>
+      <view class="tag {{item.status === 'finished' ? 'tag-gray' : ''}}">
+        {{item.statusText}}
+      </view>
+    </view>
+    <view class="meta">📅 {{item.dateText}} · {{item.levelText}}</view>
+    <view class="meta">👥 {{item.playerCount}}人报名 · {{item.type === 'doubles' ? '双打' : '单打'}}</view>
+  </view>
+</view>
+
+<view class="fab" bindtap="goCreate">+</view>

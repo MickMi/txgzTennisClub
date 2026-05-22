@@ -1,0 +1,45 @@
+<view class="container">
+  <!-- 我的排名 -->
+  <view class="card my-rank-card" wx:if="{{myRank > 0}}">
+    <view class="my-rank-label">我的排名</view>
+    <view class="my-rank-num">#{{myRank}}</view>
+  </view>
+
+  <!-- 排行榜列表 -->
+  <view class="card rank-card">
+    <view class="rank-header">
+      <text class="rh-rank">#</text>
+      <text class="rh-name">选手</text>
+      <text class="rh-elo">ELO</text>
+      <text class="rh-pts">积分</text>
+    </view>
+
+    <view wx:if="{{loading && list.length === 0}}" class="muted" style="text-align: center; padding: 40rpx;">
+      加载中...
+    </view>
+
+    <view wx:if="{{!loading && list.length === 0}}" class="muted" style="text-align: center; padding: 40rpx;">
+      暂无排名数据
+    </view>
+
+    <view wx:for="{{list}}" wx:key="openid" class="rank-row {{item.openid === myOpenid ? 'rank-me' : ''}} {{item.rank <= 3 ? 'rank-top' : ''}}">
+      <view class="rank-num {{item.rank === 1 ? 'gold' : item.rank === 2 ? 'silver' : item.rank === 3 ? 'bronze' : ''}}">
+        <text wx:if="{{item.rank === 1}}">🥇</text>
+        <text wx:elif="{{item.rank === 2}}">🥈</text>
+        <text wx:elif="{{item.rank === 3}}">🥉</text>
+        <text wx:else>{{item.rank}}</text>
+      </view>
+      <view class="rank-info">
+        <text class="rank-name">{{item.gender === 'female' ? '♀' : '♂'}} {{item.wecomName}}</text>
+        <text class="rank-rating" wx:if="{{item.rating}}">{{item.rating}}</text>
+      </view>
+      <view class="rank-elo">{{item.eloRating}}</view>
+      <view class="rank-pts">{{item.totalPoints}}</view>
+    </view>
+  </view>
+
+  <view class="muted" style="text-align: center; margin-top: 20rpx; font-size: 22rpx; line-height: 1.8;">
+    总积分 = 最佳10场赛事收益之和
+    <view>每场赛事收益 = ELO小分(每场+3~8) + 名次奖励(冠军50~200)</view>
+  </view>
+</view>

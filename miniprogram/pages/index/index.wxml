@@ -1,0 +1,32 @@
+<view class="container">
+  <block wx:if="{{!loading && list.length === 0}}">
+    <view class="empty-state">
+      <view class="empty-icon">🎾</view>
+      <view class="empty-title">还没有活动</view>
+      <view class="empty-desc">组织一场网球活动，邀请社团伙伴一起运动吧</view>
+      <button class="btn-primary empty-btn" bindtap="goCreate">创建活动</button>
+    </view>
+  </block>
+
+  <view
+    wx:for="{{list}}"
+    wx:key="_id"
+    class="card"
+    data-id="{{item._id}}"
+    bindtap="goDetail"
+  >
+    <view class="row-between">
+      <view class="title">{{item.title}}</view>
+      <view class="tag {{item.status === 'closed' ? 'tag-gray' : ''}}">
+        {{item.status === 'closed' ? '已结束' : '报名中'}}
+      </view>
+    </view>
+    <view class="meta">⏰ {{item.startTimeText}}</view>
+    <view class="meta">📍 {{item.location}}</view>
+    <view class="meta">
+      👥 {{item.joinedCount}}/{{item.maxPeople || '∞'}} 人
+    </view>
+  </view>
+</view>
+
+<view class="fab" bindtap="goCreate">+</view>

@@ -1,0 +1,39 @@
+.field {
+  margin-bottom: 28rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #555;
+  margin-bottom: 12rpx;
+}
+
+.input, .picker {
+  height: 80rpx;
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  line-height: 80rpx;
+  font-size: 30rpx;
+}
+
+.card-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+}
+
+.tip {
+  margin: 20rpx 10rpx;
+  line-height: 1.6;
+}
+
+.field-hint {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #999;
+}
+
+.submit {
+  margin-top: 20rpx;
+}

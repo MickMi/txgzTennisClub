@@ -1,0 +1,46 @@
+.field {
+  margin-bottom: 28rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #555;
+  margin-bottom: 12rpx;
+}
+
+.input, .picker {
+  height: 80rpx;
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  line-height: 80rpx;
+  font-size: 30rpx;
+}
+
+.picker-desc {
+  margin-left: 16rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.level-points {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #1aad19;
+  padding-left: 4rpx;
+}
+
+.field-hint {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #999;
+}
+
+.tip {
+  margin: 20rpx 10rpx;
+  line-height: 1.6;
+}
+
+.submit {
+  margin-top: 20rpx;
+}

@@ -1,0 +1,149 @@
+/* 全局样式 */
+page {
+  background: #f5f6f7;
+  font-size: 28rpx;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+}
+
+.container {
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.muted {
+  color: #888;
+  font-size: 24rpx;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: #e8f5e9;
+  color: #1aad19;
+  font-size: 22rpx;
+  margin-right: 8rpx;
+}
+
+.tag-gray {
+  background: #eee;
+  color: #888;
+}
+
+.btn-primary {
+  background: #1aad19;
+  color: #fff;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+
+.btn-primary[disabled] {
+  background: #c6e6c6;
+  color: #fff;
+}
+
+.btn-default {
+  background: #fff;
+  color: #1aad19;
+  border: 1rpx solid #1aad19;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #e64340;
+  border: 1rpx solid #e64340;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 80rpx 0;
+  font-size: 26rpx;
+}
+
+/* 空状态引导 - 完整版（列表页使用） */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 40rpx 80rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #999;
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.empty-btn {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  padding: 0;
+}
+
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 60rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #1aad19;
+  color: #fff;
+  font-size: 60rpx;
+  line-height: 96rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 16rpx rgba(26, 173, 25, 0.4);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.divider {
+  height: 1rpx;
+  background: #eee;
+  margin: 16rpx 0;
+}

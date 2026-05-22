@@ -1,0 +1,59 @@
+.hero {
+  text-align: center;
+  padding: 80rpx 0 40rpx;
+}
+
+.emoji {
+  font-size: 100rpx;
+}
+
+.welcome {
+  font-size: 38rpx;
+  font-weight: 600;
+  margin: 20rpx 0 10rpx;
+  color: #222;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #555;
+  margin-bottom: 16rpx;
+}
+
+.field {
+  margin-bottom: 28rpx;
+}
+
+.input {
+  height: 80rpx;
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+}
+
+.gender-group {
+  display: flex;
+  gap: 32rpx;
+}
+
+.gender-option {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 32rpx;
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+
+.gender-option.selected {
+  background: #e8f5e9;
+}
+
+.tip {
+  margin-top: 16rpx;
+}
+
+.submit {
+  margin-top: 40rpx;
+}
