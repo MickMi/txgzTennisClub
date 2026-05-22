@@ -12,7 +12,7 @@ Page({
     form: {
       title: '',
       type: 'singles',     // singles | doubles
-      bestOf: 6,           // 4 / 5 / 6
+      bestOf: 6,           // 4 / 6
       level: 'friendly',   // friendly | challenge | major
       handicapRule: '',
       matchDate: ''
@@ -22,8 +22,8 @@ Page({
       { key: 'singles', label: '单打' },
       { key: 'doubles', label: '双打' }
     ],
-    bestOfIndex: 2,
-    bestOfOptions: [4, 5, 6],
+    bestOfIndex: 1,
+    bestOfOptions: [4, 6],
     levelIndex: 0,
     levelOptions: LEVEL_OPTIONS,
     submitting: false

@@ -105,7 +105,7 @@ exports.main = async event => {
     const p = event.payload || {};
     if (!p.title || !p.matchDate) return { code: 1, msg: '参数不完整' };
     const type = p.type === 'doubles' ? 'doubles' : 'singles';
-    const bestOf = [4, 5, 6].includes(p.bestOf) ? p.bestOf : 6;
+    const bestOf = [4, 6].includes(p.bestOf) ? p.bestOf : 6;
     const level = ['major', 'challenge', 'friendly'].includes(p.level) ? p.level : 'friendly';
 
     const now = Date.now();

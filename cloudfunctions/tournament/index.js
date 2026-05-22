@@ -439,7 +439,7 @@ exports.main = async event => {
     if (!p.title) return { code: 1, msg: '请填写赛事名称' };
 
     const type = p.type === 'doubles' ? 'doubles' : 'singles';
-    const bestOf = [1, 3, 5].includes(p.bestOf) ? p.bestOf : 3;
+    const bestOf = [4, 6].includes(p.bestOf) ? p.bestOf : 6;
     const level = ['major', 'challenge', 'friendly'].includes(p.level) ? p.level : 'friendly';
     const groupCount = Math.max(2, Math.min(8, p.groupCount || 2));
     const advanceCount = Math.max(1, Math.min(4, p.advanceCount || 2));

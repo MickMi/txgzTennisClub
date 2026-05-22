@@ -25,8 +25,8 @@ Page({
       { key: 'singles', label: '单打' },
       { key: 'doubles', label: '双打' }
     ],
-    bestOfIndex: 2,
-    bestOfOptions: [4, 5, 6],
+    bestOfIndex: 1,
+    bestOfOptions: [4, 6],
     levelIndex: 0,
     levelOptions: LEVEL_OPTIONS,
     groupCountOptions: [2, 3, 4, 6, 8],
