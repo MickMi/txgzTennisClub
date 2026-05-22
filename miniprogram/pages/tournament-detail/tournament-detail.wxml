@@ -16,8 +16,6 @@
         </button>
       </view>
     </view>
-    <!-- Crest -->
-    <view class="crest">{{t.title[0] || 'T'}}</view>
     <!-- Masthead -->
     <view class="hero-masthead">
       <view class="kicker">{{t.levelText}} · {{t.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</view>
