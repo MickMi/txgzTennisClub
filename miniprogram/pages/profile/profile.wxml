@@ -154,6 +154,12 @@ module.exports = {
           </label>
         </radio-group>
       </view>
+      <view class="edit-rating">
+        <text class="edit-rating-label">NTRP 等级</text>
+        <picker mode="selector" range="{{ratingOptions}}" value="{{ratingIndex}}" bindchange="onRatingChange">
+          <view class="edit-rating-picker">{{rating === '未设置' ? '选择等级' : rating}}</view>
+        </picker>
+      </view>
       <view class="edit-actions">
         <view class="edit-btn cancel" bindtap="onCancel">CANCEL</view>
         <view class="edit-btn save" bindtap="onSave">SAVE</view>

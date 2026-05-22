@@ -505,7 +505,7 @@ page {
 
 /* === Masthead（自定义顶栏） === */
 .masthead {
-  padding: 120rpx 48rpx 28rpx;
+  padding: 176rpx 48rpx 28rpx;
   display: grid;
   grid-template-columns: 1fr auto;
   column-gap: 24rpx;

@@ -399,6 +399,27 @@
   color: var(--color-accent);
 }
 
+.edit-rating {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid var(--color-border);
+}
+.edit-rating-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 12rpx;
+}
+.edit-rating-picker {
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  color: var(--color-fg);
+  padding: 16rpx 0;
+}
+
 .edit-actions {
   display: flex;
   justify-content: flex-end;
