@@ -146,7 +146,7 @@
         <view class="list-item-meta muted">
           <text>{{item.startTimeStr}}</text>
           <text> · {{item.location}}</text>
-          <text> · {{item.participantCount}}人参与</text>
+          <text> · </text><text class="display-num">{{item.participantCount}}</text><text class="mono-unit">人</text><text>参与</text>
         </view>
       </view>
     </view>

@@ -33,6 +33,7 @@
 }
 
 .big {
+  font-family: var(--font-display);
   font-size: 38rpx;
   margin-bottom: 16rpx;
 }
@@ -49,6 +50,7 @@
 }
 
 .section-title {
+  font-family: var(--font-display);
   font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 16rpx;
@@ -109,6 +111,7 @@
   font-size: 22rpx;
   color: var(--color-fg);
   font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
   margin-right: 12rpx;
 }
 
@@ -203,6 +206,8 @@
 .st-rank {
   width: 50rpx;
   text-align: center;
+  font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
 }
 
 .st-name {
@@ -212,6 +217,8 @@
 .st-stat {
   width: 60rpx;
   text-align: center;
+  font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
 }
 
 /* 对阵列表 */
@@ -475,4 +482,5 @@
   color: var(--color-accent);
   margin-left: 8rpx;
   font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
 }

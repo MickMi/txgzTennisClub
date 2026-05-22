@@ -8,6 +8,7 @@
 }
 
 .welcome {
+  font-family: var(--font-display);
   font-size: 38rpx;
   font-weight: 600;
   margin: 20rpx 0 10rpx;

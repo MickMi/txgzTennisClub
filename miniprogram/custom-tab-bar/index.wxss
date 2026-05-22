@@ -28,7 +28,6 @@
 }
 .tab-label {
   font-size: 21rpx;
-  letter-spacing: 0.06em;
 }
 .tab.is-active {
   color: #1f2e22;

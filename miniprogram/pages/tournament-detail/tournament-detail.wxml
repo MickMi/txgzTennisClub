@@ -3,7 +3,7 @@
   <view class="card">
     <view class="title big">{{t.title}}</view>
     <view class="meta"><icon name="clock" size="32" /> {{t.dateText}} · {{t.levelText}}</view>
-    <view class="meta"><icon name="tennis" size="32" /> {{t.type === 'doubles' ? '双打' : '单打'}} · 先赢 {{t.bestOf}} 盘</view>
+    <view class="meta"><icon name="tennis" size="32" /> {{t.type === 'doubles' ? '双打' : '单打'}} · 先赢 <text class="display-num">{{t.bestOf}}</text> <text class="mono-unit">盘</text></view>
     <view class="meta"><icon name="list" size="32" /> {{t.config.groupCount}}组 · 每组前{{t.config.advanceCount}}名晋级 · {{t.config.seedCount > 0 ? t.config.seedCount + '种子' : '随机分组'}}</view>
     <view class="meta handicap-rule" wx:if="{{t.handicapRule}}"><icon name="note" size="32" /> 让分规则：{{t.handicapRule}}</view>
     <view class="status-badge {{t.status}}">{{t.statusText}}</view>
@@ -21,12 +21,12 @@
     <!-- 报名阶段 -->
     <block wx:if="{{t.status === 'signup'}}">
       <view class="card">
-        <view class="section-title">已报名（{{t.players.length}}人）</view>
+        <view class="section-title">已报名（<text class="display-num">{{t.players.length}}</text><text class="mono-unit">人</text>）</view>
         <view wx:if="{{t.players.length === 0}}" class="muted">暂无报名</view>
         <view wx:for="{{t.players}}" wx:key="openid" class="player-row">
           <text class="player-gender"></text>
           <text class="player-name">{{index + 1}}. {{item.wecomName}}</text>
-          <text class="player-pts" wx:if="{{item.totalPoints}}">{{item.totalPoints}}分</text>
+          <text class="player-pts" wx:if="{{item.totalPoints}}">{{item.totalPoints}}</text><text class="mono-unit" wx:if="{{item.totalPoints}}">分</text>
           <text class="player-rating" wx:if="{{item.rating}}">{{item.rating}}</text>
         </view>
 

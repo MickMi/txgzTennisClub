@@ -10,12 +10,9 @@
   color: var(--color-fg);
 }
 .page-subtitle {
-  font-family: var(--font-mono);
   font-size: var(--text-mono-md);
-  letter-spacing: 0.18em;
   color: var(--color-accent);
   margin-top: 8rpx;
-  text-transform: uppercase;
 }
 
 .ranking-info {
@@ -25,9 +22,7 @@
 
 .ranking-footer {
   margin-top: 48rpx;
-  font-family: var(--font-mono);
   font-size: 18rpx;
-  letter-spacing: 0.1em;
   color: var(--color-muted);
   text-align: center;
   padding-bottom: 48rpx;

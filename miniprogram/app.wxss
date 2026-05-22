@@ -82,7 +82,6 @@ page {
 .card-eyebrow {
   font-family: var(--font-mono);
   font-size: var(--text-mono-sm);
-  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-accent);
   margin-bottom: 12rpx;
@@ -107,7 +106,6 @@ page {
   margin-top: 24rpx;
   font-family: var(--font-mono);
   font-size: var(--text-mono-md);
-  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-fg);
 }
@@ -136,7 +134,6 @@ page {
   display: block;
   font-family: var(--font-mono);
   font-size: 19rpx;
-  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-muted);
   margin-bottom: 6rpx;
@@ -145,7 +142,7 @@ page {
   font-size: 29rpx;
   line-height: 1.35;
   color: var(--color-fg);
-  font-feature-settings: 'tnum';
+  font-feature-settings: 'tnum','lnum';
 }
 .meta-badge {
   font-family: var(--font-mono);
@@ -208,7 +205,6 @@ page {
 .datestamp-session {
   font-family: var(--font-mono);
   font-size: var(--text-mono-sm);
-  letter-spacing: 0.18em;
   color: var(--color-muted);
   text-transform: uppercase;
   margin-top: 24rpx;
@@ -303,7 +299,7 @@ page {
   color: var(--color-muted);
   margin-top: 4rpx;
   display: block;
-  font-feature-settings: 'tnum';
+  font-feature-settings: 'tnum','lnum';
 }
 .player-rating.unrated {
   color: var(--color-disabled);
@@ -318,7 +314,6 @@ page {
   font-family: var(--font-body);
   font-weight: 500;
   font-size: var(--text-body-lg);
-  letter-spacing: 0.06em;
   border-radius: 0;
   display: flex;
   align-items: center;
@@ -376,7 +371,6 @@ page {
   font-family: var(--font-mono);
   font-size: var(--text-mono-sm);
   text-transform: uppercase;
-  letter-spacing: 0.22em;
   color: var(--color-fg);
 }
 .section-eyebrow .meta {
@@ -407,7 +401,7 @@ page {
   font-size: var(--text-mono-sm);
   letter-spacing: 0.2em;
   color: var(--color-accent);
-  font-feature-settings: 'tnum';
+  font-feature-settings: 'tnum','lnum';
 }
 .rule-text {
   font-size: 29rpx;
@@ -476,7 +470,6 @@ page {
   font-weight: 500;
   font-size: var(--text-display-lg);
   line-height: 1.06;
-  letter-spacing: 0.005em;
   margin: 0;
   color: var(--color-bg);
 }
@@ -484,7 +477,6 @@ page {
   margin-top: 28rpx;
   font-size: var(--text-body-sm);
   color: rgba(248, 244, 232, 0.78);
-  letter-spacing: 0.02em;
 }
 .hero-organiser .sep {
   display: inline-block;
@@ -528,7 +520,6 @@ page {
   font-family: var(--font-display);
   font-size: 44rpx;
   font-weight: 500;
-  letter-spacing: 0.005em;
   color: var(--color-fg);
   line-height: 1;
 }
@@ -576,6 +567,7 @@ page {
   font-size: var(--text-body-sm);
 }
 .title {
+  font-family: var(--font-display);
   font-size: 32rpx;
   font-weight: 600;
   color: var(--color-fg);
@@ -660,7 +652,6 @@ page {
   display: block;
   font-family: var(--font-mono);
   font-size: 18rpx;
-  letter-spacing: 0.2em;
   color: var(--color-muted);
   text-transform: uppercase;
   margin-top: 10rpx;
@@ -685,10 +676,8 @@ page {
   flex: 1;
   text-align: center;
   padding: 24rpx 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: var(--text-mono-md);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   color: var(--color-muted);
   position: relative;
 }
@@ -722,7 +711,6 @@ page {
   font-family: var(--font-mono);
   font-size: 18rpx;
   color: var(--color-muted);
-  letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-top: 8rpx;
 }
@@ -730,6 +718,10 @@ page {
 .loss-color { color: var(--color-danger); }
 .points-color { color: var(--color-accent); }
 .elo-color { color: var(--color-emerald); }
+
+/* === 字体角色工具类 === */
+.display-num { font-family: var(--font-display); font-feature-settings: 'tnum','lnum'; }
+.mono-unit { font-family: var(--font-mono); font-size: var(--text-mono-md); color: var(--color-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-left: 4rpx; }
 
 /* === 排行榜行 === */
 .ranking-row {
@@ -749,7 +741,7 @@ page {
   font-family: var(--font-mono);
   font-size: var(--text-body-lg);
   color: var(--color-muted);
-  font-feature-settings: 'tnum';
+  font-feature-settings: 'tnum','lnum';
   text-align: center;
 }
 .ranking-rank.top3 {

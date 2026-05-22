@@ -73,6 +73,7 @@
 
 /* 评级 */
 .section-title {
+  font-family: var(--font-display);
   font-size: 28rpx;
   font-weight: 600;
   color: var(--color-fg);
@@ -88,7 +89,8 @@
 .rating-value {
   font-size: 48rpx;
   font-weight: 700;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
   color: var(--color-muted);
 }
 
@@ -120,6 +122,7 @@
   font-weight: 700;
   color: var(--color-fg);
   font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
 }
 
 .stats-inline {
@@ -136,6 +139,7 @@
   font-size: 44rpx;
   font-weight: 700;
   font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
 }
 
 .stat-inline-label {
@@ -232,6 +236,7 @@
   font-weight: 700;
   color: var(--color-fg);
   font-family: var(--font-display);
+  font-feature-settings: 'tnum','lnum';
 }
 
 .stat-label {

@@ -2,7 +2,7 @@
   <!-- 页面标题 -->
   <view class="page-header">
     <view class="page-title">积分排行榜</view>
-    <view class="page-subtitle" wx:if="{{myRank > 0}}">我的排名 #{{myRank}}</view>
+    <view class="page-subtitle" wx:if="{{myRank > 0}}"><text>我的排名</text> <text class="display-num">#{{myRank}}</text></view>
   </view>
 
   <!-- 排行榜列表 -->

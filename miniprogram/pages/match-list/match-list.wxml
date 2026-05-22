@@ -42,7 +42,7 @@
     <view class="card-title">{{item.title}}</view>
     <view class="card-meta">
       <view class="meta-item"><icon name="clock" size="28" /><text>{{item.dateText}}</text></view>
-      <view class="meta-item"><icon name="people" size="28" /><text>{{item.playerCount}}人</text></view>
+      <view class="meta-item"><icon name="people" size="28" /><text class="display-num">{{item.playerCount}}</text><text class="mono-unit">人</text></view>
     </view>
     <view class="card-foot">
       <view class="card-status">{{item.statusText}}</view>

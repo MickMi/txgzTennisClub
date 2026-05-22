@@ -32,11 +32,11 @@
     <view class="card-title">{{item.title}}</view>
     <view class="card-meta">
       <view class="meta-item"><icon name="pin" size="28" /><text>{{item.location}}</text></view>
-      <view class="meta-item"><icon name="people" size="28" /><text>{{item.joinedCount}}/{{item.maxPeople || '∞'}}</text></view>
+      <view class="meta-item"><icon name="people" size="28" /><text class="display-num">{{item.joinedCount}}/{{item.maxPeople || '∞'}}</text></view>
     </view>
     <view class="card-foot">
       <view class="card-status {{item.status === 'closed' ? 'tag--closed' : ''}}">
-        {{item.status === 'closed' ? '已结束' : '报名中'}} · {{item.joinedCount}} 人
+        {{item.status === 'closed' ? '已结束' : '报名中'}} · <text class="display-num">{{item.joinedCount}}</text> <text class="mono-unit">人</text>
       </view>
       <icon name="arrow-right" size="32" class="card-arrow" />
     </view>

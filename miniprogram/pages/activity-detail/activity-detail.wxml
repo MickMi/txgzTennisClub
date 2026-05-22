@@ -37,7 +37,7 @@
         <icon name="people" size="36" class="meta-icon" />
         <view>
           <text class="meta-label">规模</text>
-          <text class="meta-value">{{detail.participants.length}} / {{detail.maxPeople || '∞'}} 人</text>
+          <text class="meta-value"><text class="display-num">{{detail.participants.length}}</text> / <text class="display-num">{{detail.maxPeople || '∞'}}</text> <text class="mono-unit">人</text></text>
         </view>
         <view></view>
       </view>
@@ -55,7 +55,7 @@
     <view class="section">
       <view class="section-eyebrow">
         <text>已报名</text>
-        <text class="meta">ROSTER · {{detail.participants.length}} / {{detail.maxPeople || '∞'}}</text>
+        <text class="meta">ROSTER · <text class="display-num">{{detail.participants.length}}</text> / <text class="display-num">{{detail.maxPeople || '∞'}}</text></text>
       </view>
 
       <!-- 容量条 -->
