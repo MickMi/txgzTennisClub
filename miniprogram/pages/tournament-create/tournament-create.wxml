@@ -1,5 +1,5 @@
 <view class="container">
-  <view class="card">
+  <view class="form-content">
     <view class="form-row">
       <text class="form-label">TITLE · 赛事名称 <text class="required">*</text></text>
       <input class="form-input" placeholder="例如：5月月赛" value="{{form.title}}" data-key="title" bindinput="onInput" maxlength="40" />

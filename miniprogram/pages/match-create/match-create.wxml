@@ -1,5 +1,5 @@
 <view class="container">
-  <view class="card">
+  <view class="form-content">
     <view class="form-row">
       <text class="form-label">TITLE · 比赛名 <text class="required">*</text></text>
       <input class="form-input" placeholder="例如：5 月月赛-决赛"

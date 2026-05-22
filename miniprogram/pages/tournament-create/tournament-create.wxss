@@ -1,9 +1,18 @@
-/* Form rows */
+/* Container: top safe area + side padding */
+.container {
+  padding-top: 120rpx;
+  padding-left: 48rpx;
+  padding-right: 48rpx;
+  padding-bottom: 200rpx;
+}
+
+/* Form rows — label + input 左对齐，分隔线全宽 */
 .form-row {
-  padding: 24rpx 0;
+  padding: 32rpx 0 24rpx;
   border-bottom: 1rpx solid var(--color-border);
 }
 .form-row:last-child { border-bottom: none; }
+
 .form-label {
   display: block;
   font-family: var(--font-mono);
@@ -11,36 +20,44 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-muted);
-  margin-bottom: 12rpx;
+  margin-bottom: 16rpx;
 }
 .form-label .required {
   color: var(--color-accent);
 }
-.form-input, .form-textarea {
+
+.form-input {
   width: 100%;
-  background: var(--color-surface);
+  background: transparent;
   border: none;
-  padding: 28rpx 24rpx;
+  padding: 0;
   font-family: var(--font-body);
-  font-size: 29rpx;
+  font-size: 30rpx;
   color: var(--color-fg);
-}
-.form-textarea {
-  min-height: 160rpx;
-}
-.form-picker {
-  padding: 28rpx 24rpx;
-  background: var(--color-surface);
-  font-size: 29rpx;
-  color: var(--color-fg);
+  line-height: 1.4;
+  min-height: 48rpx;
 }
 
-/* Container bottom padding for fixed button + top safe area */
-.container {
-  padding-top: 120rpx;
-  padding-left: 48rpx;
-  padding-right: 48rpx;
-  padding-bottom: 200rpx;
+.form-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 30rpx;
+  color: var(--color-fg);
+  line-height: 1.5;
+  min-height: 120rpx;
+}
+
+.form-picker {
+  padding: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 30rpx;
+  color: var(--color-fg);
+  min-height: 48rpx;
+  line-height: 48rpx;
 }
 
 /* Submit button - fixed at bottom */
@@ -50,19 +67,7 @@
   padding: 28rpx 48rpx 60rpx;
 }
 
-/* Card title */
-.card-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  margin-bottom: 24rpx;
-}
-
-/* Tips & hints */
-.tip {
-  margin: 20rpx 10rpx;
-  line-height: 1.6;
-}
-
+/* Hints */
 .field-hint {
   margin-top: 8rpx;
   font-size: 22rpx;

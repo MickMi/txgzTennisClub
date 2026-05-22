@@ -1,5 +1,5 @@
 <view class="container">
-  <view class="card">
+  <view class="form-content">
     <view class="form-row">
       <text class="form-label">TITLE · 活动标题 <text class="required">*</text></text>
       <input class="form-input" placeholder="例如：周三晚训"
