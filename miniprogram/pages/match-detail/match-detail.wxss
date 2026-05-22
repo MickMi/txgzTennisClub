@@ -4,13 +4,13 @@
 }
 
 .meta {
-  color: #555;
+  color: var(--color-muted);
   margin-top: 10rpx;
   font-size: 28rpx;
 }
 
 .handicap-rule {
-  color: #e65100;
+  color: var(--color-accent);
   font-weight: 500;
 }
 
@@ -24,7 +24,7 @@
   display: flex;
   align-items: center;
   padding: 14rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: var(--border-hairline);
   font-size: 28rpx;
 }
 
@@ -54,19 +54,19 @@
 
 .team-block {
   flex: 1;
-  background: #f5f6f7;
-  border-radius: 12rpx;
+  background: var(--color-bg);
+  border-radius: 0;
   padding: 20rpx;
   text-align: center;
 }
 
 .team-block.win {
-  background: #e8f5e9;
+  background: var(--color-surface);
 }
 
 .team-label {
   font-size: 26rpx;
-  color: #888;
+  color: var(--color-muted);
   margin-bottom: 10rpx;
 }
 
@@ -79,7 +79,7 @@
 .vs-text {
   align-self: center;
   margin: 0 16rpx;
-  color: #aaa;
+  color: var(--color-disabled);
 }
 
 /* 比分展示 */
@@ -91,16 +91,18 @@
 .score-big {
   font-size: 64rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--color-fg);
   letter-spacing: 8rpx;
+  font-family: var(--font-display);
 }
 
 .winner-badge {
   margin-top: 16rpx;
   padding: 12rpx 24rpx;
-  background: #e8f5e9;
-  color: #1aad19;
-  border-radius: 12rpx;
+  background: transparent;
+  color: var(--color-success);
+  border: 1rpx solid var(--color-success);
+  border-radius: 0;
   font-weight: 600;
   display: inline-block;
 }
@@ -111,12 +113,12 @@
 }
 
 .points-win {
-  color: #1aad19;
+  color: var(--color-success);
   margin-right: 24rpx;
 }
 
 .points-lose {
-  color: #999;
+  color: var(--color-muted);
 }
 
 /* 录分输入 */
@@ -133,25 +135,26 @@
 
 .score-side-label {
   font-size: 24rpx;
-  color: #888;
+  color: var(--color-muted);
   margin-bottom: 8rpx;
 }
 
 .score-input {
   width: 140rpx;
   height: 100rpx;
-  background: #f5f6f7;
-  border-radius: 12rpx;
+  background: var(--color-bg);
+  border-radius: 0;
   text-align: center;
   font-size: 48rpx;
   font-weight: 700;
+  font-family: var(--font-display);
 }
 
 .score-colon {
   font-size: 48rpx;
   font-weight: 700;
   margin: 30rpx 24rpx 0;
-  color: #333;
+  color: var(--color-fg);
 }
 
 .btns {
@@ -161,6 +164,6 @@
 .flex1 { flex: 1; }
 
 .link {
-  color: #1aad19;
+  color: var(--color-accent);
   font-size: 26rpx;
 }

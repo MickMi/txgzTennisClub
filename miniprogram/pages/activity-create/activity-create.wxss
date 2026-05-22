@@ -4,14 +4,14 @@
 
 .label {
   font-size: 26rpx;
-  color: #555;
+  color: var(--color-muted);
   margin-bottom: 12rpx;
 }
 
 .input, .picker {
   height: 80rpx;
-  background: #f5f6f7;
-  border-radius: 12rpx;
+  background: var(--color-bg);
+  border-radius: 0;
   padding: 0 24rpx;
   line-height: 80rpx;
   font-size: 30rpx;
@@ -20,8 +20,8 @@
 .textarea {
   width: 100%;
   min-height: 160rpx;
-  background: #f5f6f7;
-  border-radius: 12rpx;
+  background: var(--color-bg);
+  border-radius: 0;
   padding: 20rpx 24rpx;
   font-size: 30rpx;
   box-sizing: border-box;

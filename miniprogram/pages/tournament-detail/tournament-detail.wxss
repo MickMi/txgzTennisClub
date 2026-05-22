@@ -1,11 +1,10 @@
 /* Tab 切换 */
 .tab-bar {
   display: flex;
-  background: #fff;
-  border-radius: 12rpx;
+  background: var(--color-bg);
+  border-radius: 0;
   margin-bottom: 20rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .tab-item {
@@ -13,12 +12,12 @@
   text-align: center;
   padding: 22rpx 0;
   font-size: 28rpx;
-  color: #666;
+  color: var(--color-muted);
   position: relative;
 }
 
 .tab-active {
-  color: #1aad19;
+  color: var(--color-fg);
   font-weight: 600;
 }
 
@@ -29,8 +28,8 @@
   left: 25%;
   width: 50%;
   height: 4rpx;
-  background: #1aad19;
-  border-radius: 2rpx;
+  background: var(--color-accent);
+  border-radius: 0;
 }
 
 .big {
@@ -39,13 +38,13 @@
 }
 
 .meta {
-  color: #555;
+  color: var(--color-muted);
   margin-top: 10rpx;
   font-size: 28rpx;
 }
 
 .handicap-rule {
-  color: #e65100;
+  color: var(--color-accent);
   font-weight: 500;
 }
 
@@ -59,29 +58,28 @@
   display: inline-block;
   margin-top: 16rpx;
   padding: 6rpx 20rpx;
-  border-radius: 8rpx;
+  border-radius: 0;
   font-size: 24rpx;
   font-weight: 500;
+  font-family: var(--font-mono);
+  border: 1rpx solid currentColor;
+  background: transparent;
 }
 
 .status-badge.signup {
-  background: #e3f2fd;
-  color: #1976d2;
+  color: var(--color-accent);
 }
 
 .status-badge.group {
-  background: #fff3e0;
-  color: #f57c00;
+  color: var(--color-accent);
 }
 
 .status-badge.knockout {
-  background: #fce4ec;
-  color: #c62828;
+  color: var(--color-danger);
 }
 
 .status-badge.finished {
-  background: #e8f5e9;
-  color: #1aad19;
+  color: var(--color-muted);
 }
 
 /* 报名列表 */
@@ -89,7 +87,7 @@
   display: flex;
   align-items: center;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: var(--border-hairline);
 }
 
 .player-row:last-child {
@@ -99,7 +97,7 @@
 .player-gender {
   font-size: 28rpx;
   margin-right: 8rpx;
-  color: #666;
+  color: var(--color-muted);
 }
 
 .player-name {
@@ -109,16 +107,18 @@
 
 .player-pts {
   font-size: 22rpx;
-  color: #ff9800;
+  color: var(--color-fg);
+  font-family: var(--font-display);
   margin-right: 12rpx;
 }
 
 .player-rating {
   font-size: 22rpx;
   padding: 2rpx 10rpx;
-  background: #e8f5e9;
-  color: #1aad19;
-  border-radius: 6rpx;
+  background: transparent;
+  color: var(--color-muted);
+  border-radius: 0;
+  font-family: var(--font-mono);
 }
 
 .actions {
@@ -135,7 +135,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: var(--border-hairline);
 }
 
 .draw-row:last-of-type {
@@ -144,15 +144,16 @@
 
 .draw-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--color-fg);
 }
 
 .draw-picker {
   font-size: 28rpx;
-  color: #1aad19;
+  color: var(--color-fg);
   padding: 8rpx 20rpx;
-  background: #f0faf0;
-  border-radius: 8rpx;
+  background: var(--color-bg);
+  border-radius: 0;
+  font-family: var(--font-mono);
 }
 
 .draw-input {
@@ -160,8 +161,8 @@
   height: 60rpx;
   text-align: center;
   font-size: 28rpx;
-  background: #f5f6f7;
-  border-radius: 8rpx;
+  background: var(--color-bg);
+  border-radius: 0;
 }
 
 .draw-hint {
@@ -173,29 +174,30 @@
 /* 排名表 */
 .standings {
   margin-bottom: 20rpx;
-  border: 1rpx solid #eee;
-  border-radius: 8rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: 0;
   overflow: hidden;
 }
 
 .standings-header {
   display: flex;
-  background: #f5f6f7;
+  background: var(--color-bg);
   padding: 12rpx 16rpx;
   font-size: 22rpx;
-  color: #888;
+  color: var(--color-muted);
   font-weight: 500;
+  font-family: var(--font-mono);
 }
 
 .standings-row {
   display: flex;
   padding: 14rpx 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: var(--border-hairline);
   font-size: 26rpx;
 }
 
 .standings-row.advance {
-  background: #f9fef9;
+  background: var(--color-surface);
 }
 
 .st-rank {
@@ -219,7 +221,7 @@
 
 .match-row {
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: var(--border-hairline);
 }
 
 .match-row:last-child {
@@ -234,24 +236,24 @@
 
 .match-vs {
   margin: 0 16rpx;
-  color: #aaa;
+  color: var(--color-disabled);
   font-size: 24rpx;
 }
 
 .winner-name {
-  color: #1aad19;
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .match-score {
   font-size: 24rpx;
-  color: #666;
+  color: var(--color-muted);
   margin-top: 6rpx;
 }
 
 .match-action {
   font-size: 24rpx;
-  color: #1aad19;
+  color: var(--color-accent);
   margin-top: 8rpx;
 }
 
@@ -259,8 +261,8 @@
 .score-edit {
   margin-top: 12rpx;
   padding: 16rpx;
-  background: #f9f9f9;
-  border-radius: 8rpx;
+  background: var(--color-bg);
+  border-radius: 0;
 }
 
 .score-edit-simple {
@@ -279,15 +281,15 @@
 .set-label {
   width: 100rpx;
   font-size: 24rpx;
-  color: #666;
+  color: var(--color-muted);
 }
 
 .score-input {
   flex: 1;
   height: 60rpx;
-  background: #fff;
-  border: 1rpx solid #ddd;
-  border-radius: 8rpx;
+  background: var(--color-surface);
+  border: 1rpx solid var(--color-border);
+  border-radius: 0;
   text-align: center;
   font-size: 28rpx;
 }
@@ -295,7 +297,7 @@
 .dash {
   width: 40rpx;
   text-align: center;
-  color: #aaa;
+  color: var(--color-disabled);
 }
 
 .btns {
@@ -317,10 +319,10 @@
 
 .ko-round-title {
   font-size: 26rpx;
-  color: #888;
+  color: var(--color-muted);
   font-weight: 500;
   padding: 8rpx 0;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: var(--border-hairline);
   margin-bottom: 12rpx;
 }
 
@@ -337,7 +339,7 @@
 .champion-text {
   font-size: 32rpx;
   font-weight: 600;
-  color: #1aad19;
+  color: var(--color-accent);
   margin-top: 16rpx;
 }
 
@@ -353,24 +355,25 @@
 .draw-group {
   flex: 1;
   min-width: 200rpx;
-  background: #f9fef9;
-  border-radius: 12rpx;
+  background: var(--color-surface);
+  border-radius: 0;
   padding: 16rpx;
-  border: 1rpx solid #e8f5e9;
+  border: 1rpx solid var(--color-border);
 }
 
 .draw-group-title {
   font-size: 24rpx;
   font-weight: 600;
-  color: #1aad19;
+  color: var(--color-fg);
   margin-bottom: 12rpx;
   text-align: center;
+  font-family: var(--font-mono);
 }
 
 .draw-player {
   font-size: 26rpx;
   padding: 8rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: var(--border-hairline);
 }
 
 .draw-player:last-child {
@@ -382,9 +385,10 @@
 }
 
 .seed-badge {
-  color: #ff9800;
+  color: var(--color-accent);
   font-size: 22rpx;
   margin-right: 6rpx;
+  font-family: var(--font-mono);
 }
 
 /* 淘汰赛 Bracket */
@@ -418,9 +422,10 @@
 
 .bracket-round-title {
   font-size: 22rpx;
-  color: #888;
+  color: var(--color-muted);
   margin-bottom: 16rpx;
   font-weight: 500;
+  font-family: var(--font-mono);
 }
 
 .bracket-matches {
@@ -432,9 +437,9 @@
 }
 
 .bracket-match {
-  background: #fff;
-  border: 1rpx solid #e0e0e0;
-  border-radius: 10rpx;
+  background: var(--color-surface);
+  border: 1rpx solid var(--color-border);
+  border-radius: 0;
   margin-bottom: 16rpx;
   overflow: hidden;
 }
@@ -444,7 +449,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14rpx 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: var(--border-hairline);
 }
 
 .bracket-slot:last-child {
@@ -452,12 +457,12 @@
 }
 
 .bracket-slot.slot-win {
-  background: #e8f5e9;
+  background: var(--color-bg);
 }
 
 .bracket-name {
   font-size: 24rpx;
-  color: #333;
+  color: var(--color-fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -467,6 +472,7 @@
 .bracket-score {
   font-size: 24rpx;
   font-weight: 600;
-  color: #1aad19;
+  color: var(--color-accent);
   margin-left: 8rpx;
+  font-family: var(--font-display);
 }

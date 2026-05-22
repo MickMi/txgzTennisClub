@@ -4,14 +4,14 @@
 
 .label {
   font-size: 26rpx;
-  color: #555;
+  color: var(--color-muted);
   margin-bottom: 12rpx;
 }
 
 .input, .picker {
   height: 80rpx;
-  background: #f5f6f7;
-  border-radius: 12rpx;
+  background: var(--color-bg);
+  border-radius: 0;
   padding: 0 24rpx;
   line-height: 80rpx;
   font-size: 30rpx;
@@ -20,20 +20,21 @@
 .picker-desc {
   margin-left: 16rpx;
   font-size: 24rpx;
-  color: #999;
+  color: var(--color-muted);
 }
 
 .level-points {
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #1aad19;
+  color: var(--color-accent);
   padding-left: 4rpx;
+  font-family: var(--font-mono);
 }
 
 .field-hint {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #999;
+  color: var(--color-muted);
 }
 
 .tip {
