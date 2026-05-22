@@ -1,4 +1,14 @@
 <view class="container">
+  <!-- Masthead -->
+  <view class="masthead">
+    <view class="masthead-left">
+      <view class="wordmark">{{isEdit ? '编辑活动' : '创建活动'}}</view>
+      <view class="wordmark-caption">{{isEdit ? 'EDIT ACTIVITY' : 'NEW ACTIVITY'}}</view>
+    </view>
+    <view class="masthead-actions">
+    </view>
+  </view>
+
   <view class="form-content">
     <view class="form-row">
       <text class="form-label">TITLE · 活动标题 <text class="required">*</text></text>

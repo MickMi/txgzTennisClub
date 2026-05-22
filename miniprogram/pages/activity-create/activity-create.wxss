@@ -1,9 +1,12 @@
-/* Container: top safe area + side padding */
+/* Container */
 .container {
-  padding-top: 120rpx;
-  padding-left: 48rpx;
-  padding-right: 48rpx;
+  padding-left: 0;
+  padding-right: 0;
   padding-bottom: 200rpx;
+}
+
+.form-content {
+  padding: 0 48rpx;
 }
 
 /* Form rows — label + input 左对齐，分隔线全宽 */

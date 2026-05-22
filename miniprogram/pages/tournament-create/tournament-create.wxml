@@ -1,4 +1,14 @@
 <view class="container">
+  <!-- Masthead -->
+  <view class="masthead">
+    <view class="masthead-left">
+      <view class="wordmark">创建赛事</view>
+      <view class="wordmark-caption">NEW TOURNAMENT</view>
+    </view>
+    <view class="masthead-actions">
+    </view>
+  </view>
+
   <view class="form-content">
     <view class="form-row">
       <text class="form-label">TITLE · 赛事名称 <text class="required">*</text></text>
