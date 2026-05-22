@@ -110,47 +110,77 @@ exports.main = async (event, context) => {
 
 // 构建个人档案
 async function buildProfile(openid, user) {
-  // 查询参与的比赛（在 teamA 或 teamB 中）
-  const matchRes = await db.collection('matches')
-    .where(_.or([
-      { 'teamA.openid': openid },
-      { 'teamB.openid': openid }
-    ]))
-    .orderBy('matchDate', 'desc')
+  // 从 tournaments 集合统计战绩（小组赛 + 淘汰赛）
+  const tournamentRes = await db.collection('tournaments')
+    .where({ 'players.openid': openid })
+    .orderBy('createdAt', 'desc')
     .limit(50)
     .get();
-  const matches = matchRes.data || [];
+  const tournaments = tournamentRes.data || [];
 
-  // 统计战绩
   let wins = 0;
   let losses = 0;
   let pending = 0;
-  const matchHistory = matches.map(m => {
-    const inA = (m.teamA || []).some(p => p.openid === openid);
-    let result = 'pending';
-    if (m.status === 'finished' && m.winner) {
-      if ((m.winner === 'A' && inA) || (m.winner === 'B' && !inA)) {
-        result = 'win';
-        wins++;
-      } else {
-        result = 'loss';
-        losses++;
+  const matchHistory = [];
+
+  for (const t of tournaments) {
+    // 遍历小组赛
+    for (const g of (t.groups || [])) {
+      for (const m of (g.matches || [])) {
+        const isPlayerA = m.playerA && m.playerA.openid === openid;
+        const isPlayerB = m.playerB && m.playerB.openid === openid;
+        if (!isPlayerA && !isPlayerB) continue;
+
+        if (m.winner) {
+          const iWon = (m.winner === 'A' && isPlayerA) || (m.winner === 'B' && isPlayerB);
+          if (iWon) wins++;
+          else losses++;
+          matchHistory.push({
+            _id: t._id + '_' + m.id,
+            title: t.title + ' · ' + g.name + '组',
+            type: t.type,
+            matchDate: t.matchDate,
+            scoreSummary: m.scoreSummary || '',
+            result: iWon ? 'win' : 'loss',
+            opponent: isPlayerA ? (m.playerB && m.playerB.wecomName || '') : (m.playerA && m.playerA.wecomName || '')
+          });
+        } else {
+          pending++;
+        }
       }
-    } else {
-      pending++;
     }
-    return {
-      _id: m._id,
-      title: m.title,
-      type: m.type,
-      matchDate: m.matchDate,
-      scoreSummary: m.scoreSummary || '',
-      result,
-      status: m.status,
-      teamA: m.teamA || [],
-      teamB: m.teamB || []
-    };
-  });
+
+    // 遍历淘汰赛
+    if (t.knockout && t.knockout.rounds) {
+      for (const round of t.knockout.rounds) {
+        for (const m of (round.matches || [])) {
+          const isPlayerA = m.playerA && m.playerA.openid === openid;
+          const isPlayerB = m.playerB && m.playerB.openid === openid;
+          if (!isPlayerA && !isPlayerB) continue;
+
+          if (m.winner) {
+            const iWon = (m.winner === 'A' && isPlayerA) || (m.winner === 'B' && isPlayerB);
+            if (iWon) wins++;
+            else losses++;
+            matchHistory.push({
+              _id: t._id + '_' + m.id,
+              title: t.title + ' · ' + round.name,
+              type: t.type,
+              matchDate: t.matchDate,
+              scoreSummary: m.scoreSummary || '',
+              result: iWon ? 'win' : 'loss',
+              opponent: isPlayerA ? (m.playerB && m.playerB.wecomName || '') : (m.playerA && m.playerA.wecomName || '')
+            });
+          } else if (m.playerA && m.playerB && !m.bye) {
+            pending++;
+          }
+        }
+      }
+    }
+  }
+
+  // 按时间倒序排列战绩
+  matchHistory.sort((a, b) => (b.matchDate || 0) - (a.matchDate || 0));
 
   // 查询参与的活动
   const actRes = await db.collection('activities')
@@ -174,7 +204,6 @@ async function buildProfile(openid, user) {
   const earnings = (user.tournamentEarnings || []).slice().sort((a, b) => a.date - b.date);
   const pointsHistory = [];
   for (let i = 0; i < earnings.length; i++) {
-    // 取到当前为止的所有赛事，按 earned 排序取前10
     const soFar = earnings.slice(0, i + 1).sort((a, b) => b.earned - a.earned).slice(0, 10);
     const total = soFar.reduce((s, e) => s + e.earned, 0);
     pointsHistory.push({ date: earnings[i].date, value: total, title: earnings[i].title });
@@ -183,8 +212,8 @@ async function buildProfile(openid, user) {
   return {
     user,
     rating: user.rating || '',
-    stats: { wins, losses, pending, total: matches.length },
-    matchHistory,
+    stats: { wins, losses, pending, total: wins + losses + pending },
+    matchHistory: matchHistory.slice(0, 20),
     activities,
     eloHistory,
     pointsHistory
