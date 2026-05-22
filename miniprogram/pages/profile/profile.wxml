@@ -3,13 +3,6 @@ module.exports = {
   firstChar: function(name) {
     return name ? name.charAt(0) : '?';
   },
-  joinedMonths: function(createdAt) {
-    if (!createdAt) return '';
-    var now = getDate();
-    var created = getDate(createdAt);
-    var months = (now.getFullYear() - created.getFullYear()) * 12 + now.getMonth() - created.getMonth();
-    return months > 0 ? months : 1;
-  },
   day: function(dateStr) {
     if (!dateStr) return '--';
     var d = getDate(dateStr);
@@ -44,11 +37,11 @@ module.exports = {
     <view class="who">
       <view class="name">{{user.wecomName || '未登记'}}</view>
       <view class="role">
-        <text class="role-badge" wx:if="{{user.role === 'admin'}}">ADMIN</text>
-        <text class="role-badge" wx:else>MEMBER</text>
-        <text class="pip"></text>
-        <text class="joined" wx:if="{{user.createdAt}}">入队 {{fmt.joinedMonths(user.createdAt)}} 个月</text>
-        <text class="joined" wx:else>已入队</text>
+        <block wx:if="{{user.role === 'admin'}}">
+          <text class="role-badge accent">ADMIN</text>
+          <text class="role-muted"> · 管理员</text>
+        </block>
+        <text class="role-badge muted" wx:else>MEMBER</text>
       </view>
     </view>
   </view>
@@ -88,7 +81,7 @@ module.exports = {
     </view>
     <view class="stat">
       <text class="n">{{stats.total}}</text>
-      <text class="l">共</text>
+      <text class="l">总计</text>
     </view>
   </view>
 
