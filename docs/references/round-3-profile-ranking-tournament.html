@@ -1,0 +1,896 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tennis Club · Round 3 (Profile + Ranking + Tournament · emerald-heritage)</title>
+<style>
+  :root {
+    --bg:        oklch(96% 0.018 90);
+    --surface:   oklch(98% 0.008 90);
+    --paper:     oklch(99% 0.005 90);
+    --border:    oklch(88% 0.015 90);
+    --hairline:  oklch(85% 0.014 90);
+    --muted:     oklch(45% 0.025 145);
+    --fg:        oklch(22% 0.05 155);
+    --accent:    oklch(62% 0.13 75);
+    --emerald-deep: oklch(26% 0.06 155);
+    --positive: oklch(48% 0.10 155);
+    --neutral:  oklch(55% 0.025 90);
+    --font-display: 'Iowan Old Style', 'Charter', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+    --font-body:    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', system-ui, sans-serif;
+    --font-mono:    ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1600px 800px at 50% -120px, oklch(92% 0.02 90), transparent 70%), oklch(89% 0.012 90);
+    font-family: var(--font-body); color: var(--fg);
+    min-height: 100vh; padding: 56px 32px 80px;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  .sheet { max-width: 1500px; margin: 0 auto; }
+  .studio-header {
+    display: grid; grid-template-columns: auto 1fr auto; column-gap: 24px; align-items: baseline;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-bottom: 1px solid var(--fg); padding-bottom: 18px; margin-bottom: 36px;
+  }
+  .studio-header strong { font-family: var(--font-display); font-weight: 500; font-size: 22px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+  .studio-header em { font-style: normal; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--muted); }
+  .section-rule {
+    margin: 16px 0 28px; display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; column-gap: 20px;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg);
+  }
+  .section-rule h2 { margin: 0; font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg); text-transform: none; line-height: 1; }
+  .section-rule .meta { color: var(--muted); }
+  .phones-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; justify-items: center; align-items: start; margin-top: 16px; }
+  .phone-stack { display: flex; flex-direction: column; align-items: center; }
+  .phone-stack .caption {
+    margin-bottom: 18px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    display: grid; grid-template-columns: 1fr auto; column-gap: 14px; align-items: baseline; width: 375px;
+  }
+  .phone-stack .caption strong { font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+  .device {
+    width: 375px; height: 812px; background: var(--bg);
+    border-radius: 48px; border: 9px solid #0c1410; position: relative; overflow: hidden;
+    box-shadow: 0 36px 72px -24px rgba(20,30,25,0.35), 0 8px 24px -8px rgba(20,30,25,0.18);
+  }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 156px; height: 30px; background: #0c1410; border-radius: 0 0 18px 18px; z-index: 50; }
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 47px; z-index: 45; display: flex; align-items: center; justify-content: space-between; padding: 14px 28px 0; color: var(--fg); font-family: var(--font-body); font-size: 15px; font-weight: 600; letter-spacing: -0.02em; pointer-events: none; }
+  .statusbar.dark { color: var(--bg); }
+  .statusbar svg { display: block; }
+  .statusbar .right { display: flex; gap: 5px; align-items: center; }
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; background: var(--fg); border-radius: 3px; z-index: 60; opacity: 0.55; }
+  .screen { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+  .scroll { position: absolute; inset: 0 0 73px 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .tabbar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; background: var(--paper); border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 6px 0 26px; }
+  .tabbar .tab { display: grid; grid-template-rows: 22px auto; row-gap: 4px; place-items: center; padding: 8px 0 6px; color: var(--muted); position: relative; font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; background: none; border: 0; cursor: pointer; }
+  .tabbar .tab svg { stroke: currentColor; fill: none; stroke-width: 1.4; }
+  .tabbar .tab.is-active { color: var(--fg); }
+  .tabbar .tab.is-active svg { stroke-width: 1.7; }
+  .tabbar .tab.is-active::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 18px; height: 2px; background: var(--accent); }
+
+  /* ============ profile ============ */
+  .profile-topnav { padding: 60px 16px 0; display: flex; justify-content: space-between; align-items: center; }
+  .profile-topnav .icon-pill { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: none; cursor: pointer; padding: 0; }
+  .profile-topnav .actions { display: flex; gap: 10px; }
+  .profile-hero { padding: 18px 24px 22px; display: grid; grid-template-columns: 78px 1fr; column-gap: 18px; align-items: center; }
+  .profile-hero .avatar { width: 78px; height: 78px; border-radius: 50%; border: 1.5px solid var(--accent); display: grid; place-items: center; font-family: var(--font-display); font-size: 32px; font-weight: 500; color: var(--fg); background: var(--paper); }
+  .profile-hero .who { min-width: 0; }
+  .profile-hero .name { font-family: var(--font-display); font-size: 26px; font-weight: 500; line-height: 1.1; color: var(--fg); letter-spacing: 0.005em; }
+  .profile-hero .role { margin-top: 6px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase; }
+  .profile-hero .role .pip { display: inline-block; width: 4px; height: 4px; background: var(--hairline); border-radius: 50%; margin: 0 8px; transform: translateY(-2px); }
+  .profile-hero .role .joined { color: var(--muted); }
+  .identity-grid { margin: 4px 24px 0; display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--hairline); }
+  .identity-grid .cell { padding: 14px 0 14px; border-inline-start: 1px solid var(--hairline); padding-inline-start: 14px; }
+  .identity-grid .cell:first-child { border-inline-start: 0; padding-inline-start: 0; }
+  .identity-grid .lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; display: block; }
+  .identity-grid .val { font-family: var(--font-display); font-size: 26px; font-weight: 500; line-height: 1; color: var(--fg); font-feature-settings: 'lnum','tnum'; letter-spacing: -0.005em; }
+  .identity-grid .val em { font-style: normal; color: var(--muted); font-size: 14px; margin-inline-start: 4px; }
+  .identity-grid .delta { display: block; margin-top: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--accent); font-feature-settings: 'tnum'; letter-spacing: 0.06em; }
+  .identity-grid .delta.flat { color: var(--muted); }
+  .stats-strip { margin: 0 24px; display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--hairline); padding: 12px 0; }
+  .stats-strip .stat { text-align: center; line-height: 1.1; }
+  .stats-strip .stat .n { font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--fg); font-feature-settings: 'tnum','lnum'; }
+  .stats-strip .stat .l { display: block; margin-top: 4px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+  .stats-strip .stat.win .n { color: var(--positive); }
+  .chart-block { margin: 22px 24px 0; }
+  .chart-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--hairline); margin-bottom: 12px; }
+  .chart-tabs .tab { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); padding: 10px 14px 10px 0; margin-inline-end: 18px; background: none; border: 0; cursor: pointer; position: relative; }
+  .chart-tabs .tab.is-active { color: var(--fg); }
+  .chart-tabs .tab.is-active::after { content: ''; position: absolute; left: 0; right: 14px; bottom: -1px; height: 2px; background: var(--accent); }
+  .chart-tabs .meta { margin-inline-start: auto; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.18em; color: var(--muted); align-self: center; padding-bottom: 10px; text-transform: uppercase; }
+  .profile-chart { width: 100%; height: 168px; }
+  .chart-foot { display: grid; grid-template-columns: 1fr auto; column-gap: 16px; padding: 10px 0 0; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+  .chart-foot strong { color: var(--fg); font-family: var(--font-display); font-weight: 500; font-size: 14px; letter-spacing: 0; text-transform: none; }
+  .recent-block { margin: 20px 24px 0; }
+  .recent-eyebrow { display: grid; grid-template-columns: 1fr auto auto; column-gap: 14px; align-items: baseline; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg); border-top: 1px solid var(--fg); padding-top: 12px; }
+  .recent-eyebrow .meta { color: var(--muted); font-size: 9px; }
+  .match-row { display: grid; grid-template-columns: 36px 1fr auto; column-gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hairline); align-items: center; }
+  .match-row .when { line-height: 1.05; font-family: var(--font-display); color: var(--fg); font-feature-settings: 'lnum','tnum'; text-align: center; }
+  .match-row .when .d { font-size: 18px; display: block; font-weight: 500; }
+  .match-row .when .m { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; display: block; margin-top: 2px; }
+  .match-row .who { min-width: 0; }
+  .match-row .title { font-size: 13.5px; color: var(--fg); line-height: 1.25; }
+  .match-row .vs { margin-top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
+  .match-row .score { font-family: var(--font-display); font-weight: 500; font-size: 17px; line-height: 1; color: var(--fg); font-feature-settings: 'tnum','lnum'; text-align: end; min-width: 40px; }
+  .match-row.is-loss .score { color: var(--muted); }
+  .match-row.is-pending .score { color: var(--accent); font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; }
+  .activity-mini { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hairline); align-items: center; }
+  .activity-mini:last-child { border-bottom: none; }
+  .activity-mini .ttl { font-size: 13.5px; color: var(--fg); }
+  .activity-mini .when { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; color: var(--muted); margin-top: 4px; font-feature-settings: 'tnum'; }
+  .activity-mini .arrow { font-family: var(--font-mono); color: var(--muted); }
+
+  /* ============ ranking ============ */
+  .ranking-topnav { padding: 60px 16px 0; display: flex; justify-content: space-between; align-items: center; }
+  .ranking-topnav .icon-pill { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: none; cursor: pointer; padding: 0; }
+  .ranking-masthead { padding: 18px 24px 16px; }
+  .ranking-masthead .kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.24em; color: var(--accent); text-transform: uppercase; display: inline-flex; gap: 10px; align-items: center; }
+  .ranking-masthead .kicker::before { content: ''; display: inline-block; width: 18px; height: 1px; background: var(--accent); }
+  .ranking-masthead .title { margin: 8px 0 6px; font-family: var(--font-display); font-size: 32px; font-weight: 500; line-height: 1; color: var(--fg); letter-spacing: 0.005em; }
+  .ranking-masthead .subtitle { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; display: grid; grid-template-columns: auto auto auto 1fr; gap: 14px; align-items: baseline; }
+  .ranking-masthead .subtitle .pip { width: 4px; height: 4px; border-radius: 50%; background: var(--hairline); }
+  .ranking-segment { margin: 14px 24px 0; padding-bottom: 8px; border-bottom: 1px solid var(--hairline); display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .ranking-segment .seg { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: var(--muted); padding: 8px 0; cursor: pointer; background: none; border: 0; text-transform: uppercase; text-align: start; position: relative; }
+  .ranking-segment .seg.is-active { color: var(--fg); }
+  .ranking-segment .seg.is-active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--accent); }
+  .ranking-segment .seg .n { color: var(--accent); margin-inline-end: 6px; font-feature-settings: 'tnum'; }
+  .ranking-table-head { margin: 18px 24px 0; padding-bottom: 8px; border-bottom: 1px solid var(--fg); display: grid; grid-template-columns: 30px 1fr 56px 56px; column-gap: 12px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; color: var(--muted); text-transform: uppercase; align-items: end; }
+  .ranking-table-head .num-col { text-align: end; }
+  .ranking-table { margin: 0 24px; }
+  .ranking-row { display: grid; grid-template-columns: 30px 1fr 56px 56px; column-gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--hairline); align-items: center; }
+  .ranking-row .rank { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-align: end; font-feature-settings: 'tnum'; }
+  .ranking-row[data-rank='1'] .rank,
+  .ranking-row[data-rank='2'] .rank,
+  .ranking-row[data-rank='3'] .rank { color: var(--fg); font-weight: 500; }
+  .ranking-row[data-rank='1'] .name { font-family: var(--font-display); font-size: 17px; font-weight: 500; }
+  .ranking-row .who { min-width: 0; display: grid; grid-template-columns: 26px 1fr; column-gap: 10px; align-items: center; }
+  .ranking-row .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--paper); border: 1px solid var(--border); display: grid; place-items: center; font-family: var(--font-display); font-size: 12px; color: var(--fg); font-feature-settings: 'lnum'; }
+  .ranking-row[data-gender='female'] .avatar { border-color: var(--accent); color: var(--accent); }
+  .ranking-row .info { min-width: 0; line-height: 1.15; }
+  .ranking-row .name { font-size: 14px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ranking-row .ntrp { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.04em; color: var(--muted); margin-top: 2px; font-feature-settings: 'tnum'; }
+  .ranking-row .ntrp.unrated { color: oklch(72% 0.012 90); }
+  .ranking-row .points { font-family: var(--font-display); font-size: 17px; color: var(--fg); text-align: end; font-feature-settings: 'tnum','lnum'; font-weight: 500; letter-spacing: -0.005em; }
+  .ranking-row .elo { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); text-align: end; font-feature-settings: 'tnum'; letter-spacing: 0.04em; }
+  .ranking-row .elo .delta { color: var(--positive); margin-inline-start: 4px; }
+  .ranking-row .elo .delta.down { color: var(--muted); }
+  .ranking-row.is-me { background: var(--paper); border-bottom: 1px solid var(--fg); position: relative; padding-inline-start: 6px; padding-inline-end: 6px; margin-inline-start: -6px; margin-inline-end: -6px; }
+  .ranking-row.is-me::before { content: ''; position: absolute; inset-inline-start: 0; top: 14px; bottom: 14px; width: 2px; background: var(--accent); }
+  .ranking-row.is-me::after { content: '我'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; color: var(--accent); writing-mode: vertical-rl; padding: 4px 0; }
+
+  /* ============ tournament-detail ============ */
+  .tournament-hero { position: relative; height: 320px; background: linear-gradient(168deg, oklch(28% 0.06 155) 0%, oklch(18% 0.05 155) 100%); color: var(--bg); overflow: hidden; }
+  .tournament-hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 3px 3px; pointer-events: none; mix-blend-mode: overlay; }
+  .tournament-hero .court-bg { position: absolute; inset: 0; opacity: 0.28; pointer-events: none; }
+  .tournament-hero .topnav { position: absolute; top: 47px; left: 0; right: 0; z-index: 30; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
+  .tournament-hero .topnav .icon-btn { width: 36px; height: 36px; border: 1px solid rgba(245,239,224,0.22); background: rgba(20,28,22,0.32); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: grid; place-items: center; color: var(--bg); cursor: pointer; padding: 0; }
+  .tournament-hero .topnav .actions { display: flex; gap: 8px; }
+  .tournament-hero .crest { position: absolute; top: 110px; right: 24px; width: 52px; height: 52px; border: 1px solid var(--accent); border-radius: 50%; display: grid; place-items: center; color: var(--accent); font-family: var(--font-display); font-size: 18px; font-weight: 500; }
+  .tournament-hero .crest small { display: block; font-family: var(--font-mono); font-size: 6.5px; letter-spacing: 0.2em; margin-top: 2px; }
+  .tournament-hero .masthead { position: absolute; bottom: 22px; left: 24px; right: 24px; }
+  .tournament-hero .kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent); display: inline-flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .tournament-hero .kicker::before { content: ''; display: inline-block; width: 16px; height: 1px; background: var(--accent); }
+  .tournament-hero .title { font-family: var(--font-display); font-weight: 500; font-size: 30px; line-height: 1.05; letter-spacing: 0.005em; margin: 0; color: var(--bg); }
+  .tournament-hero .status-row { margin-top: 14px; display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; color: oklch(78% 0.02 90); text-transform: uppercase; }
+  .tournament-hero .status-pill { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; padding: 4px 8px; border: 1px solid var(--accent); color: var(--accent); }
+  .tournament-meta { padding: 18px 24px 0; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .tournament-meta .cell { padding: 4px 14px; border-inline-start: 1px solid var(--hairline); line-height: 1.2; }
+  .tournament-meta .cell:first-child { border-inline-start: 0; padding-inline-start: 0; }
+  .tournament-meta .lbl { display: block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .tournament-meta .val { font-family: var(--font-display); font-size: 15px; color: var(--fg); font-feature-settings: 'lnum','tnum'; letter-spacing: 0.005em; font-weight: 500; }
+  .tournament-meta .val em { font-style: normal; color: var(--muted); font-size: 11px; margin-inline-start: 3px; }
+  .stage-eyebrow { margin: 22px 24px 12px; padding-top: 12px; border-top: 1px solid var(--fg); display: grid; grid-template-columns: 1fr auto auto; column-gap: 14px; align-items: baseline; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg); }
+  .stage-eyebrow .meta { color: var(--muted); font-size: 9px; }
+  .bracket-wrap { margin: 0 24px; padding: 8px 0 4px; }
+  .bracket-svg { width: 100%; display: block; height: 268px; }
+  .next-up-eyebrow { margin: 18px 24px 10px; padding-top: 10px; border-top: 1px solid var(--hairline); display: grid; grid-template-columns: 1fr auto; column-gap: 14px; align-items: baseline; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
+  .next-up-eyebrow .lbl { color: var(--fg); }
+  .next-card { margin: 0 24px; padding: 14px 0 0; display: grid; grid-template-columns: 1fr auto 1fr; column-gap: 12px; align-items: center; }
+  .next-card .player { line-height: 1.15; min-width: 0; }
+  .next-card .player.right { text-align: end; }
+  .next-card .name { font-family: var(--font-display); font-size: 17px; font-weight: 500; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.005em; }
+  .next-card .ntrp { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 4px; font-feature-settings: 'tnum'; letter-spacing: 0.04em; }
+  .next-card .vs { font-family: var(--font-display); font-style: italic; font-size: 14px; color: var(--accent); padding: 0 6px; }
+  .next-card-when { margin: 10px 24px 0; padding-bottom: 4px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; display: grid; grid-template-columns: auto auto 1fr; column-gap: 14px; align-items: baseline; }
+  .next-card-when .pip { width: 4px; height: 4px; border-radius: 50%; background: var(--hairline); align-self: center; }
+  .tournament-cta-bar { position: absolute; bottom: 0; left: 0; right: 0; background: var(--paper); border-top: 1px solid var(--border); padding: 14px 20px 30px; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; z-index: 38; }
+  .tournament-cta-bar .status { line-height: 1.1; }
+  .tournament-cta-bar .status .num { font-family: var(--font-display); font-size: 22px; color: var(--fg); font-feature-settings: 'tnum','lnum'; letter-spacing: -0.01em; font-weight: 500; }
+  .tournament-cta-bar .status .num em { font-style: normal; color: var(--muted); font-size: 14px; }
+  .tournament-cta-bar .status .lbl { display: block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
+  .cta-primary { -webkit-appearance: none; appearance: none; background: var(--emerald-deep); color: var(--bg); border: 1px solid var(--emerald-deep); padding: 14px 18px; font-family: var(--font-body); font-weight: 500; font-size: 15px; letter-spacing: 0.06em; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 0; height: 50px; }
+  .cta-primary::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 7px; height: 1px; background: var(--accent); opacity: 0.85; }
+
+  /* ============ states strip ============ */
+  .states-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 28px; }
+  .state-card { background: var(--paper); border: 1px solid var(--border); padding: 20px 18px; }
+  .state-card .ey { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .state-card.is-current .ey { color: var(--accent); }
+  .state-card .h { font-family: var(--font-display); font-size: 17px; font-weight: 500; color: var(--fg); margin: 4px 0 8px; line-height: 1.2; }
+  .state-card .b { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  .page-foot {
+    margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--hairline);
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .page-foot .center { text-align: center; }
+  .page-foot .end { text-align: end; }
+  .page-foot strong { color: var(--fg); font-family: var(--font-display); font-weight: 500; font-size: 13px; letter-spacing: 0; text-transform: none; }
+  @media (max-width: 1280px) { .phones-row { grid-template-columns: 1fr 1fr; } .states-row { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 720px)  { .phones-row { grid-template-columns: 1fr; } .states-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="studio-header">
+    <span>Open Design / Tennis Club</span>
+    <strong>Round 3 — Profile · Ranking · Tournament</strong>
+    <em>emerald-heritage · 1500w · Chart A</em>
+  </header>
+
+  <div class="section-rule">
+    <span>A</span>
+    <h2>三个核心子页 / Profile, Ranking &amp; Tournament Detail</h2>
+    <span class="meta">375 × 812 · 全部使用 Chart A 图表语言</span>
+  </div>
+
+  <div class="phones-row">
+
+    <!-- ============ PROFILE ============ -->
+    <div class="phone-stack">
+      <div class="caption">
+        <strong>我的 — pages/profile/profile</strong>
+        <span>login.getProfile</span>
+      </div>
+      <div class="device" role="group" aria-label="Profile, iPhone 375 by 812">
+        <div class="notch"></div>
+        <div class="statusbar" aria-hidden="true">
+          <span>9:41</span>
+          <span class="right">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          </span>
+        </div>
+        <div class="screen">
+          <div class="scroll" data-od-id="profile-scroll">
+
+            <nav class="profile-topnav">
+              <button class="icon-pill" aria-label="返回">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+              </button>
+              <div class="actions">
+                <button class="icon-pill" aria-label="编辑资料" data-action="goEdit">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5 19.5 9.5 9 20 4 20 4 15Z"/><line x1="13" y1="6" x2="18" y2="11"/></svg>
+                </button>
+                <button class="icon-pill" aria-label="设置" data-action="goSettings">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9l2.1 2.1 M17 17l2.1 2.1 M4.9 19.1l2.1-2.1 M17 7l2.1-2.1"/></svg>
+                </button>
+              </div>
+            </nav>
+
+            <header class="profile-hero" data-od-id="profile-hero" data-field="user">
+              <div class="avatar" data-field="user.wecomName" aria-hidden="true">张</div>
+              <div class="who">
+                <div class="name" data-field="user.wecomName">张文涛</div>
+                <div class="role">
+                  <span data-field="user.role">CAPTAIN · 队长</span>
+                  <span class="pip"></span>
+                  <span class="joined">入队 18 个月</span>
+                </div>
+              </div>
+            </header>
+
+            <section class="identity-grid" data-od-id="identity-grid" aria-label="身份指标">
+              <div class="cell" data-field="user.rating">
+                <span class="lbl">NTRP</span>
+                <span class="val">4.5</span>
+                <span class="delta flat">— 半年</span>
+              </div>
+              <div class="cell" data-field="user.totalPoints">
+                <span class="lbl">积分</span>
+                <span class="val">480</span>
+                <span class="delta">+ 60 本月</span>
+              </div>
+              <div class="cell" data-field="user.eloRating">
+                <span class="lbl">ELO</span>
+                <span class="val">1583</span>
+                <span class="delta">+ 28 本月</span>
+              </div>
+            </section>
+
+            <section class="stats-strip" data-od-id="stats-strip" data-field="stats" aria-label="战绩统计">
+              <div class="stat win"><span class="n" data-field="stats.wins">23</span><span class="l">胜</span></div>
+              <div class="stat"><span class="n" data-field="stats.losses">9</span><span class="l">负</span></div>
+              <div class="stat"><span class="n" data-field="stats.pending">1</span><span class="l">待录</span></div>
+              <div class="stat"><span class="n" data-field="stats.total">33</span><span class="l">共</span></div>
+            </section>
+
+            <section class="chart-block" data-od-id="profile-chart">
+              <div class="chart-tabs" role="tablist">
+                <button class="tab is-active" role="tab" aria-selected="true" data-action="switchELO">ELO 趋势</button>
+                <button class="tab" role="tab" aria-selected="false" data-action="switchPoints">积分趋势</button>
+                <span class="meta">DEC '25 — MAY '26</span>
+              </div>
+              <svg class="profile-chart" viewBox="0 0 480 200" preserveAspectRatio="none" aria-label="ELO trend chart, 1500 to 1583">
+                <g stroke="oklch(85% 0.014 90)" stroke-width="0.6">
+                  <line x1="48" y1="20"  x2="464" y2="20" />
+                  <line x1="48" y1="68"  x2="464" y2="68" />
+                  <line x1="48" y1="116" x2="464" y2="116" />
+                  <line x1="48" y1="164" x2="464" y2="164" stroke="oklch(45% 0.025 145)" stroke-width="0.8"/>
+                </g>
+                <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="9" letter-spacing="1.2" fill="oklch(45% 0.025 145)" text-anchor="end">
+                  <text x="42" y="23">1600</text>
+                  <text x="42" y="71">1565</text>
+                  <text x="42" y="119">1530</text>
+                  <text x="42" y="167">1495</text>
+                </g>
+                <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" letter-spacing="1.2" fill="oklch(45% 0.025 145)" text-anchor="middle">
+                  <text x="60"  y="184">DEC</text>
+                  <text x="125" y="184">JAN</text>
+                  <text x="190" y="184">FEB</text>
+                  <text x="255" y="184">MAR</text>
+                  <text x="320" y="184">APR</text>
+                  <text x="395" y="184">MAY</text>
+                </g>
+                <line x1="335" y1="68" x2="335" y2="164" stroke="oklch(62% 0.13 75)" stroke-width="0.8" stroke-dasharray="2 2" opacity="0.7"/>
+                <polyline
+                  points="60,156 125,164 190,156 255,128 320,80 395,72 460,72"
+                  fill="none" stroke="oklch(22% 0.05 155)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                />
+                <g fill="oklch(22% 0.05 155)">
+                  <circle cx="60" cy="156" r="2.4"/>
+                  <circle cx="125" cy="164" r="2.4"/>
+                  <circle cx="320" cy="80" r="2.4"/>
+                  <circle cx="460" cy="72" r="3"/>
+                </g>
+                <g font-family="'Iowan Old Style','Charter',Georgia,serif" font-size="13" fill="oklch(22% 0.05 155)" font-weight="500">
+                  <text x="460" y="61" text-anchor="end">1583</text>
+                </g>
+                <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" letter-spacing="1.4" fill="oklch(62% 0.13 75)" text-anchor="end">
+                  <text x="460" y="49">CURRENT</text>
+                </g>
+                <g font-family="'Iowan Old Style','Charter',Georgia,serif" font-size="9.5" fill="oklch(45% 0.025 145)" font-style="italic">
+                  <text x="262" y="74">春日邀请赛 · 四强</text>
+                </g>
+              </svg>
+              <div class="chart-foot" data-field="eloHistory.summary">
+                <span>9 场关键节点 · 6 个月</span>
+                <strong>+83</strong>
+              </div>
+            </section>
+
+            <section class="recent-block" data-od-id="recent-matches">
+              <div class="recent-eyebrow">
+                <span>最近比赛</span>
+                <span class="meta">RECENT MATCHES</span>
+                <span class="meta">→</span>
+              </div>
+              <div class="match-row" data-field="matchHistory[0]">
+                <div class="when"><span class="d">12</span><span class="m">APR</span></div>
+                <div class="who">
+                  <div class="title">春日邀请赛 · 四强</div>
+                  <div class="vs">vs 黄子轩 · NTRP 5.0</div>
+                </div>
+                <div class="score is-loss" data-field="matchHistory[0].scoreSummary">1 : 3</div>
+              </div>
+              <div class="match-row" data-field="matchHistory[1]">
+                <div class="when"><span class="d">12</span><span class="m">APR</span></div>
+                <div class="who">
+                  <div class="title">春日邀请赛 · 八强</div>
+                  <div class="vs">vs 林志远 · NTRP 4.0</div>
+                </div>
+                <div class="score">3 : 1</div>
+              </div>
+              <div class="match-row" data-field="matchHistory[2]">
+                <div class="when"><span class="d">15</span><span class="m">MAR</span></div>
+                <div class="who">
+                  <div class="title">冬季单打挑战赛 · 小组</div>
+                  <div class="vs">vs 王大伟 · NTRP 4.0</div>
+                </div>
+                <div class="score">3 : 0</div>
+              </div>
+              <div class="match-row is-pending" data-field="matchHistory[3]">
+                <div class="when"><span class="d">06</span><span class="m">JUN</span></div>
+                <div class="who">
+                  <div class="title">冬季单打挑战赛 · 半决赛</div>
+                  <div class="vs">vs 陈一凡 · NTRP 4.0</div>
+                </div>
+                <div class="score">PENDING</div>
+              </div>
+            </section>
+
+            <section class="recent-block" data-od-id="recent-activities">
+              <div class="recent-eyebrow">
+                <span>最近活动</span>
+                <span class="meta">PARTICIPATING</span>
+                <span class="meta">→</span>
+              </div>
+              <div class="activity-mini" data-field="activities[0]">
+                <div>
+                  <div class="ttl">春季双打月赛 · 第三场</div>
+                  <div class="when">05 / 30 SAT · 14:00 — 18:30</div>
+                </div>
+                <span class="arrow">→</span>
+              </div>
+              <div class="activity-mini" data-field="activities[1]">
+                <div>
+                  <div class="ttl">周三晚 · 切削与上旋训练课</div>
+                  <div class="when">05 / 27 WED · 19:30</div>
+                </div>
+                <span class="arrow">→</span>
+              </div>
+              <div class="activity-mini" data-field="activities[2]">
+                <div>
+                  <div class="ttl">端午节友谊赛</div>
+                  <div class="when">05 / 21 THU · 已结束</div>
+                </div>
+                <span class="arrow">→</span>
+              </div>
+            </section>
+
+            <div style="height: 24px;"></div>
+
+          </div>
+
+          <nav class="tabbar" role="tablist">
+            <button class="tab" role="tab" aria-selected="false">
+              <svg width="22" height="22" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="1.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><circle cx="12" cy="14" r="0.8" fill="currentColor"/></svg>
+              <span>活动</span>
+            </button>
+            <button class="tab" role="tab" aria-selected="false">
+              <svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4 h10 v3 a5 5 0 0 1 -10 0 z"/><path d="M7 4 H4 v2 a3 3 0 0 0 3 3"/><path d="M17 4 h3 v2 a3 3 0 0 1 -3 3"/><line x1="12" y1="9" x2="12" y2="14"/><path d="M9 14 h6 v2 H9 z"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+              <span>赛事</span>
+            </button>
+            <button class="tab is-active" role="tab" aria-selected="true">
+              <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20 v-1 a5 5 0 0 1 5 -5 h4 a5 5 0 0 1 5 5 v1"/></svg>
+              <span>我的</span>
+            </button>
+          </nav>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- ============ RANKING ============ -->
+    <div class="phone-stack">
+      <div class="caption">
+        <strong>排行榜 — pages/ranking/ranking</strong>
+        <span>login.getRanking</span>
+      </div>
+      <div class="device" role="group" aria-label="Ranking, iPhone 375 by 812">
+        <div class="notch"></div>
+        <div class="statusbar" aria-hidden="true">
+          <span>9:41</span>
+          <span class="right">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          </span>
+        </div>
+        <div class="screen">
+          <div class="scroll" data-od-id="ranking-scroll">
+
+            <nav class="ranking-topnav">
+              <button class="icon-pill" aria-label="返回">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+              </button>
+              <button class="icon-pill" aria-label="筛选">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="14" y2="7"/><line x1="17" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="9" y2="12"/><line x1="12" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="16" y2="17"/><line x1="19" y1="17" x2="20" y2="17"/></svg>
+              </button>
+            </nav>
+
+            <header class="ranking-masthead" data-od-id="ranking-masthead">
+              <span class="kicker">2026 SEASON · LEADERBOARD</span>
+              <h1 class="title">积分排行榜</h1>
+              <div class="subtitle">
+                <span>82 名球员</span>
+                <span class="pip"></span>
+                <span>UPDATED 2026 / 05 / 22</span>
+                <span></span>
+              </div>
+            </header>
+
+            <div class="ranking-segment" data-od-id="ranking-segment" role="tablist">
+              <button class="seg is-active" role="tab" aria-selected="true"><span class="n">01</span>本期 · 2026</button>
+              <button class="seg" role="tab" aria-selected="false"><span class="n">02</span>历史 · ALL TIME</button>
+            </div>
+
+            <div class="ranking-table-head">
+              <span class="num-col">#</span>
+              <span>球员 / NTRP</span>
+              <span class="num-col">积分</span>
+              <span class="num-col">ELO</span>
+            </div>
+
+            <div class="ranking-table" data-od-id="ranking-table" data-field="ranking.list">
+
+              <div class="ranking-row" data-rank="1" data-gender="male" data-field="ranking.list[0]">
+                <span class="rank">01</span>
+                <div class="who"><div class="avatar">黄</div><div class="info"><div class="name">黄子轩</div><div class="ntrp">NTRP 5.0</div></div></div>
+                <div class="points">820</div>
+                <div class="elo">1742<span class="delta">+12</span></div>
+              </div>
+              <div class="ranking-row" data-rank="2" data-gender="male">
+                <span class="rank">02</span>
+                <div class="who"><div class="avatar">陈</div><div class="info"><div class="name">陈一凡</div><div class="ntrp">NTRP 4.5</div></div></div>
+                <div class="points">695</div>
+                <div class="elo">1668<span class="delta">+8</span></div>
+              </div>
+              <div class="ranking-row" data-rank="3" data-gender="male">
+                <span class="rank">03</span>
+                <div class="who"><div class="avatar">王</div><div class="info"><div class="name">王大伟</div><div class="ntrp">NTRP 4.5</div></div></div>
+                <div class="points">654</div>
+                <div class="elo">1641<span class="delta down">-3</span></div>
+              </div>
+              <div class="ranking-row" data-rank="4" data-gender="male">
+                <span class="rank">04</span>
+                <div class="who"><div class="avatar">刘</div><div class="info"><div class="name">刘星宇</div><div class="ntrp">NTRP 4.5</div></div></div>
+                <div class="points">620</div>
+                <div class="elo">1622<span class="delta">+5</span></div>
+              </div>
+              <div class="ranking-row" data-rank="5" data-gender="female">
+                <span class="rank">05</span>
+                <div class="who"><div class="avatar">林</div><div class="info"><div class="name">林清雅</div><div class="ntrp">NTRP 4.0</div></div></div>
+                <div class="points">580</div>
+                <div class="elo">1605<span class="delta">+18</span></div>
+              </div>
+              <div class="ranking-row" data-rank="6" data-gender="male">
+                <span class="rank">06</span>
+                <div class="who"><div class="avatar">林</div><div class="info"><div class="name">林志远</div><div class="ntrp">NTRP 4.0</div></div></div>
+                <div class="points">540</div>
+                <div class="elo">1598<span class="delta down">-7</span></div>
+              </div>
+              <div class="ranking-row" data-rank="7" data-gender="male">
+                <span class="rank">07</span>
+                <div class="who"><div class="avatar">赵</div><div class="info"><div class="name">赵宇航</div><div class="ntrp">NTRP 4.0</div></div></div>
+                <div class="points">510</div>
+                <div class="elo">1592<span class="delta">+2</span></div>
+              </div>
+              <div class="ranking-row" data-rank="8" data-gender="male">
+                <span class="rank">08</span>
+                <div class="who"><div class="avatar">吴</div><div class="info"><div class="name">吴子谦</div><div class="ntrp">NTRP 4.0</div></div></div>
+                <div class="points">498</div>
+                <div class="elo">1586<span class="delta">+4</span></div>
+              </div>
+
+              <!-- ellipsis -->
+              <div class="ranking-row" style="opacity:0.55;">
+                <span class="rank">…</span>
+                <div class="who"><div class="info"><div class="name" style="color:var(--muted);font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;">从第 9 到第 13 位</div></div></div>
+                <div class="points" style="color:var(--muted);font-family:var(--font-mono);font-size:10px;font-weight:normal;">—</div>
+                <div class="elo">—</div>
+              </div>
+
+              <div class="ranking-row is-me" data-rank="14" data-gender="male" data-field="ranking.myRank">
+                <span class="rank">14</span>
+                <div class="who"><div class="avatar">张</div><div class="info"><div class="name">张文涛</div><div class="ntrp">NTRP 4.5 · CAPTAIN</div></div></div>
+                <div class="points">480</div>
+                <div class="elo">1583<span class="delta">+28</span></div>
+              </div>
+
+              <div class="ranking-row" data-rank="15" data-gender="female">
+                <span class="rank">15</span>
+                <div class="who"><div class="avatar">周</div><div class="info"><div class="name">周岚</div><div class="ntrp unrated">未评级</div></div></div>
+                <div class="points">462</div>
+                <div class="elo">1572<span class="delta">+9</span></div>
+              </div>
+              <div class="ranking-row" data-rank="16" data-gender="male">
+                <span class="rank">16</span>
+                <div class="who"><div class="avatar">孙</div><div class="info"><div class="name">孙铭浩</div><div class="ntrp">NTRP 4.0</div></div></div>
+                <div class="points">441</div>
+                <div class="elo">1565<span class="delta down">-4</span></div>
+              </div>
+              <div class="ranking-row" data-rank="17" data-gender="female">
+                <span class="rank">17</span>
+                <div class="who"><div class="avatar">郑</div><div class="info"><div class="name">郑文</div><div class="ntrp">NTRP 3.5</div></div></div>
+                <div class="points">420</div>
+                <div class="elo">1554<span class="delta">+11</span></div>
+              </div>
+
+            </div>
+
+            <div style="height: 16px"></div>
+          </div>
+
+          <nav class="tabbar" role="tablist">
+            <button class="tab" role="tab" aria-selected="false">
+              <svg width="22" height="22" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="1.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><circle cx="12" cy="14" r="0.8" fill="currentColor"/></svg>
+              <span>活动</span>
+            </button>
+            <button class="tab is-active" role="tab" aria-selected="true">
+              <svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4 h10 v3 a5 5 0 0 1 -10 0 z"/><path d="M7 4 H4 v2 a3 3 0 0 0 3 3"/><path d="M17 4 h3 v2 a3 3 0 0 1 -3 3"/><line x1="12" y1="9" x2="12" y2="14"/><path d="M9 14 h6 v2 H9 z"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+              <span>赛事</span>
+            </button>
+            <button class="tab" role="tab" aria-selected="false">
+              <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20 v-1 a5 5 0 0 1 5 -5 h4 a5 5 0 0 1 5 5 v1"/></svg>
+              <span>我的</span>
+            </button>
+          </nav>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- ============ TOURNAMENT-DETAIL (knockout) ============ -->
+    <div class="phone-stack">
+      <div class="caption">
+        <strong>赛事详情 — pages/tournament-detail</strong>
+        <span>state: knockout</span>
+      </div>
+      <div class="device" role="group" aria-label="Tournament detail knockout, iPhone 375 by 812">
+        <div class="notch"></div>
+        <div class="statusbar dark" aria-hidden="true">
+          <span>9:41</span>
+          <span class="right">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          </span>
+        </div>
+        <div class="screen">
+          <div class="scroll" data-od-id="tournament-scroll" style="bottom: 90px;">
+
+            <header class="tournament-hero" data-od-id="tournament-hero" data-field="tournament">
+              <svg class="court-bg" viewBox="0 0 375 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                <g stroke="oklch(94% 0.012 90)" stroke-width="1.25" fill="none">
+                  <rect x="42" y="-40" width="291" height="320"/>
+                  <line x1="187.5" y1="-40" x2="187.5" y2="200"/>
+                  <line x1="42" y1="200" x2="333" y2="200"/>
+                  <line x1="60" y1="-40" x2="60" y2="280"/>
+                  <line x1="315" y1="-40" x2="315" y2="280"/>
+                </g>
+              </svg>
+              <nav class="topnav">
+                <button class="icon-btn" aria-label="返回">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+                </button>
+                <div class="actions">
+                  <button class="icon-btn" aria-label="分享">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+                  </button>
+                  <button class="icon-btn" aria-label="更多">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>
+                  </button>
+                </div>
+              </nav>
+              <div class="crest" aria-hidden="true">W<small>WINTER · SC</small></div>
+              <div class="masthead">
+                <span class="kicker">MAJOR · 半年赛</span>
+                <h1 class="title" data-field="tournament.title">冬季单打<br>挑战赛</h1>
+                <div class="status-row">
+                  <span class="status-pill" data-status="knockout" data-field="tournament.statusText">淘汰赛 · KNOCKOUT</span>
+                  <span>06 / 06 SAT — 06 / 07 SUN</span>
+                </div>
+              </div>
+            </header>
+
+            <section class="tournament-meta" data-od-id="tournament-meta">
+              <div class="cell"><span class="lbl">类型</span><span class="val">单打 <em>Singles</em></span></div>
+              <div class="cell"><span class="lbl">规模</span><span class="val">8 <em>选手</em></span></div>
+              <div class="cell"><span class="lbl">赛制</span><span class="val">抢 3 <em>BO5</em></span></div>
+            </section>
+
+            <div class="stage-eyebrow">
+              <span>对阵图 / Bracket</span>
+              <span class="meta">QUARTER FINAL · 完成 4 / 4</span>
+              <span class="meta">→</span>
+            </div>
+
+            <div class="bracket-wrap" data-od-id="bracket">
+              <svg class="bracket-svg" viewBox="0 0 327 268" aria-label="Single elimination bracket, 8 players">
+                <defs>
+                  <style>
+                    .b-name { font-family: 'PingFang SC', -apple-system, system-ui, sans-serif; font-size: 11px; fill: oklch(22% 0.05 155); }
+                    .b-name-muted { font-family: 'PingFang SC', -apple-system, system-ui, sans-serif; font-size: 11px; fill: oklch(45% 0.025 145); }
+                    .b-name-tbd { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 9.5px; fill: oklch(60% 0.012 90); letter-spacing: 1.5px; }
+                    .b-score { font-family: 'Iowan Old Style', Charter, Georgia, serif; font-size: 12px; fill: oklch(22% 0.05 155); font-weight: 500; font-feature-settings: 'tnum'; }
+                    .b-score-muted { font-family: 'Iowan Old Style', Charter, Georgia, serif; font-size: 12px; fill: oklch(45% 0.025 145); font-feature-settings: 'tnum'; }
+                    .b-round-lbl { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 8px; fill: oklch(45% 0.025 145); letter-spacing: 1.6px; text-transform: uppercase; }
+                    .b-round-num { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 8px; fill: oklch(62% 0.13 75); letter-spacing: 1.6px; }
+                  </style>
+                </defs>
+
+                <!-- column labels -->
+                <g>
+                  <text class="b-round-lbl" x="0" y="10">QUARTER · 四强争夺</text>
+                  <text class="b-round-num" x="100" y="10">QF</text>
+                  <text class="b-round-lbl" x="120" y="10">SEMI · 半决赛</text>
+                  <text class="b-round-num" x="200" y="10">SF</text>
+                  <text class="b-round-lbl" x="240" y="10">FINAL · 决赛</text>
+                  <text class="b-round-num" x="280" y="10">F</text>
+                </g>
+
+                <!-- separator under labels -->
+                <line x1="0" y1="18" x2="327" y2="18" stroke="oklch(85% 0.014 90)" stroke-width="0.6"/>
+
+                <!-- QF1 -->
+                <g transform="translate(0,30)">
+                  <text class="b-name" x="0" y="10">黄子轩</text>
+                  <text class="b-score" x="105" y="10" text-anchor="end">3</text>
+                  <text class="b-name-muted" x="0" y="26">林志远</text>
+                  <text class="b-score-muted" x="105" y="26" text-anchor="end">1</text>
+                  <line x1="0" y1="34" x2="105" y2="34" stroke="oklch(85% 0.014 90)" stroke-width="0.6"/>
+                </g>
+                <!-- QF2 -->
+                <g transform="translate(0,90)">
+                  <text class="b-name" x="0" y="10">陈一凡</text>
+                  <text class="b-score" x="105" y="10" text-anchor="end">3</text>
+                  <text class="b-name-muted" x="0" y="26">周岚</text>
+                  <text class="b-score-muted" x="105" y="26" text-anchor="end">0</text>
+                  <line x1="0" y1="34" x2="105" y2="34" stroke="oklch(85% 0.014 90)" stroke-width="0.6"/>
+                </g>
+                <!-- QF3 -->
+                <g transform="translate(0,150)">
+                  <text class="b-name-muted" x="0" y="10">张文涛</text>
+                  <text class="b-score-muted" x="105" y="10" text-anchor="end">2</text>
+                  <text class="b-name" x="0" y="26">王大伟</text>
+                  <text class="b-score" x="105" y="26" text-anchor="end">3</text>
+                  <line x1="0" y1="34" x2="105" y2="34" stroke="oklch(85% 0.014 90)" stroke-width="0.6"/>
+                </g>
+                <!-- QF4 -->
+                <g transform="translate(0,210)">
+                  <text class="b-name" x="0" y="10">刘星宇</text>
+                  <text class="b-score" x="105" y="10" text-anchor="end">3</text>
+                  <text class="b-name-muted" x="0" y="26">赵宇航</text>
+                  <text class="b-score-muted" x="105" y="26" text-anchor="end">1</text>
+                  <line x1="0" y1="34" x2="105" y2="34" stroke="oklch(85% 0.014 90)" stroke-width="0.6"/>
+                </g>
+
+                <!-- connectors QF→SF -->
+                <g stroke="oklch(85% 0.014 90)" stroke-width="0.6" fill="none">
+                  <!-- QF1 mid (44) → SF1 top (76) -->
+                  <path d="M105,44 H120 V76 H145"/>
+                  <!-- QF2 mid (104) → SF1 bottom (92) -->
+                  <path d="M105,104 H120 V92 H145"/>
+                  <!-- QF3 mid (164) → SF2 top (196) -->
+                  <path d="M105,164 H120 V196 H145"/>
+                  <!-- QF4 mid (224) → SF2 bottom (212) -->
+                  <path d="M105,224 H120 V212 H145"/>
+                </g>
+
+                <!-- SF1 (active) -->
+                <g transform="translate(145,72)">
+                  <text class="b-name" x="0" y="10">黄子轩</text>
+                  <text class="b-score-muted" x="65" y="10" text-anchor="end">—</text>
+                  <text class="b-name" x="0" y="26">陈一凡</text>
+                  <text class="b-score-muted" x="65" y="26" text-anchor="end">—</text>
+                  <line x1="0" y1="34" x2="65" y2="34" stroke="oklch(62% 0.13 75)" stroke-width="0.8"/>
+                </g>
+                <!-- SF2 (active) -->
+                <g transform="translate(145,192)">
+                  <text class="b-name" x="0" y="10">王大伟</text>
+                  <text class="b-score-muted" x="65" y="10" text-anchor="end">—</text>
+                  <text class="b-name" x="0" y="26">刘星宇</text>
+                  <text class="b-score-muted" x="65" y="26" text-anchor="end">—</text>
+                  <line x1="0" y1="34" x2="65" y2="34" stroke="oklch(62% 0.13 75)" stroke-width="0.8"/>
+                </g>
+
+                <!-- "进行中" tags on active SF -->
+                <text class="b-round-num" x="145" y="68">进行中 · LIVE</text>
+                <text class="b-round-num" x="145" y="188">进行中 · LIVE</text>
+
+                <!-- connectors SF→F -->
+                <g stroke="oklch(85% 0.014 90)" stroke-width="0.6" fill="none">
+                  <path d="M210,86 H225 V146 H240"/>
+                  <path d="M210,206 H225 V146 H240"/>
+                </g>
+
+                <!-- F (TBD) -->
+                <g transform="translate(240,142)">
+                  <text class="b-name-tbd" x="0" y="10">— · TBD</text>
+                  <text class="b-score-muted" x="80" y="10" text-anchor="end">—</text>
+                  <text class="b-name-tbd" x="0" y="26">— · TBD</text>
+                  <text class="b-score-muted" x="80" y="26" text-anchor="end">—</text>
+                  <line x1="0" y1="34" x2="80" y2="34" stroke="oklch(85% 0.014 90)" stroke-width="0.6"/>
+                </g>
+
+                <!-- trophy at end -->
+                <g transform="translate(290,158)">
+                  <path d="M3 0 h12 v3 a4 4 0 0 1 -12 0 z M3 0 H0 v2 a3 3 0 0 0 3 3 M15 0 h3 v2 a3 3 0 0 1 -3 3 M9 5 v3 M6 8 h6 v2 H6 z" fill="none" stroke="oklch(62% 0.13 75)" stroke-width="1"/>
+                </g>
+              </svg>
+            </div>
+
+            <div class="next-up-eyebrow">
+              <span class="lbl">我的下一场</span>
+              <span>NEXT UP · SF</span>
+            </div>
+            <div class="next-card" data-od-id="next-match">
+              <div class="player">
+                <div class="name">黄子轩</div>
+                <div class="ntrp">NTRP 5.0 · ELO 1742</div>
+              </div>
+              <div class="vs">vs</div>
+              <div class="player right">
+                <div class="name">陈一凡</div>
+                <div class="ntrp">NTRP 4.5 · ELO 1668</div>
+              </div>
+            </div>
+            <div class="next-card-when">
+              <span>06 / 06 SAT 14:30</span>
+              <span class="pip"></span>
+              <span>二沙岛 1 号场</span>
+              <span></span>
+            </div>
+
+            <div style="height: 24px"></div>
+
+          </div>
+
+          <div class="tournament-cta-bar">
+            <div class="status">
+              <div class="num">2<em>&thinsp;/&thinsp;4</em></div>
+              <span class="lbl">SF · 待打</span>
+            </div>
+            <button class="cta-primary" data-action="onRecordScore">
+              <span>录入比分</span>
+              <svg width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5 19.5 9.5 9 20 4 20 4 15Z"/><line x1="13" y1="6" x2="18" y2="11"/></svg>
+            </button>
+          </div>
+
+          <nav class="tabbar" role="tablist" style="z-index: 36;">
+            <button class="tab" role="tab" aria-selected="false">
+              <svg width="22" height="22" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="1.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><circle cx="12" cy="14" r="0.8" fill="currentColor"/></svg>
+              <span>活动</span>
+            </button>
+            <button class="tab is-active" role="tab" aria-selected="true">
+              <svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4 h10 v3 a5 5 0 0 1 -10 0 z"/><path d="M7 4 H4 v2 a3 3 0 0 0 3 3"/><path d="M17 4 h3 v2 a3 3 0 0 1 -3 3"/><line x1="12" y1="9" x2="12" y2="14"/><path d="M9 14 h6 v2 H9 z"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+              <span>赛事</span>
+            </button>
+            <button class="tab" role="tab" aria-selected="false">
+              <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20 v-1 a5 5 0 0 1 5 -5 h4 a5 5 0 0 1 5 5 v1"/></svg>
+              <span>我的</span>
+            </button>
+          </nav>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-rule" style="margin-top: 64px;">
+    <span>B</span>
+    <h2>Tournament 4 个状态草图 / States Preview</h2>
+    <span class="meta">下一轮把另外 3 个状态也出全画 — 现仅占位说明</span>
+  </div>
+
+  <div class="states-row">
+    <div class="state-card">
+      <div class="ey"><span>STATE 01</span><span>报名中</span></div>
+      <div class="h">signup</div>
+      <div class="b">候补名单 + 容量条 + "立即报名" CTA。和 activity-detail 共享 roster 组件。</div>
+    </div>
+    <div class="state-card">
+      <div class="ey"><span>STATE 02</span><span>小组赛</span></div>
+      <div class="h">group</div>
+      <div class="b">两张小组排名表（W/L/盘差/积分），各组前两名晋级 — Datadog 风密度的本土化。</div>
+    </div>
+    <div class="state-card is-current">
+      <div class="ey"><span>STATE 03 · 当前</span><span>淘汰赛</span></div>
+      <div class="h">knockout</div>
+      <div class="b">Bracket 树状图 + "我的下一场" 卡 + 录分 CTA。即上图所示。</div>
+    </div>
+    <div class="state-card">
+      <div class="ey"><span>STATE 04</span><span>已结束</span></div>
+      <div class="h">finished</div>
+      <div class="b">冠亚季纪念碑 + 名次奖励列表 + 完整对阵回放。最像"年鉴页"。</div>
+    </div>
+  </div>
+
+  <footer class="page-foot">
+    <span>direction · emerald-heritage</span>
+    <span class="center">round 03 · profile + ranking + tournament</span>
+    <span class="end"><strong>5 of 5</strong> · all primary screens drafted</span>
+  </footer>
+
+</div>
+</body>
+</html>

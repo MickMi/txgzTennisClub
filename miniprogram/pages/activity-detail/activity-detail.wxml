@@ -1,12 +1,12 @@
 <view class="container" wx:if="{{detail}}">
   <view class="card">
     <view class="title big">{{detail.title}}</view>
-    <view class="meta">⏰ {{detail.startTimeText}}</view>
-    <view class="meta">📍 {{detail.location}}</view>
+    <view class="meta"><icon name="clock" size="32" /> {{detail.startTimeText}}</view>
+    <view class="meta"><icon name="pin" size="32" /> {{detail.location}}</view>
     <view class="meta">
-      👥 {{detail.participants.length}}/{{detail.maxPeople || '∞'}} 人
+      <icon name="people" size="32" /> {{detail.participants.length}}/{{detail.maxPeople || '∞'}} 人
     </view>
-    <view class="meta" wx:if="{{detail.note}}">📝 {{detail.note}}</view>
+    <view class="meta" wx:if="{{detail.note}}"><icon name="note" size="32" /> {{detail.note}}</view>
     <view class="meta muted">由 {{detail.creatorName}} 创建</view>
   </view>
 
@@ -14,12 +14,12 @@
     <view class="section-header">
       <view class="section-title">已报名（{{detail.participants.length}}）</view>
       <view class="export-btn" bindtap="onExport" wx:if="{{detail.participants.length > 0}}">
-        📋 导出名单
+        <icon name="list" size="32" /> 导出名单
       </view>
     </view>
     <view wx:if="{{detail.participants.length === 0}}" class="muted">暂无报名</view>
     <view wx:for="{{detail.participants}}" wx:key="openid" class="participant">
-      <view class="dot">{{item.gender === 'female' ? '♀' : '♂'}}</view>
+      <view class="dot"></view>
       <view class="participant-info">
         <text class="participant-name">{{item.wecomName}}</text>
         <text class="participant-rating" wx:if="{{item.rating}}">{{item.rating}}</text>
@@ -38,7 +38,7 @@
 
   <!-- 管理操作：仅创建者/管理员可见 -->
   <view class="admin-actions" wx:if="{{isOwner}}">
-    <button class="btn-edit" bindtap="onEdit">✏️ 编辑活动</button>
-    <button class="btn-delete" bindtap="onDelete">🗑️ 删除活动</button>
+    <button class="btn-edit" bindtap="onEdit"><icon name="pencil" size="32" /> 编辑活动</button>
+    <button class="btn-delete" bindtap="onDelete"><icon name="trash" size="32" /> 删除活动</button>
   </view>
 </view>

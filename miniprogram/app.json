@@ -12,6 +12,9 @@
     "pages/tournament-detail/tournament-detail",
     "pages/ranking/ranking"
   ],
+  "usingComponents": {
+    "icon": "/components/icon/icon"
+  },
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#243a30",

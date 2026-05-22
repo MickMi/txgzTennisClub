@@ -24,13 +24,13 @@
 
     <view wx:for="{{list}}" wx:key="openid" class="rank-row {{item.openid === myOpenid ? 'rank-me' : ''}} {{item.rank <= 3 ? 'rank-top' : ''}}">
       <view class="rank-num {{item.rank === 1 ? 'gold' : item.rank === 2 ? 'silver' : item.rank === 3 ? 'bronze' : ''}}">
-        <text wx:if="{{item.rank === 1}}">🥇</text>
-        <text wx:elif="{{item.rank === 2}}">🥈</text>
-        <text wx:elif="{{item.rank === 3}}">🥉</text>
+        <text wx:if="{{item.rank === 1}}"><icon name="trophy" size="32" /></text>
+        <text wx:elif="{{item.rank === 2}}"><icon name="trophy" size="32" /></text>
+        <text wx:elif="{{item.rank === 3}}"><icon name="trophy" size="32" /></text>
         <text wx:else>{{item.rank}}</text>
       </view>
       <view class="rank-info">
-        <text class="rank-name">{{item.gender === 'female' ? '♀' : '♂'}} {{item.wecomName}}</text>
+        <text class="rank-name">{{item.wecomName}}</text>
         <text class="rank-rating" wx:if="{{item.rating}}">{{item.rating}}</text>
       </view>
       <view class="rank-elo">{{item.eloRating}}</view>

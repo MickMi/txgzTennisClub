@@ -1,6 +1,6 @@
 <view class="container">
   <view class="hero">
-    <view class="emoji">🎾</view>
+    <view class="emoji"><icon name="tennis" size="112" /></view>
     <view class="welcome">欢迎加入腾讯广州网球社</view>
     <view class="muted">首次进入需要登记一下基本信息</view>
   </view>
@@ -21,11 +21,11 @@
       <view class="label">性别</view>
       <radio-group bindchange="onGenderChange" class="gender-group">
         <label class="gender-option {{gender === 'male' ? 'selected' : ''}}">
-          <radio value="male" checked="{{gender === 'male'}}" color="#1aad19" />
+          <radio value="male" checked="{{gender === 'male'}}" color="#243a30" />
           <text>男</text>
         </label>
         <label class="gender-option {{gender === 'female' ? 'selected' : ''}}">
-          <radio value="female" checked="{{gender === 'female'}}" color="#1aad19" />
+          <radio value="female" checked="{{gender === 'female'}}" color="#243a30" />
           <text>女</text>
         </label>
       </radio-group>

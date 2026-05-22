@@ -2,10 +2,10 @@
   <!-- 比赛信息 -->
   <view class="card">
     <view class="title big">{{detail.title}}</view>
-    <view class="meta">📅 {{detail.dateText}}</view>
-    <view class="meta">🎾 {{detail.type === 'doubles' ? '双打' : '单打'}} · 先赢 {{detail.bestOf}} 盘</view>
-    <view class="meta">🏅 {{detail.levelText}} · 胜者 +{{detail.winPts}} / 负者 +{{detail.losePts}}</view>
-    <view class="meta handicap-rule" wx:if="{{detail.handicapRule}}">⚖️ 让分规则：{{detail.handicapRule}}</view>
+    <view class="meta"><icon name="clock" size="32" /> {{detail.dateText}}</view>
+    <view class="meta"><icon name="tennis" size="32" /> {{detail.type === 'doubles' ? '双打' : '单打'}} · 先赢 {{detail.bestOf}} 盘</view>
+    <view class="meta"><icon name="trophy" size="32" /> {{detail.levelText}} · 胜者 +{{detail.winPts}} / 负者 +{{detail.losePts}}</view>
+    <view class="meta handicap-rule" wx:if="{{detail.handicapRule}}"><icon name="note" size="32" /> 让分规则：{{detail.handicapRule}}</view>
     <view class="meta muted">由 {{detail.creatorName}} 创建</view>
   </view>
 
@@ -15,7 +15,7 @@
       <view class="section-title">已报名（{{detail.signups.length}}/{{detail.need}}）</view>
       <view wx:if="{{detail.signups.length === 0}}" class="muted">暂无报名</view>
       <view wx:for="{{detail.signups}}" wx:key="openid" class="player-item">
-        <text class="player-gender">{{item.gender === 'female' ? '♀' : '♂'}}</text>
+        <text class="player-gender"></text>
         <text>{{item.wecomName}}</text>
       </view>
 
@@ -30,7 +30,7 @@
       <!-- 管理员随机分组 -->
       <button wx:if="{{canManage && detail.signups.length >= detail.need}}"
         class="btn-primary randomize-btn" bindtap="onRandomize">
-        🎲 随机分组
+        随机分组
       </button>
       <view wx:if="{{canManage && detail.signups.length < detail.need}}" class="muted" style="margin-top: 16rpx; text-align: center;">
         人齐后可随机分组
@@ -75,7 +75,7 @@
         </view>
         <view wx:if="{{detail.winner}}" class="score-display">
           <view class="score-big">{{detail.scoreA}} : {{detail.scoreB}}</view>
-          <view class="winner-badge">🏆 {{detail.winner}} 方获胜</view>
+          <view class="winner-badge"><icon name="trophy" size="32" /> {{detail.winner}} 方获胜</view>
           <view wx:if="{{detail.pointsAwarded}}" class="points-info">
             <text class="points-win">胜者 +{{detail.pointsAwarded.winPoints}}</text>
             <text class="points-lose">负者 +{{detail.pointsAwarded.losePoints}}</text>

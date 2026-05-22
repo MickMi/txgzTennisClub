@@ -1,7 +1,7 @@
 <view class="container">
   <block wx:if="{{!loading && list.length === 0}}">
     <view class="empty-state">
-      <view class="empty-icon">🎾</view>
+      <view class="empty-icon"><icon name="tennis" size="112" /></view>
       <view class="empty-title">还没有活动</view>
       <view class="empty-desc">组织一场网球活动，邀请社团伙伴一起运动吧</view>
       <button class="btn-primary empty-btn" bindtap="goCreate">创建活动</button>
@@ -21,12 +21,12 @@
         {{item.status === 'closed' ? '已结束' : '报名中'}}
       </view>
     </view>
-    <view class="meta">⏰ {{item.startTimeText}}</view>
-    <view class="meta">📍 {{item.location}}</view>
+    <view class="meta"><icon name="clock" size="32" /> {{item.startTimeText}}</view>
+    <view class="meta"><icon name="pin" size="32" /> {{item.location}}</view>
     <view class="meta">
-      👥 {{item.joinedCount}}/{{item.maxPeople || '∞'}} 人
+      <icon name="people" size="32" /> {{item.joinedCount}}/{{item.maxPeople || '∞'}} 人
     </view>
   </view>
 </view>
 
-<view class="fab" bindtap="goCreate">+</view>
+<view class="fab" bindtap="goCreate"><icon name="plus" size="48" /></view>

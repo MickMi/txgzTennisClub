@@ -1,10 +1,10 @@
 <view class="container">
   <!-- 个人信息卡片 -->
   <view class="card profile-card">
-    <view class="avatar">🎾</view>
+    <view class="avatar"><icon name="tennis" size="112" /></view>
     <block wx:if="{{!editing}}">
       <view class="name">{{user.wecomName || '未登记'}}</view>
-      <view class="gender-tag" wx:if="{{user.gender}}">{{user.gender === 'male' ? '♂ 男' : '♀ 女'}}</view>
+      <view class="gender-tag" wx:if="{{user.gender}}">{{user.gender === 'male' ? '男' : '女'}}</view>
       <view class="muted" wx:if="{{user.role === 'admin'}}">管理员</view>
       <button class="btn-default edit-btn" bindtap="onEdit">修改信息</button>
     </block>
@@ -19,11 +19,11 @@
       <view class="gender-edit">
         <radio-group bindchange="onGenderChange" class="gender-group-inline">
           <label class="gender-opt {{genderInput === 'male' ? 'sel' : ''}}">
-            <radio value="male" checked="{{genderInput === 'male'}}" color="#1aad19" />
+            <radio value="male" checked="{{genderInput === 'male'}}" color="#243a30" />
             <text>男</text>
           </label>
           <label class="gender-opt {{genderInput === 'female' ? 'sel' : ''}}">
-            <radio value="female" checked="{{genderInput === 'female'}}" color="#1aad19" />
+            <radio value="female" checked="{{genderInput === 'female'}}" color="#243a30" />
             <text>女</text>
           </label>
         </radio-group>
@@ -112,7 +112,7 @@
     <!-- 历史战绩列表 -->
     <view wx:if="{{activeTab === 0}}">
       <view wx:if="{{matchHistory.length === 0}}" class="empty-state-sm">
-        <view class="empty-icon-sm">🏸</view>
+        <view class="empty-icon-sm"><icon name="tennis" size="112" /></view>
         <view class="empty-title-sm">暂无比赛记录</view>
         <view class="empty-desc-sm">参加一场比赛，这里会记录你的每一次精彩对决</view>
         <button class="btn-primary empty-btn-sm" bindtap="goMatchTab">去参加比赛</button>
@@ -133,7 +133,7 @@
     <!-- 参与的活动列表 -->
     <view wx:if="{{activeTab === 1}}">
       <view wx:if="{{activities.length === 0}}" class="empty-state-sm">
-        <view class="empty-icon-sm">📋</view>
+        <view class="empty-icon-sm"><icon name="list" size="112" /></view>
         <view class="empty-title-sm">暂无参与的活动</view>
         <view class="empty-desc-sm">去活动列表报名参加，和大家一起打球吧</view>
         <button class="btn-primary empty-btn-sm" bindtap="goActivityTab">去报名活动</button>

@@ -1,0 +1,249 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>腾讯广州网球社 · 活动详情 (高保真 · emerald-heritage)</title>
+<style>
+  :root {
+    --bg:        oklch(96% 0.018 90);
+    --surface:   oklch(98% 0.008 90);
+    --border:    oklch(88% 0.015 90);
+    --muted:     oklch(45% 0.025 145);
+    --fg:        oklch(22% 0.05 155);
+    --accent:    oklch(62% 0.13 75);
+    --emerald-deep: oklch(26% 0.06 155);
+    --font-display: 'Iowan Old Style', 'Charter', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+    --font-body:    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', system-ui, sans-serif;
+    --font-mono:    ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 50% -100px, oklch(92% 0.02 90), transparent 70%), oklch(89% 0.012 90);
+    font-family: var(--font-body); color: var(--fg);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 56px 20px 80px;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  .studio-caption {
+    width: 375px; max-width: 100%; margin: 0 auto 28px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .studio-caption strong { font-family: var(--font-display); font-weight: 500; font-size: 13px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+  .device {
+    width: 375px; height: 812px; background: var(--bg);
+    border-radius: 48px; border: 9px solid #0c1410; position: relative; overflow: hidden;
+    box-shadow: 0 36px 72px -24px rgba(20,30,25,0.35), 0 8px 24px -8px rgba(20,30,25,0.18), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 156px; height: 30px; background: #0c1410; border-radius: 0 0 18px 18px; z-index: 50; }
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 47px; z-index: 45;
+    display: flex; align-items: center; justify-content: space-between; padding: 14px 28px 0;
+    color: var(--bg); font-family: var(--font-body); font-size: 15px; font-weight: 600; letter-spacing: -0.02em; pointer-events: none;
+  }
+  .statusbar svg { display: block; }
+  .statusbar .right { display: flex; gap: 5px; align-items: center; }
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; background: var(--fg); border-radius: 3px; z-index: 60; opacity: 0.85; }
+  .screen { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; background: var(--bg); }
+  .screen::-webkit-scrollbar { display: none; }
+  .event-hero { position: relative; height: 380px; background: radial-gradient(120% 80% at 100% 0%, oklch(36% 0.075 155) 0%, transparent 55%), linear-gradient(170deg, oklch(28% 0.06 155) 0%, oklch(20% 0.05 155) 100%); color: var(--bg); overflow: hidden; }
+  .event-hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 3px 3px; pointer-events: none; mix-blend-mode: overlay; opacity: 0.6; }
+  .court-lines { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.32; pointer-events: none; }
+  .topnav { position: absolute; top: 47px; left: 0; right: 0; z-index: 40; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
+  .topnav .icon-btn { width: 36px; height: 36px; border: 1px solid rgba(245,239,224,0.22); background: rgba(20,28,22,0.32); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: grid; place-items: center; color: var(--bg); cursor: pointer; padding: 0; }
+  .topnav .icon-btn + .icon-btn { margin-left: 8px; }
+  .topnav .actions { display: flex; }
+  .event-hero .crest { position: absolute; top: 110px; right: 24px; width: 56px; height: 56px; border: 1px solid var(--accent); border-radius: 50%; display: grid; place-items: center; color: var(--accent); font-family: var(--font-display); font-size: 22px; font-weight: 500; letter-spacing: 0.02em; }
+  .event-hero .crest small { display: block; font-family: var(--font-mono); font-size: 7px; letter-spacing: 0.2em; margin-top: 2px; opacity: 0.85; }
+  .event-masthead { position: absolute; bottom: 28px; left: 24px; right: 24px; }
+  .event-kicker { font-family: var(--font-mono); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.24em; color: var(--accent); display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .event-kicker::before { content: ''; display: inline-block; width: 18px; height: 1px; background: var(--accent); }
+  .event-title { font-family: var(--font-display); font-weight: 500; font-size: 34px; line-height: 1.06; letter-spacing: 0.005em; margin: 0; color: var(--bg); }
+  .event-organiser { margin-top: 14px; font-family: var(--font-body); font-size: 12px; color: oklch(78% 0.02 90); letter-spacing: 0.02em; }
+  .event-organiser .sep { display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: oklch(64% 0.02 90); vertical-align: middle; margin: 0 8px; transform: translateY(-2px); opacity: 0.7; }
+  main { background: var(--bg); padding: 4px 24px 200px; margin-top: -1px; }
+  .datestamp { border-top: 1px solid var(--fg); border-bottom: 1px solid var(--fg); padding: 18px 0 18px; margin: 28px 0 24px; display: grid; grid-template-columns: auto 1fr; column-gap: 22px; align-items: center; }
+  .datestamp .day { font-family: var(--font-display); font-size: 80px; line-height: 0.85; color: var(--fg); font-weight: 500; letter-spacing: -0.02em; font-feature-settings: 'lnum','tnum'; }
+  .datestamp .day .month { display: block; font-size: 12px; line-height: 1; margin-top: 10px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.22em; font-feature-settings: normal; }
+  .datestamp .right { align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 0; }
+  .datestamp .when { font-family: var(--font-display); font-size: 18px; line-height: 1.25; color: var(--fg); }
+  .datestamp .when em { font-style: normal; color: var(--accent); }
+  .datestamp .session { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; margin-top: 12px; }
+  .event-meta { margin-bottom: 30px; }
+  .event-meta-row { display: grid; grid-template-columns: 22px 1fr auto; column-gap: 14px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--border); }
+  .event-meta-row:last-child { border-bottom: none; }
+  .event-meta-row .icon { color: var(--muted); width: 18px; height: 18px; }
+  .event-meta-row .label { display: block; font-family: var(--font-mono); text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.22em; color: var(--muted); margin-bottom: 3px; }
+  .event-meta-row .value { color: var(--fg); font-size: 14.5px; line-height: 1.35; font-feature-settings: 'tnum'; }
+  .event-meta-row .badge { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--accent); padding: 4px 8px; }
+  .section { margin-top: 32px; }
+  .section-eyebrow { border-top: 1px solid var(--fg); padding-top: 11px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: baseline; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--fg); }
+  .section-eyebrow .meta { color: var(--muted); font-size: 9px; letter-spacing: 0.2em; }
+  .section-body { font-size: 14.5px; line-height: 1.7; color: var(--fg); }
+  .section-body p { margin: 0 0 12px; }
+  .section-body p:last-child { margin-bottom: 0; }
+  .section-body .pull { font-family: var(--font-display); font-size: 18px; line-height: 1.4; color: var(--fg); border-inline-start: 2px solid var(--accent); padding-inline-start: 14px; margin: 16px 0; font-style: normal; }
+  .rules { list-style: none; padding: 0; margin: 0; }
+  .rules li { display: grid; grid-template-columns: 30px 1fr; column-gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
+  .rules li:last-child { border-bottom: none; }
+  .rules .num { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--accent); font-feature-settings: 'tnum'; }
+  .rules .text { font-size: 14.5px; line-height: 1.55; color: var(--fg); }
+  .roster { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 0; border-top: 1px solid var(--border); }
+  .roster .player { border-bottom: 1px solid var(--border); padding: 12px 0; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; min-width: 0; }
+  .roster .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); display: grid; place-items: center; font-family: var(--font-display); font-size: 13px; color: var(--fg); flex-shrink: 0; font-feature-settings: 'lnum'; }
+  .roster .player[data-gender='female'] .avatar { border-color: var(--accent); color: var(--accent); }
+  .roster .info { min-width: 0; line-height: 1.2; }
+  .roster .name { font-size: 13.5px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .roster .rating { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.05em; color: var(--muted); margin-top: 2px; display: block; font-feature-settings: 'tnum'; }
+  .roster .rating.unrated { color: oklch(72% 0.012 90); }
+  .roster-more { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; font-family: var(--font-body); font-size: 13px; color: var(--fg); border-bottom: 1px solid var(--fg); padding-bottom: 6px; cursor: pointer; }
+  .roster-more .arrow { font-family: var(--font-mono); color: var(--accent); }
+  .capacity { margin-top: 18px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 4px; }
+  .capacity .num { font-family: var(--font-display); font-size: 28px; line-height: 1; color: var(--fg); font-feature-settings: 'tnum','lnum'; }
+  .capacity .num em { font-style: normal; color: var(--muted); font-size: 18px; }
+  .capacity .meta { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; }
+  .capacity .bar { grid-column: 1 / -1; margin-top: 10px; height: 2px; background: var(--border); position: relative; }
+  .capacity .bar::after { content: ''; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 75%; background: var(--accent); }
+  .cta-bar { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 14px 20px 30px; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; z-index: 40; }
+  .cta-bar .status { line-height: 1.1; }
+  .cta-bar .status .num { font-family: var(--font-display); font-size: 22px; color: var(--fg); font-feature-settings: 'tnum','lnum'; letter-spacing: -0.01em; }
+  .cta-bar .status .num em { font-style: normal; color: var(--muted); font-size: 15px; }
+  .cta-bar .status .lbl { display: block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
+  .cta-primary { -webkit-appearance: none; appearance: none; background: var(--emerald-deep); color: var(--bg); border: 1px solid var(--emerald-deep); padding: 14px 18px; font-family: var(--font-body); font-weight: 500; font-size: 15px; letter-spacing: 0.06em; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 0; height: 50px; }
+  .cta-primary::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 7px; height: 1px; background: var(--accent); opacity: 0.85; }
+  .cta-primary svg { stroke: var(--bg); }
+  .page-foot { width: 375px; max-width: 100%; margin: 28px auto 0; display: flex; justify-content: space-between; align-items: baseline; color: var(--muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <div class="studio-caption">
+    <span>Tennis Club · activity-detail</span>
+    <strong>emerald-heritage</strong>
+    <span>375 × 812</span>
+  </div>
+  <div class="device" role="group" aria-label="Activity detail screen, iPhone 375 by 812">
+    <div class="notch"></div>
+    <div class="statusbar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="right">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7"  width="3" height="4" rx="0.5"/><rect x="4.5" y="5"  width="3" height="6" rx="0.5"/><rect x="9"  y="3"  width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <header class="event-hero" data-od-id="event-hero">
+        <svg class="court-lines" viewBox="0 0 375 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g stroke="oklch(94% 0.012 90)" stroke-width="1.25" fill="none">
+            <rect x="42" y="-100" width="291" height="430"/>
+            <line x1="187.5" y1="-100" x2="187.5" y2="225"/>
+            <line x1="42" y1="225" x2="333" y2="225"/>
+            <line x1="20" y1="330" x2="355" y2="330" stroke-width="2"/>
+            <line x1="60" y1="-100" x2="60" y2="330"/>
+            <line x1="315" y1="-100" x2="315" y2="330"/>
+          </g>
+        </svg>
+        <nav class="topnav">
+          <button class="icon-btn back" aria-label="返回">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+          </button>
+          <div class="actions">
+            <button class="icon-btn share" aria-label="分享">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+            </button>
+            <button class="icon-btn more" aria-label="更多">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </nav>
+        <div class="crest" aria-hidden="true">T<small>GZ · TC</small></div>
+        <div class="event-masthead">
+          <span class="event-kicker">SPRING DOUBLES · NO. 03</span>
+          <h1 class="event-title" data-od-id="event-title" data-field="detail.title">春季双打月赛<br>第三场</h1>
+          <div class="event-organiser">
+            <span>腾讯广州网球社</span>
+            <span class="sep"></span>
+            <span>开放报名中</span>
+          </div>
+        </div>
+      </header>
+      <main>
+        <section class="datestamp" data-od-id="event-datestamp">
+          <div class="day">30<span class="month">May · Sat</span></div>
+          <div class="right">
+            <div class="when">14<em>:</em>00 — 18<em>:</em>30<br>共 18 局 · 三局两胜制</div>
+            <div class="session">FIXTURE NO. 03 / 06 · 春季月赛</div>
+          </div>
+        </section>
+        <section class="event-meta" data-od-id="event-meta" aria-label="活动基本信息">
+          <div class="event-meta-row" data-field="detail.location">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-7-7-12a7 7 0 0 1 14 0c0 5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            <div><span class="label">场地</span><span class="value">广州 · 二沙岛网球中心 1-3 号场</span></div>
+            <span></span>
+          </div>
+          <div class="event-meta-row" data-field="detail.format">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12c5-3 13-3 18 0"/><path d="M12 3c3 5 3 13 0 18"/></svg>
+            <div><span class="label">赛制</span><span class="value">男双 / 女双 / 混双 · 抽签编排小组循环</span></div>
+            <span class="badge">DOUBLES</span>
+          </div>
+          <div class="event-meta-row" data-field="detail.maxPeople">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><circle cx="17" cy="9" r="2.5"/><path d="M21 19v-1a4 4 0 0 0-3-3.87"/></svg>
+            <div><span class="label">规模</span><span class="value">12 组双打 · 24 人</span></div>
+            <span></span>
+          </div>
+          <div class="event-meta-row" data-field="detail.note">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a2 2 0 0 1 2 2v14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V6a2 2 0 0 1 2-2z"/><line x1="9.5" y1="9" x2="14.5" y2="9"/><line x1="9.5" y1="13" x2="14.5" y2="13"/><line x1="9.5" y1="17" x2="13" y2="17"/></svg>
+            <div><span class="label">备注</span><span class="value">球友自备球拍 · 主办方提供 Head Pro 比赛球</span></div>
+            <span></span>
+          </div>
+        </section>
+        <section class="section" data-od-id="event-description">
+          <div class="section-eyebrow"><span>赛制规则</span><span class="meta">RULES</span></div>
+          <ol class="rules">
+            <li><span class="num">01</span><span class="text">抽签分入两个小组，组内单循环后取小组前二交叉淘汰。</span></li>
+            <li><span class="num">02</span><span class="text">每场三局两胜，决胜局抢十。</span></li>
+            <li><span class="num">03</span><span class="text">比赛球与裁判由社团提供。</span></li>
+          </ol>
+        </section>
+        <section class="section" data-od-id="event-roster">
+          <div class="section-eyebrow"><span>已报名</span><span class="meta">ROSTER · 18 / 24</span></div>
+          <div class="capacity" aria-label="报名进度 18 of 24">
+            <div class="num">18 <em>/ 24</em></div>
+            <div class="meta">FILLED 75%</div>
+            <div class="bar"></div>
+          </div>
+          <div class="roster" style="margin-top:24px">
+            <div class="player" data-gender="male"><div class="avatar">张</div><div class="info"><span class="name">张文涛</span><span class="rating">NTRP 4.5</span></div></div>
+            <div class="player" data-gender="female"><div class="avatar">陈</div><div class="info"><span class="name">陈一凡</span><span class="rating">NTRP 4.0</span></div></div>
+            <div class="player" data-gender="male"><div class="avatar">黄</div><div class="info"><span class="name">黄子轩</span><span class="rating">NTRP 5.0</span></div></div>
+            <div class="player" data-gender="male"><div class="avatar">刘</div><div class="info"><span class="name">刘星宇</span><span class="rating">NTRP 4.5</span></div></div>
+            <div class="player" data-gender="female"><div class="avatar">林</div><div class="info"><span class="name">林清雅</span><span class="rating">NTRP 3.5</span></div></div>
+            <div class="player" data-gender="female"><div class="avatar">周</div><div class="info"><span class="name">周岚</span><span class="rating unrated">未评级</span></div></div>
+          </div>
+          <div class="roster-more" role="button" tabindex="0">
+            <span>查看全部 18 位球友</span>
+            <span class="arrow">→</span>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div class="cta-bar">
+      <div class="status" data-field="detail.participants.length">
+        <div class="num">18<em>&thinsp;/&thinsp;24</em></div>
+        <span class="lbl">已报名</span>
+      </div>
+      <button class="cta-primary" data-action="onJoin">
+        <span>立即报名</span>
+        <svg width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+      </button>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+  <div class="page-foot">
+    <span>direction · emerald-heritage</span>
+    <span>1 of 1</span>
+  </div>
+</body>
+</html>

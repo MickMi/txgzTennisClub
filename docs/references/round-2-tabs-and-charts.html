@@ -1,0 +1,741 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tennis Club · Round 2 (Charts + Tabs · emerald-heritage)</title>
+<style>
+  :root {
+    --bg:        oklch(96% 0.018 90);
+    --surface:   oklch(98% 0.008 90);
+    --paper:     oklch(99% 0.005 90);
+    --border:    oklch(88% 0.015 90);
+    --hairline:  oklch(85% 0.014 90);
+    --muted:     oklch(45% 0.025 145);
+    --fg:        oklch(22% 0.05 155);
+    --accent:    oklch(62% 0.13 75);
+    --emerald-deep: oklch(26% 0.06 155);
+    --positive: oklch(48% 0.10 155);
+    --neutral:  oklch(55% 0.025 90);
+    --font-display: 'Iowan Old Style', 'Charter', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+    --font-body:    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', system-ui, sans-serif;
+    --font-mono:    ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1400px 700px at 50% -120px, oklch(92% 0.02 90), transparent 70%), oklch(89% 0.012 90);
+    font-family: var(--font-body);
+    color: var(--fg);
+    min-height: 100vh;
+    padding: 56px 28px 80px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+  .sheet { max-width: 1080px; margin: 0 auto; }
+  .studio-header {
+    display: grid; grid-template-columns: auto 1fr auto; column-gap: 24px; align-items: baseline;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-bottom: 1px solid var(--fg); padding-bottom: 18px; margin-bottom: 36px;
+  }
+  .studio-header strong {
+    font-family: var(--font-display); font-weight: 500; font-size: 22px; letter-spacing: 0; color: var(--fg);
+    text-transform: none;
+  }
+  .studio-header em {
+    font-style: normal; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--muted);
+  }
+  .section-rule {
+    margin: 56px 0 28px;
+    display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; column-gap: 20px;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg);
+  }
+  .section-rule h2 {
+    margin: 0; font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg);
+    text-transform: none; line-height: 1;
+  }
+  .section-rule .meta { color: var(--muted); }
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .chart-card { background: var(--paper); border: 1px solid var(--border); padding: 28px 28px 24px; position: relative; }
+  .chart-card .chart-eyebrow {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .chart-card .chart-eyebrow .label { color: var(--accent); letter-spacing: 0.24em; }
+  .chart-card .chart-title { font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--fg); margin: 6px 0 4px; line-height: 1.15; }
+  .chart-card .chart-caption { font-size: 12.5px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+  .chart-stage { width: 100%; height: 240px; position: relative; font-feature-settings: 'tnum','lnum'; }
+  .chart-stage svg { display: block; width: 100%; height: 100%; }
+  .chart-card .chart-foot {
+    margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hairline);
+    display: grid; grid-template-columns: 1fr auto; column-gap: 16px;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+  }
+  .chart-card .chart-foot strong {
+    color: var(--fg); font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0; text-transform: none;
+  }
+  .chart-card.recommended { box-shadow: inset 0 0 0 1px var(--fg); }
+  .chart-card .badge-rec {
+    position: absolute; top: 0; right: 0; transform: translate(0, -50%);
+    background: var(--bg); padding: 4px 10px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em;
+    color: var(--fg); text-transform: uppercase; border: 1px solid var(--fg);
+  }
+  .phones-row { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; justify-content: center; align-items: start; margin-top: 16px; }
+  .phone-stack { display: flex; flex-direction: column; align-items: center; }
+  .phone-stack .caption {
+    margin-bottom: 18px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    display: grid; grid-template-columns: 1fr auto; column-gap: 14px; align-items: baseline; width: 375px;
+  }
+  .phone-stack .caption strong { font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+  .device {
+    width: 375px; height: 812px; background: var(--bg);
+    border-radius: 48px; border: 9px solid #0c1410; position: relative; overflow: hidden;
+    box-shadow: 0 36px 72px -24px rgba(20,30,25,0.35), 0 8px 24px -8px rgba(20,30,25,0.18);
+  }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 156px; height: 30px; background: #0c1410; border-radius: 0 0 18px 18px; z-index: 50; }
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 47px; z-index: 45;
+    display: flex; align-items: center; justify-content: space-between; padding: 14px 28px 0;
+    color: var(--fg); font-family: var(--font-body); font-size: 15px; font-weight: 600; letter-spacing: -0.02em; pointer-events: none;
+  }
+  .statusbar svg { display: block; }
+  .statusbar .right { display: flex; gap: 5px; align-items: center; }
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; background: var(--fg); border-radius: 3px; z-index: 60; opacity: 0.55; }
+  .screen { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+  .tabbar {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 40;
+    background: var(--paper); border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 6px 0 26px;
+  }
+  .tabbar .tab {
+    display: grid; grid-template-rows: 22px auto; row-gap: 4px; place-items: center;
+    padding: 8px 0 6px; color: var(--muted); position: relative;
+    font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em;
+    background: none; border: 0; cursor: pointer;
+  }
+  .tabbar .tab svg { stroke: currentColor; fill: none; stroke-width: 1.4; }
+  .tabbar .tab.is-active { color: var(--fg); }
+  .tabbar .tab.is-active svg { stroke-width: 1.7; }
+  .tabbar .tab.is-active::after {
+    content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    width: 18px; height: 2px; background: var(--accent);
+  }
+  .scroll { position: absolute; inset: 0 0 73px 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .masthead {
+    padding: 60px 24px 14px; background: var(--bg);
+    display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: end;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .masthead .wordmark { font-family: var(--font-display); font-size: 22px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg); line-height: 1; }
+  .masthead .wordmark small { display: block; margin-top: 6px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.24em; color: var(--muted); text-transform: uppercase; }
+  .masthead .actions { display: flex; gap: 10px; }
+  .masthead .icon-pill { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: none; cursor: pointer; padding: 0; }
+  .month-eyebrow {
+    padding: 22px 24px 10px; display: grid; grid-template-columns: 1fr auto auto; column-gap: 16px; align-items: baseline;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+  }
+  .month-eyebrow .month-display {
+    font-family: var(--font-display); font-size: 28px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg); text-transform: none;
+    line-height: 1; font-feature-settings: 'lnum','tnum';
+  }
+  .month-eyebrow .month-display em { font-style: normal; color: var(--muted); font-size: 13px; margin-inline-start: 6px; }
+  .month-eyebrow .month-meta { text-align: end; line-height: 1.4; }
+  .activity-list { padding: 8px 24px 28px; }
+  .activity-row {
+    display: grid; grid-template-columns: 56px 1fr; column-gap: 18px;
+    border-bottom: 1px solid var(--hairline); padding: 22px 0; align-items: start;
+  }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-row .date-stamp { text-align: center; font-family: var(--font-display); line-height: 0.95; color: var(--fg); font-feature-settings: 'lnum','tnum'; }
+  .activity-row .date-stamp .day { font-size: 36px; font-weight: 500; letter-spacing: -0.01em; display: block; }
+  .activity-row .date-stamp .month { display: block; margin-top: 4px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
+  .activity-row .date-stamp .weekday { display: block; margin-top: 2px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+  .activity-row .body { min-width: 0; }
+  .activity-row .row-top { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; align-items: baseline; }
+  .activity-row .title { font-family: var(--font-display); font-size: 18px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg); line-height: 1.25; }
+  .activity-row .status {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 3px 7px; border: 1px solid var(--accent); color: var(--accent); white-space: nowrap;
+  }
+  .activity-row .status.is-closed { border-color: var(--hairline); color: var(--muted); }
+  .activity-row .status.is-full { border-color: var(--fg); color: var(--fg); }
+  .activity-row .meta-line { margin-top: 8px; font-size: 12px; color: var(--muted); line-height: 1.5; font-feature-settings: 'tnum'; }
+  .activity-row .meta-line .sep { display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: var(--hairline); vertical-align: middle; margin: 0 8px; transform: translateY(-2px); }
+  .activity-row .capacity { margin-top: 10px; display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: center; }
+  .activity-row .capacity .bar { height: 1.5px; background: var(--hairline); position: relative; }
+  .activity-row .capacity .bar::after { content: ''; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; background: var(--accent); }
+  .activity-row .capacity .bar.is-closed::after { background: var(--hairline); }
+  .activity-row .capacity .num { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--muted); font-feature-settings: 'tnum','lnum'; }
+  .activity-row .capacity .num strong { color: var(--fg); font-weight: 500; }
+  .activity-row[data-fill='25'] .bar::after { width: 25%; }
+  .activity-row[data-fill='50'] .bar::after { width: 50%; }
+  .activity-row[data-fill='75'] .bar::after { width: 75%; }
+  .activity-row[data-fill='100'] .bar::after { width: 100%; }
+  .fab {
+    position: absolute; right: 20px; bottom: 92px; z-index: 35;
+    width: 52px; height: 52px;
+    background: var(--emerald-deep); color: var(--bg);
+    display: grid; place-items: center;
+    border-radius: 50%;
+    box-shadow: 0 8px 16px -4px rgba(20,30,25,0.32);
+    cursor: pointer; border: 0;
+  }
+  .fab svg { stroke: currentColor; stroke-width: 1.6; }
+  .fab::after {
+    content: ''; position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%);
+    width: 26px; height: 1px; background: var(--accent); opacity: 0.5;
+  }
+  .ranking-feature {
+    margin: 14px 24px 0; padding: 18px 20px 18px; background: var(--paper);
+    border: 1px solid var(--border); position: relative; overflow: hidden;
+    display: grid; grid-template-columns: 36px 1fr auto; column-gap: 14px; align-items: center;
+  }
+  .ranking-feature::before { content: ''; position: absolute; inset-inline-start: 0; top: 14px; bottom: 14px; width: 2px; background: var(--accent); }
+  .ranking-feature .crest { width: 36px; height: 36px; border: 1px solid var(--accent); border-radius: 50%; display: grid; place-items: center; color: var(--accent); }
+  .ranking-feature .crest svg { stroke: currentColor; fill: none; stroke-width: 1.5; }
+  .ranking-feature .body { min-width: 0; line-height: 1.2; }
+  .ranking-feature .body .eyebrow { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .ranking-feature .body .title { font-family: var(--font-display); font-size: 16.5px; font-weight: 500; color: var(--fg); letter-spacing: 0.005em; }
+  .ranking-feature .my-rank { text-align: end; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; line-height: 1.3; }
+  .ranking-feature .my-rank strong { display: block; font-family: var(--font-display); font-size: 22px; font-weight: 500; letter-spacing: 0; color: var(--fg); text-transform: none; font-feature-settings: 'lnum','tnum'; }
+  .ranking-feature .my-rank strong em { font-style: normal; color: var(--muted); font-size: 13px; }
+  .tournament-eyebrow {
+    border-top: 1px solid var(--fg); margin: 22px 24px 0; padding: 14px 0 0;
+    display: grid; grid-template-columns: 1fr auto auto; column-gap: 16px; align-items: baseline;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg);
+  }
+  .tournament-eyebrow .meta { color: var(--muted); font-size: 9.5px; }
+  .tournament-list { padding: 0 24px 28px; }
+  .tournament-row {
+    border-bottom: 1px solid var(--hairline); padding: 20px 0 22px;
+    display: grid; grid-template-columns: 1fr auto; column-gap: 14px;
+  }
+  .tournament-row:last-child { border-bottom: none; }
+  .tournament-row .level { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; gap: 14px; align-items: center; }
+  .tournament-row .level .num { color: var(--accent); }
+  .tournament-row .level .pip { display: inline-block; width: 4px; height: 4px; background: var(--hairline); border-radius: 50%; }
+  .tournament-row .title { font-family: var(--font-display); font-size: 21px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg); line-height: 1.2; }
+  .tournament-row .status-pill { align-self: start; margin-top: 4px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; padding: 4px 8px; white-space: nowrap; }
+  .tournament-row .status-pill[data-status='signup'] { color: var(--accent); border: 1px solid var(--accent); }
+  .tournament-row .status-pill[data-status='group'],
+  .tournament-row .status-pill[data-status='knockout'] { color: var(--bg); background: var(--emerald-deep); border: 1px solid var(--emerald-deep); }
+  .tournament-row .status-pill[data-status='finished'] { color: var(--muted); border: 1px solid var(--hairline); }
+  .tournament-row .meta-row { grid-column: 1 / -1; margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+  .tournament-row .meta-cell { border-inline-start: 1px solid var(--hairline); padding: 0 12px; line-height: 1.2; }
+  .tournament-row .meta-cell:first-child { border-inline-start: 0; padding-inline-start: 0; }
+  .tournament-row .meta-cell .lbl { display: block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .tournament-row .meta-cell .val { font-family: var(--font-display); font-size: 15px; color: var(--fg); font-feature-settings: 'lnum','tnum'; letter-spacing: 0.005em; }
+  .tournament-row .meta-cell .val em { font-style: normal; color: var(--muted); font-size: 11px; margin-inline-start: 4px; }
+  .tournament-row.is-finished .title { color: var(--muted); }
+  .page-foot {
+    margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--hairline);
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .page-foot .center { text-align: center; }
+  .page-foot .end { text-align: end; }
+  .page-foot strong { color: var(--fg); font-family: var(--font-display); font-weight: 500; font-size: 13px; letter-spacing: 0; text-transform: none; }
+  @media (max-width: 900px) { .charts-row, .phones-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <header class="studio-header">
+      <span>Open Design / Tennis Club</span>
+      <strong>Round 2 — Charts &amp; Tabs</strong>
+      <em>emerald-heritage · 1080w</em>
+    </header>
+
+    <div class="section-rule">
+      <span>A</span>
+      <h2>图表方案 / Chart proposals</h2>
+      <span class="meta">profile.js → drawChart()</span>
+    </div>
+    <p style="font-size:13px; color:var(--muted); line-height:1.6; margin: 0 0 24px; max-width: 760px;">
+      profile 页 ELO / 积分两条折线，目前用 <span style="font-family:var(--font-mono); color:var(--fg);">#1976d2</span>(蓝) /
+      <span style="font-family:var(--font-mono); color:var(--fg);">#ff9800</span>(橙)。
+      下面是两个 emerald-heritage 替代方案，挑一个我会带进 profile 页全稿。两版都用 tabular-nums、单色克制、零渐变。
+    </p>
+
+    <div class="charts-row">
+      <article class="chart-card recommended">
+        <span class="badge-rec">RECOMMENDED · A</span>
+        <div class="chart-eyebrow">
+          <span class="label">A · 发丝网格 / Hairline grid</span>
+          <span>读数据</span>
+        </div>
+        <h3 class="chart-title">ELO 1500 → 1583</h3>
+        <p class="chart-caption">4 道发丝横线 + 左侧等宽 Y 轴 + 1.5 px 单色折线。给"想看真实波动"的运营者。</p>
+        <div class="chart-stage" aria-label="ELO trend chart, hairline grid variant">
+          <svg viewBox="0 0 480 240" preserveAspectRatio="none">
+            <g stroke="oklch(85% 0.014 90)" stroke-width="0.6">
+              <line x1="48" y1="32"  x2="464" y2="32" />
+              <line x1="48" y1="84"  x2="464" y2="84" />
+              <line x1="48" y1="136" x2="464" y2="136" />
+              <line x1="48" y1="188" x2="464" y2="188" />
+              <line x1="48" y1="200" x2="464" y2="200" stroke="oklch(45% 0.025 145)" stroke-width="0.8"/>
+            </g>
+            <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="9" letter-spacing="1.2" fill="oklch(45% 0.025 145)" text-anchor="end">
+              <text x="42" y="35">1600</text>
+              <text x="42" y="87">1565</text>
+              <text x="42" y="139">1530</text>
+              <text x="42" y="191">1495</text>
+            </g>
+            <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" letter-spacing="1.2" fill="oklch(45% 0.025 145)" text-anchor="middle">
+              <text x="60"  y="218">DEC</text>
+              <text x="111" y="218">JAN</text>
+              <text x="162" y="218">FEB</text>
+              <text x="214" y="218">MAR</text>
+              <text x="265" y="218">APR</text>
+              <text x="316" y="218">MAY</text>
+              <text x="367" y="218">JUN</text>
+              <text x="430" y="218">NOW</text>
+            </g>
+            <line x1="376" y1="96" x2="376" y2="200" stroke="oklch(62% 0.13 75)" stroke-width="0.8" stroke-dasharray="2 2" opacity="0.7"/>
+            <polyline
+              points="60,192 107,200 154,189 201,163 248,125 295,98 342,117 389,78 436,59"
+              fill="none" stroke="oklch(22% 0.05 155)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            />
+            <g fill="oklch(22% 0.05 155)">
+              <circle cx="60" cy="192" r="2.4"/>
+              <circle cx="107" cy="200" r="2.4"/>
+              <circle cx="295" cy="98" r="2.4"/>
+              <circle cx="342" cy="117" r="2.4"/>
+              <circle cx="436" cy="59" r="3"/>
+            </g>
+            <g font-family="'Iowan Old Style','Charter',Georgia,serif" font-size="13" fill="oklch(22% 0.05 155)" font-weight="500">
+              <text x="436" y="48" text-anchor="end">1583</text>
+            </g>
+            <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" letter-spacing="1.4" fill="oklch(62% 0.13 75)" text-anchor="end">
+              <text x="436" y="36">CURRENT</text>
+            </g>
+            <g font-family="'Iowan Old Style','Charter',Georgia,serif" font-size="10" fill="oklch(45% 0.025 145)" font-style="italic">
+              <text x="300" y="92">春日邀请赛 · 四强</text>
+            </g>
+          </svg>
+        </div>
+        <div class="chart-foot"><span>9 场比赛 · 6 个月</span><strong>+83</strong></div>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-eyebrow">
+          <span class="label">B · 极简纪念碑 / Sparse monument</span>
+          <span>讲故事</span>
+        </div>
+        <h3 class="chart-title">ELO · 六月之路</h3>
+        <p class="chart-caption">无网格 + 一根线 + 起止值用衬线大字 + 中段一处 milestone。给"想看进步"的会员。</p>
+        <div class="chart-stage" aria-label="ELO trend chart, sparse monument variant">
+          <svg viewBox="0 0 480 240" preserveAspectRatio="none">
+            <line x1="40" y1="200" x2="440" y2="200" stroke="oklch(85% 0.014 90)" stroke-width="0.8"/>
+            <polyline
+              points="48,192 100,200 152,189 204,163 256,125 308,98 360,117 412,78 456,59"
+              fill="none" stroke="oklch(22% 0.05 155)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            />
+            <polygon
+              points="48,192 100,200 152,189 204,163 256,125 308,98 360,117 412,78 456,59 456,200 48,200"
+              fill="oklch(22% 0.05 155)" fill-opacity="0.04"
+            />
+            <g font-family="'Iowan Old Style','Charter',Georgia,serif">
+              <text x="20" y="186" font-size="22" font-weight="500" fill="oklch(45% 0.025 145)">1500</text>
+            </g>
+            <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" letter-spacing="1.4" fill="oklch(45% 0.025 145)">
+              <text x="20" y="172">START · DEC '25</text>
+            </g>
+            <g font-family="'Iowan Old Style','Charter',Georgia,serif">
+              <text x="463" y="50" font-size="36" font-weight="500" fill="oklch(22% 0.05 155)" text-anchor="end">1583</text>
+            </g>
+            <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" letter-spacing="1.4" fill="oklch(62% 0.13 75)">
+              <text x="463" y="64" text-anchor="end">CURRENT · MAY '26</text>
+            </g>
+            <line x1="308" y1="98" x2="308" y2="200" stroke="oklch(62% 0.13 75)" stroke-width="0.8"/>
+            <circle cx="308" cy="98" r="3" fill="oklch(62% 0.13 75)"/>
+            <g font-family="'Iowan Old Style','Charter',Georgia,serif" font-size="11" fill="oklch(22% 0.05 155)" font-style="italic">
+              <text x="316" y="92">春日邀请赛 · 进入四强</text>
+            </g>
+            <g font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" letter-spacing="1.4" fill="oklch(62% 0.13 75)">
+              <text x="316" y="106">+57 ELO · APR '26</text>
+            </g>
+          </svg>
+        </div>
+        <div class="chart-foot"><span>5 场关键节点</span><strong>+83</strong></div>
+      </article>
+    </div>
+
+    <div class="section-rule">
+      <span>B</span>
+      <h2>三个 Tab 中的两个 / Activity &amp; Tournament</h2>
+      <span class="meta">375 × 812</span>
+    </div>
+
+    <div class="phones-row">
+
+      <div class="phone-stack">
+        <div class="caption">
+          <strong>活动 Tab — pages/index/index</strong>
+          <span>activity.list</span>
+        </div>
+
+        <div class="device" role="group" aria-label="Activity tab, iPhone 375 by 812">
+          <div class="notch"></div>
+          <div class="statusbar" aria-hidden="true">
+            <span>9:41</span>
+            <span class="right">
+              <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+              <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+            </span>
+          </div>
+          <div class="screen">
+            <div class="scroll" data-od-id="activity-scroll">
+              <header class="masthead" data-od-id="masthead">
+                <div class="wordmark">
+                  腾讯广州网球社
+                  <small>TGZ · TENNIS CLUB</small>
+                </div>
+                <div class="actions">
+                  <button class="icon-pill" aria-label="搜索">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="20" y1="20" x2="16" y2="16"/></svg>
+                  </button>
+                  <button class="icon-pill" aria-label="筛选">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7"  x2="14" y2="7"/><line x1="17" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="9"  y2="12"/><line x1="12" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="16" y2="17"/><line x1="19" y1="17" x2="20" y2="17"/></svg>
+                  </button>
+                </div>
+              </header>
+
+              <div class="month-eyebrow" data-od-id="month-eyebrow">
+                <span class="month-display">五月 <em>· May '26</em></span>
+                <span>5 场</span>
+                <span class="month-meta">本月 · ACTIVE</span>
+              </div>
+
+              <ol class="activity-list" data-od-id="activity-list">
+
+                <li class="activity-row" data-fill="75" data-field="activity[0]">
+                  <div class="date-stamp">
+                    <span class="day">30</span>
+                    <span class="month">May</span>
+                    <span class="weekday">SAT</span>
+                  </div>
+                  <div class="body">
+                    <div class="row-top">
+                      <div class="title" data-field="activity[0].title">春季双打月赛<br>第三场</div>
+                      <span class="status" data-field="activity[0].status">报名中</span>
+                    </div>
+                    <div class="meta-line" data-field="activity[0].meta">
+                      14:00 — 18:30
+                      <span class="sep"></span>
+                      二沙岛网球中心 1-3 号场
+                    </div>
+                    <div class="capacity">
+                      <div class="bar"></div>
+                      <div class="num"><strong>18</strong> / 24</div>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="activity-row" data-fill="75" data-field="activity[1]">
+                  <div class="date-stamp">
+                    <span class="day">27</span>
+                    <span class="month">May</span>
+                    <span class="weekday">WED</span>
+                  </div>
+                  <div class="body">
+                    <div class="row-top">
+                      <div class="title" data-field="activity[1].title">周三晚 · 切削与上旋训练课</div>
+                      <span class="status">报名中</span>
+                    </div>
+                    <div class="meta-line">
+                      19:30 — 21:30
+                      <span class="sep"></span>
+                      越秀网球俱乐部 5 号场
+                    </div>
+                    <div class="capacity">
+                      <div class="bar"></div>
+                      <div class="num"><strong>6</strong> / 8</div>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="activity-row" data-fill="100" data-field="activity[2]">
+                  <div class="date-stamp">
+                    <span class="day">25</span>
+                    <span class="month">May</span>
+                    <span class="weekday">MON</span>
+                  </div>
+                  <div class="body">
+                    <div class="row-top">
+                      <div class="title" data-field="activity[2].title">周末公开训练课 · 双打跑动</div>
+                      <span class="status is-full">已满员</span>
+                    </div>
+                    <div class="meta-line">
+                      09:00 — 11:30
+                      <span class="sep"></span>
+                      天河体育中心 7 号场
+                    </div>
+                    <div class="capacity">
+                      <div class="bar"></div>
+                      <div class="num"><strong>12</strong> / 12</div>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="activity-row" data-fill="100" data-field="activity[3]">
+                  <div class="date-stamp">
+                    <span class="day">21</span>
+                    <span class="month">May</span>
+                    <span class="weekday">THU</span>
+                  </div>
+                  <div class="body">
+                    <div class="row-top">
+                      <div class="title" data-field="activity[3].title">端午节友谊赛</div>
+                      <span class="status is-closed">已结束</span>
+                    </div>
+                    <div class="meta-line">
+                      09:00 — 17:00
+                      <span class="sep"></span>
+                      二沙岛网球中心
+                    </div>
+                    <div class="capacity">
+                      <div class="bar is-closed"></div>
+                      <div class="num"><strong>16</strong> / 16</div>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="activity-row" data-fill="100" data-field="activity[4]">
+                  <div class="date-stamp">
+                    <span class="day">17</span>
+                    <span class="month">May</span>
+                    <span class="weekday">SUN</span>
+                  </div>
+                  <div class="body">
+                    <div class="row-top">
+                      <div class="title" data-field="activity[4].title">春季单打月赛 #2</div>
+                      <span class="status is-closed">已结束</span>
+                    </div>
+                    <div class="meta-line">
+                      14:00 — 18:30
+                      <span class="sep"></span>
+                      二沙岛网球中心
+                    </div>
+                    <div class="capacity">
+                      <div class="bar is-closed"></div>
+                      <div class="num"><strong>12</strong> / 12</div>
+                    </div>
+                  </div>
+                </li>
+
+              </ol>
+            </div>
+
+            <button class="fab" aria-label="新建活动" data-action="goCreate">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+
+            <nav class="tabbar" role="tablist">
+              <button class="tab is-active" role="tab" aria-selected="true">
+                <svg width="22" height="22" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="1.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><circle cx="12" cy="14" r="0.8" fill="currentColor"/></svg>
+                <span>活动</span>
+              </button>
+              <button class="tab" role="tab" aria-selected="false">
+                <svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4 h10 v3 a5 5 0 0 1 -10 0 z"/><path d="M7 4 H4 v2 a3 3 0 0 0 3 3"/><path d="M17 4 h3 v2 a3 3 0 0 1 -3 3"/><line x1="12" y1="9" x2="12" y2="14"/><path d="M9 14 h6 v2 H9 z"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+                <span>赛事</span>
+              </button>
+              <button class="tab" role="tab" aria-selected="false">
+                <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20 v-1 a5 5 0 0 1 5 -5 h4 a5 5 0 0 1 5 5 v1"/></svg>
+                <span>我的</span>
+              </button>
+            </nav>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+
+      <div class="phone-stack">
+        <div class="caption">
+          <strong>赛事 Tab — pages/match-list/match-list</strong>
+          <span>tournament.list + ranking</span>
+        </div>
+
+        <div class="device" role="group" aria-label="Tournament tab, iPhone 375 by 812">
+          <div class="notch"></div>
+          <div class="statusbar" aria-hidden="true">
+            <span>9:41</span>
+            <span class="right">
+              <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+              <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="screen">
+            <div class="scroll" data-od-id="tournament-scroll">
+              <header class="masthead" data-od-id="masthead">
+                <div class="wordmark">
+                  赛事
+                  <small>TOURNAMENTS · 2026</small>
+                </div>
+                <div class="actions">
+                  <button class="icon-pill" aria-label="筛选">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7"  x2="14" y2="7"/><line x1="17" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="9"  y2="12"/><line x1="12" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="16" y2="17"/><line x1="19" y1="17" x2="20" y2="17"/></svg>
+                  </button>
+                </div>
+              </header>
+
+              <a class="ranking-feature" data-action="goRanking" role="button" tabindex="0" data-od-id="ranking-entry">
+                <div class="crest" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path d="M7 4 h10 v3 a5 5 0 0 1 -10 0 z"/><path d="M7 4 H4 v2 a3 3 0 0 0 3 3"/><path d="M17 4 h3 v2 a3 3 0 0 1 -3 3"/><line x1="12" y1="9" x2="12" y2="14"/><path d="M9 14 h6 v2 H9 z"/></svg>
+                </div>
+                <div class="body">
+                  <div class="eyebrow">本期榜单 · 2026 SEASON</div>
+                  <div class="title">积分排行榜</div>
+                </div>
+                <div class="my-rank" data-field="ranking.myRank">
+                  <strong>14<em>&thinsp;/&thinsp;82</em></strong>
+                  我的排名
+                </div>
+              </a>
+
+              <div class="tournament-eyebrow" data-od-id="tournament-eyebrow">
+                <span>赛事日历</span>
+                <span class="meta">FIXTURES</span>
+                <span class="meta">4 项</span>
+              </div>
+
+              <ol class="tournament-list" data-od-id="tournament-list">
+
+                <li class="tournament-row" data-field="tournament[0]">
+                  <div class="level">
+                    <span class="num">月赛 · CHALLENGE</span>
+                    <span class="pip"></span>
+                    <span>03 / 06</span>
+                  </div>
+                  <div class="title" data-field="tournament[0].title">春季双打月赛</div>
+                  <span class="status-pill" data-status="signup" data-field="tournament[0].status">报名中</span>
+                  <div class="meta-row">
+                    <div class="meta-cell">
+                      <span class="lbl">日期</span>
+                      <span class="val">06 / 07 <em>SUN</em></span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">规模</span>
+                      <span class="val">12 <em>/ 24 人</em></span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">类型</span>
+                      <span class="val">双打 <em>抢 5</em></span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="tournament-row" data-field="tournament[1]">
+                  <div class="level">
+                    <span class="num">半年赛 · MAJOR</span>
+                    <span class="pip"></span>
+                    <span>QUARTER FINAL</span>
+                  </div>
+                  <div class="title" data-field="tournament[1].title">冬季单打挑战赛</div>
+                  <span class="status-pill" data-status="knockout" data-field="tournament[1].status">淘汰赛</span>
+                  <div class="meta-row">
+                    <div class="meta-cell">
+                      <span class="lbl">下周末</span>
+                      <span class="val">06 / 06 <em>SAT</em></span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">剩余</span>
+                      <span class="val">8 <em>/ 24 人</em></span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">类型</span>
+                      <span class="val">单打 <em>抢 5</em></span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="tournament-row" data-field="tournament[2]">
+                  <div class="level">
+                    <span class="num">周赛 · FRIENDLY</span>
+                    <span class="pip"></span>
+                    <span>ROUND 04</span>
+                  </div>
+                  <div class="title" data-field="tournament[2].title">周三夜场轮战 #04</div>
+                  <span class="status-pill" data-status="group" data-field="tournament[2].status">小组赛</span>
+                  <div class="meta-row">
+                    <div class="meta-cell">
+                      <span class="lbl">下周三</span>
+                      <span class="val">05 / 27 <em>WED</em></span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">参赛</span>
+                      <span class="val">8 <em>人</em></span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">类型</span>
+                      <span class="val">单打 <em>抢 3</em></span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="tournament-row is-finished" data-field="tournament[3]">
+                  <div class="level">
+                    <span class="num">月赛 · CHALLENGE</span>
+                    <span class="pip"></span>
+                    <span>02 / 06</span>
+                  </div>
+                  <div class="title" data-field="tournament[3].title">春日邀请赛</div>
+                  <span class="status-pill" data-status="finished" data-field="tournament[3].status">已结束</span>
+                  <div class="meta-row">
+                    <div class="meta-cell">
+                      <span class="lbl">日期</span>
+                      <span class="val">04 / 12 <em>SUN</em></span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">冠军</span>
+                      <span class="val">黄子轩</span>
+                    </div>
+                    <div class="meta-cell">
+                      <span class="lbl">规模</span>
+                      <span class="val">16 <em>双打</em></span>
+                    </div>
+                  </div>
+                </li>
+
+              </ol>
+            </div>
+
+            <button class="fab" aria-label="创建赛事" data-action="goCreate">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+
+            <nav class="tabbar" role="tablist">
+              <button class="tab" role="tab" aria-selected="false">
+                <svg width="22" height="22" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="1.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><circle cx="12" cy="14" r="0.8" fill="currentColor"/></svg>
+                <span>活动</span>
+              </button>
+              <button class="tab is-active" role="tab" aria-selected="true">
+                <svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4 h10 v3 a5 5 0 0 1 -10 0 z"/><path d="M7 4 H4 v2 a3 3 0 0 0 3 3"/><path d="M17 4 h3 v2 a3 3 0 0 1 -3 3"/><line x1="12" y1="9" x2="12" y2="14"/><path d="M9 14 h6 v2 H9 z"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+                <span>赛事</span>
+              </button>
+              <button class="tab" role="tab" aria-selected="false">
+                <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20 v-1 a5 5 0 0 1 5 -5 h4 a5 5 0 0 1 5 5 v1"/></svg>
+                <span>我的</span>
+              </button>
+            </nav>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-foot">
+      <span>direction · emerald-heritage</span>
+      <span class="center">round 02 · charts + tabs</span>
+      <span class="end"><strong>3 of 5</strong> · activity-detail done</span>
+    </footer>
+
+  </div>
+</body>
+</html>

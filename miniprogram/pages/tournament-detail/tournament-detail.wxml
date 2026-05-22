@@ -2,10 +2,10 @@
   <!-- 赛事信息 -->
   <view class="card">
     <view class="title big">{{t.title}}</view>
-    <view class="meta">📅 {{t.dateText}} · {{t.levelText}}</view>
-    <view class="meta">🎾 {{t.type === 'doubles' ? '双打' : '单打'}} · 先赢 {{t.bestOf}} 盘</view>
-    <view class="meta">📋 {{t.config.groupCount}}组 · 每组前{{t.config.advanceCount}}名晋级 · {{t.config.seedCount > 0 ? t.config.seedCount + '种子' : '随机分组'}}</view>
-    <view class="meta handicap-rule" wx:if="{{t.handicapRule}}">⚖️ 让分规则：{{t.handicapRule}}</view>
+    <view class="meta"><icon name="clock" size="32" /> {{t.dateText}} · {{t.levelText}}</view>
+    <view class="meta"><icon name="tennis" size="32" /> {{t.type === 'doubles' ? '双打' : '单打'}} · 先赢 {{t.bestOf}} 盘</view>
+    <view class="meta"><icon name="list" size="32" /> {{t.config.groupCount}}组 · 每组前{{t.config.advanceCount}}名晋级 · {{t.config.seedCount > 0 ? t.config.seedCount + '种子' : '随机分组'}}</view>
+    <view class="meta handicap-rule" wx:if="{{t.handicapRule}}"><icon name="note" size="32" /> 让分规则：{{t.handicapRule}}</view>
     <view class="status-badge {{t.status}}">{{t.statusText}}</view>
   </view>
 
@@ -24,7 +24,7 @@
         <view class="section-title">已报名（{{t.players.length}}人）</view>
         <view wx:if="{{t.players.length === 0}}" class="muted">暂无报名</view>
         <view wx:for="{{t.players}}" wx:key="openid" class="player-row">
-          <text class="player-gender">{{item.gender === 'female' ? '♀' : '♂'}}</text>
+          <text class="player-gender"></text>
           <text class="player-name">{{index + 1}}. {{item.wecomName}}</text>
           <text class="player-pts" wx:if="{{item.totalPoints}}">{{item.totalPoints}}分</text>
           <text class="player-rating" wx:if="{{item.rating}}">{{item.rating}}</text>
@@ -154,7 +154,7 @@
 
     <!-- 赛事结束 -->
     <view wx:if="{{t.status === 'finished'}}" class="card champion-card">
-      <view class="champion-icon">🏆</view>
+      <view class="champion-icon"><icon name="trophy" size="112" /></view>
       <view class="champion-text">赛事已结束</view>
     </view>
 
