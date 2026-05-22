@@ -245,7 +245,7 @@ function calcStandings(group) {
   return standings;
 }
 
-// 判定单场胜方（先赢N盘制）
+// 判定单场胜方
 function judgeMatch(scoreA, scoreB) {
   if (scoreA === scoreB) return { winner: null, scoreSummary: `${scoreA}:${scoreB}` };
   const winner = scoreA > scoreB ? 'A' : 'B';
@@ -253,12 +253,26 @@ function judgeMatch(scoreA, scoreB) {
   return { winner, scoreSummary };
 }
 
-// 校验比分合法性（先赢N盘制）
-// 先赢4盘：合法比分为 4:0, 4:1, 4:2, 4:3(抢7)
-// 规则：胜者必须恰好等于 target，负者 0 ~ target-1
+// 校验比分合法性（网球规则）
+// target=4（短盘）: 合法比分 4:0, 4:1, 4:2, 5:3, 5:4(抢七)
+// target=6（标准盘）: 合法比分 6:0, 6:1, 6:2, 6:3, 6:4, 7:5, 7:6(抢七)
+// 规则：正常胜(winner=target, loser≤target-2) 或 延长胜(winner=target+1, loser=target-1) 或 抢七胜(winner=target+1, loser=target)
 function validateScore(scoreA, scoreB, target) {
-  if (scoreA === target && scoreB >= 0 && scoreB < target) return true;
-  if (scoreB === target && scoreA >= 0 && scoreA < target) return true;
+  const high = Math.max(scoreA, scoreB);
+  const low = Math.min(scoreA, scoreB);
+
+  // 平局不合法
+  if (high === low) return false;
+
+  // 正常胜：胜者 = target，负者 ≤ target - 2
+  if (high === target && low >= 0 && low <= target - 2) return true;
+
+  // 延长胜：胜者 = target + 1，负者 = target - 1（领先2局胜出）
+  if (high === target + 1 && low === target - 1) return true;
+
+  // 抢七胜：胜者 = target + 1，负者 = target（抢七决胜）
+  if (high === target + 1 && low === target) return true;
+
   return false;
 }
 
@@ -554,11 +568,11 @@ exports.main = async event => {
     if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0) {
       return { code: 1, msg: '比分格式错误' };
     }
-    if (!validateScore(sa, sb, t.bestOf)) {
-      return { code: 1, msg: `比分不合法（先赢${t.bestOf}盘制，胜者必须恰好${t.bestOf}盘）` };
-    }
     if (sa === sb) {
       return { code: 1, msg: '必须决出胜负' };
+    }
+    if (!validateScore(sa, sb, t.bestOf)) {
+      return { code: 1, msg: `比分不合法（先赢${t.bestOf}局制，含抢七规则）` };
     }
 
     // 权限检查
@@ -661,11 +675,11 @@ exports.main = async event => {
     if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0) {
       return { code: 1, msg: '比分格式错误' };
     }
-    if (!validateScore(sa, sb, t.bestOf)) {
-      return { code: 1, msg: `比分不合法（先赢${t.bestOf}盘制，胜者必须恰好${t.bestOf}盘）` };
-    }
     if (sa === sb) {
       return { code: 1, msg: '必须决出胜负' };
+    }
+    if (!validateScore(sa, sb, t.bestOf)) {
+      return { code: 1, msg: `比分不合法（先赢${t.bestOf}局制，含抢七规则）` };
     }
 
     const round = t.knockout.rounds[roundIndex];

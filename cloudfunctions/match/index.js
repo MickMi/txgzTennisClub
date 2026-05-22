@@ -237,12 +237,18 @@ exports.main = async event => {
     if (isNaN(scoreA) || isNaN(scoreB) || scoreA < 0 || scoreB < 0) {
       return { code: 1, msg: '比分格式错误' };
     }
-    // 先赢N盘制：胜者必须恰好等于 bestOf，负者 0 ~ bestOf-1
+    if (scoreA === scoreB) {
+      return { code: 1, msg: '比分不能相同' };
+    }
+    // 网球比分校验：正常胜 / 延长胜(领先2局) / 抢七胜
     const target = m.bestOf;
-    const valid = (scoreA === target && scoreB >= 0 && scoreB < target) ||
-                  (scoreB === target && scoreA >= 0 && scoreA < target);
+    const high = Math.max(scoreA, scoreB);
+    const low = Math.min(scoreA, scoreB);
+    const valid = (high === target && low >= 0 && low <= target - 2) ||
+                  (high === target + 1 && low === target - 1) ||
+                  (high === target + 1 && low === target);
     if (!valid) {
-      return { code: 1, msg: `比分不合法（先赢${target}盘制）` };
+      return { code: 1, msg: `比分不合法（先赢${target}局制，含抢七规则）` };
     }
 
     const winner = scoreA > scoreB ? 'A' : 'B';
