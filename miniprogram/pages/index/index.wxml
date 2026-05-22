@@ -14,10 +14,14 @@
 
   <block wx:if="{{!loading && list.length === 0}}">
     <view class="empty-state">
-      <view class="empty-icon"><icon name="tennis" size="112" /></view>
+      <image class="empty-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%235d6e63' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5.5' width='17' height='14' rx='1.5'/%3E%3Cline x1='3.5' y1='9.5' x2='20.5' y2='9.5'/%3E%3Cline x1='8' y1='3' x2='8' y2='7'/%3E%3Cline x1='16' y1='3' x2='16' y2='7'/%3E%3C/svg%3E" />
+      <view class="empty-eyebrow">EMPTY · 暂无活动</view>
       <view class="empty-title">还没有活动</view>
-      <view class="empty-desc">组织一场网球活动，邀请社团伙伴一起运动吧</view>
-      <button class="cta-primary" style="width: 320rpx;" bindtap="goCreate">创建活动</button>
+      <view class="empty-desc">组织一场，邀请伙伴一起运动</view>
+      <view class="empty-cta" bindtap="goCreate">
+        <text>创建活动</text>
+        <text class="empty-arrow">→</text>
+      </view>
     </view>
   </block>
 

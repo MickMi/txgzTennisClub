@@ -10,3 +10,32 @@
 .card-status.tag--closed {
   color: var(--color-muted);
 }
+
+/* Empty state — emerald-heritage ghost style */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 60vh; padding: 0 60rpx;
+}
+.empty-icon { width: 80rpx; height: 80rpx; margin-bottom: 32rpx; }
+.empty-eyebrow {
+  font-family: var(--font-mono); font-size: var(--text-mono-sm);
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--color-accent); margin-bottom: 24rpx;
+}
+.empty-title {
+  font-family: var(--font-display); font-size: 44rpx; font-weight: 500;
+  color: var(--color-fg); margin-bottom: 12rpx;
+}
+.empty-desc {
+  font-family: var(--font-mono); font-size: 22rpx; letter-spacing: 0.12em;
+  color: var(--color-muted); text-transform: uppercase; margin-bottom: 48rpx;
+}
+.empty-cta {
+  display: flex; align-items: center; gap: 16rpx;
+  border: 3rpx solid var(--color-fg); padding: 24rpx 40rpx;
+  font-family: var(--font-display); font-size: 28rpx; color: var(--color-fg);
+  background: transparent;
+}
+.empty-arrow {
+  font-family: var(--font-mono); color: var(--color-accent);
+}

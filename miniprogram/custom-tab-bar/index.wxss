@@ -5,13 +5,15 @@
   padding: 12rpx 0 52rpx;
 }
 .tab {
-  display: flex; flex-direction: column; align-items: center; gap: 8rpx;
-  padding: 16rpx 0 12rpx; position: relative; color: #5d6e63;
+  display: grid; grid-template-rows: 44rpx auto; row-gap: 8rpx; place-items: center;
+  padding: 16rpx 0 12rpx; color: #5d6e63; position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  font-size: 21rpx; letter-spacing: 0.06em;
+  background: none; border: 0;
 }
 .tab-icon { width: 44rpx; height: 44rpx; }
-.tab-label { font-size: 21rpx; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
 .tab.is-active { color: #1f2e22; }
 .tab.is-active::after {
-  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  content: ''; position: absolute; bottom: -12rpx; left: 50%; transform: translateX(-50%);
   width: 36rpx; height: 4rpx; background: #b87a36;
 }

@@ -1,16 +1,16 @@
 <view class="container">
   <view class="card">
-    <view class="field">
-      <view class="label">比赛名 *</view>
-      <input class="input" placeholder="例如：5 月月赛-决赛"
+    <view class="form-row">
+      <text class="form-label">TITLE · 比赛名 <text class="required">*</text></text>
+      <input class="form-input" placeholder="例如：5 月月赛-决赛"
         value="{{form.title}}" data-key="title" bindinput="onInput" maxlength="40" />
     </view>
 
-    <view class="field">
-      <view class="label">比赛级别 *</view>
+    <view class="form-row">
+      <text class="form-label">LEVEL · 级别 <text class="required">*</text></text>
       <picker bindchange="onLevelChange" value="{{levelIndex}}"
         range="{{levelOptions}}" range-key="label">
-        <view class="picker">
+        <view class="form-picker">
           <text>{{levelOptions[levelIndex].label}}</text>
           <text class="picker-desc">{{levelOptions[levelIndex].desc}}</text>
         </view>
@@ -21,32 +21,32 @@
       </view>
     </view>
 
-    <view class="field">
-      <view class="label">类型 *</view>
+    <view class="form-row">
+      <text class="form-label">TYPE · 类型 <text class="required">*</text></text>
       <picker bindchange="onTypeChange" value="{{typeIndex}}"
         range="{{typeOptions}}" range-key="label">
-        <view class="picker">{{typeOptions[typeIndex].label}}</view>
+        <view class="form-picker">{{typeOptions[typeIndex].label}}</view>
       </picker>
     </view>
 
-    <view class="field">
-      <view class="label">赛制 *</view>
+    <view class="form-row">
+      <text class="form-label">FORMAT · 赛制 <text class="required">*</text></text>
       <picker bindchange="onBestOfChange" value="{{bestOfIndex}}"
         range="{{bestOfOptions}}">
-        <view class="picker">先赢 {{bestOfOptions[bestOfIndex]}} 盘</view>
+        <view class="form-picker">先赢 {{bestOfOptions[bestOfIndex]}} 盘</view>
       </picker>
     </view>
 
-    <view class="field">
-      <view class="label">比赛日期 *</view>
+    <view class="form-row">
+      <text class="form-label">DATE · 比赛日期 <text class="required">*</text></text>
       <picker mode="date" value="{{form.matchDate}}" bindchange="onDateChange">
-        <view class="picker">{{form.matchDate || '请选择'}}</view>
+        <view class="form-picker">{{form.matchDate || '请选择'}}</view>
       </picker>
     </view>
 
-    <view class="field">
-      <view class="label">让分规则（可选）</view>
-      <input class="input" placeholder="如：男让女每盘 2 局" value="{{form.handicapRule}}" data-key="handicapRule" bindinput="onInput" maxlength="100" />
+    <view class="form-row">
+      <text class="form-label">HANDICAP · 让分规则</text>
+      <input class="form-input" placeholder="如：男让女每盘 2 局" value="{{form.handicapRule}}" data-key="handicapRule" bindinput="onInput" maxlength="100" />
       <view class="field-hint">仅作提示展示，不影响比分计算</view>
     </view>
   </view>
@@ -55,7 +55,9 @@
     创建后选手先报名，人齐后由创建者点击"随机分组"，系统自动打乱分配到 A/B 方。比赛结束后录入总比分即可。
   </view>
 
-  <button class="btn-primary submit" bindtap="onSubmit" disabled="{{submitting}}">
-    创建比赛
-  </button>
+  <view class="form-cta-bar">
+    <button class="cta-primary" bindtap="onSubmit" disabled="{{submitting}}">
+      创建比赛
+    </button>
+  </view>
 </view>

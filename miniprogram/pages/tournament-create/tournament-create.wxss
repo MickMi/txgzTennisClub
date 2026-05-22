@@ -1,28 +1,60 @@
-.field {
-  margin-bottom: 28rpx;
+/* Form rows */
+.form-row {
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--color-border);
 }
-
-.label {
-  font-size: 26rpx;
+.form-row:last-child { border-bottom: none; }
+.form-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
   color: var(--color-muted);
   margin-bottom: 12rpx;
 }
-
-.input, .picker {
-  height: 80rpx;
-  background: var(--color-bg);
-  border-radius: 0;
-  padding: 0 24rpx;
-  line-height: 80rpx;
-  font-size: 30rpx;
+.form-label .required {
+  color: var(--color-accent);
+}
+.form-input, .form-textarea {
+  width: 100%;
+  background: var(--color-surface);
+  border: none;
+  padding: 28rpx 24rpx;
+  font-family: var(--font-body);
+  font-size: 29rpx;
+  color: var(--color-fg);
+}
+.form-textarea {
+  min-height: 160rpx;
+}
+.form-picker {
+  padding: 28rpx 24rpx;
+  background: var(--color-surface);
+  font-size: 29rpx;
+  color: var(--color-fg);
 }
 
+/* Container bottom padding for fixed button */
+.container {
+  padding-bottom: 200rpx;
+}
+
+/* Submit button - fixed at bottom */
+.form-cta-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--color-surface); border-top: 1rpx solid var(--color-border);
+  padding: 28rpx 48rpx 60rpx;
+}
+
+/* Card title */
 .card-title {
   font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 24rpx;
 }
 
+/* Tips & hints */
 .tip {
   margin: 20rpx 10rpx;
   line-height: 1.6;
@@ -32,8 +64,4 @@
   margin-top: 8rpx;
   font-size: 22rpx;
   color: var(--color-muted);
-}
-
-.submit {
-  margin-top: 20rpx;
 }
