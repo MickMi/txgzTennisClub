@@ -1,19 +1,74 @@
-/* 全局样式 */
+/* === emerald-heritage Design Tokens === */
 page {
-  background: #f5f6f7;
-  font-size: 28rpx;
-  color: #333;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC",
-    "Microsoft YaHei", sans-serif;
+  /* 色板 */
+  --color-bg:        #f1ece0;
+  --color-surface:   #f8f4e8;
+  --color-border:    #ddd6c4;
+  --color-fg:        #1f2e22;
+  --color-muted:     #5d6e63;
+  --color-disabled:  #b6b29f;
+  --color-emerald-deep: #243a30;
+  --color-emerald:      #2d5443;
+  --color-accent:    #b87a36;
+  --color-success:   #2d5443;
+  --color-warning:   #b87a36;
+  --color-danger:    #8b3a3a;
+  --color-info:      #5d6e63;
+
+  /* 字体 */
+  --font-display: 'Iowan Old Style', 'Charter', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  /* 字号阶 */
+  --text-display-xl: 160rpx;
+  --text-display-lg: 68rpx;
+  --text-display-md: 48rpx;
+  --text-display-sm: 36rpx;
+  --text-body-lg: 30rpx;
+  --text-body: 28rpx;
+  --text-body-sm: 24rpx;
+  --text-mono-md: 22rpx;
+  --text-mono-sm: 20rpx;
+
+  /* 间距阶 */
+  --space-1:  8rpx;
+  --space-2:  16rpx;
+  --space-3:  24rpx;
+  --space-4:  32rpx;
+  --space-5:  48rpx;
+  --space-6:  64rpx;
+  --space-7:  96rpx;
+
+  /* 圆角 */
+  --radius-none: 0;
+  --radius-sm:   4rpx;
+  --radius-md:   8rpx;
+  --radius-lg:   16rpx;
+  --radius-pill: 999rpx;
+
+  /* 边线 */
+  --border-hairline: 1rpx solid var(--color-border);
+  --border-strong:   1rpx solid var(--color-fg);
+  --border-accent:   2rpx solid var(--color-accent);
+
+  /* 阴影（仅模态用） */
+  --shadow-modal: 0 8rpx 32rpx rgba(20, 30, 25, 0.18);
+
+  /* 基础样式 */
+  background: var(--color-bg);
+  font-size: var(--text-body);
+  color: var(--color-fg);
+  font-family: var(--font-body);
 }
 
 .container {
-  padding: 24rpx;
+  padding: var(--space-3);
   box-sizing: border-box;
 }
 
 .card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -23,60 +78,60 @@ page {
 .title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #222;
+  color: var(--color-fg);
 }
 
 .muted {
-  color: #888;
-  font-size: 24rpx;
+  color: var(--color-muted);
+  font-size: var(--text-body-sm);
 }
 
 .tag {
   display: inline-block;
   padding: 4rpx 14rpx;
   border-radius: 8rpx;
-  background: #e8f5e9;
-  color: #1aad19;
-  font-size: 22rpx;
+  background: var(--color-surface);
+  color: var(--color-emerald-deep);
+  font-size: var(--text-mono-md);
   margin-right: 8rpx;
 }
 
 .tag-gray {
-  background: #eee;
-  color: #888;
+  background: var(--color-border);
+  color: var(--color-muted);
 }
 
 .btn-primary {
-  background: #1aad19;
-  color: #fff;
+  background: var(--color-emerald-deep);
+  color: var(--color-bg);
   border-radius: 12rpx;
-  font-size: 30rpx;
+  font-size: var(--text-body-lg);
 }
 
 .btn-primary[disabled] {
-  background: #c6e6c6;
-  color: #fff;
+  background: var(--color-disabled);
+  color: var(--color-surface);
 }
 
 .btn-default {
-  background: #fff;
-  color: #1aad19;
-  border: 1rpx solid #1aad19;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  border: 1rpx solid var(--color-fg);
   border-radius: 12rpx;
-  font-size: 30rpx;
+  font-size: var(--text-body-lg);
 }
 
 .btn-danger {
-  background: #fff;
-  color: #e64340;
-  border: 1rpx solid #e64340;
+  background: var(--color-surface);
+  color: var(--color-danger);
+  border: 1rpx solid var(--color-danger);
   border-radius: 12rpx;
-  font-size: 30rpx;
+  font-size: var(--text-body-lg);
 }
 
 .empty {
   text-align: center;
-  color: #999;
+  color: var(--color-muted);
   padding: 80rpx 0;
   font-size: 26rpx;
 }
@@ -97,13 +152,13 @@ page {
 .empty-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--color-fg);
   margin-bottom: 16rpx;
 }
 
 .empty-desc {
   font-size: 26rpx;
-  color: #999;
+  color: var(--color-muted);
   text-align: center;
   margin-bottom: 48rpx;
 }
@@ -123,12 +178,12 @@ page {
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
-  background: #1aad19;
-  color: #fff;
+  background: var(--color-emerald-deep);
+  color: var(--color-bg);
   font-size: 60rpx;
   line-height: 96rpx;
   text-align: center;
-  box-shadow: 0 4rpx 16rpx rgba(26, 173, 25, 0.4);
+  box-shadow: 0 4rpx 16rpx rgba(36, 58, 48, 0.4);
 }
 
 .row {
@@ -144,6 +199,6 @@ page {
 
 .divider {
   height: 1rpx;
-  background: #eee;
+  background: var(--color-border);
   margin: 16rpx 0;
 }

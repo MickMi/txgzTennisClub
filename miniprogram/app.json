@@ -14,15 +14,15 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#1aad19",
+    "navigationBarBackgroundColor": "#243a30",
     "navigationBarTitleText": "腾讯广州网球社",
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
-    "color": "#999",
-    "selectedColor": "#1aad19",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "color": "#5d6e63",
+    "selectedColor": "#243a30",
+    "backgroundColor": "#f8f4e8",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",
