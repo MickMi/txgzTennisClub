@@ -7,21 +7,32 @@
     </view>
     <view class="masthead-actions">
       <view class="icon-pill" bindtap="goCreate">
-        <icon name="plus" size="32" />
+        <icon name="plus" size="28" />
       </view>
     </view>
   </view>
 
-  <!-- 排行榜入口 -->
-  <view class="ranking-entry" bindtap="goRanking">
-    <view class="ranking-entry-left">
-      <icon name="trophy" size="40" />
-      <text class="ranking-text">积分排行榜</text>
+  <!-- 排行榜特征卡 -->
+  <view class="ranking-feature" bindtap="goRanking">
+    <view class="crest"><icon name="trophy" size="36" /></view>
+    <view class="body">
+      <view class="eyebrow">LEADERBOARD</view>
+      <view class="title">积分排行榜</view>
     </view>
-    <icon name="arrow-right" size="32" class="ranking-arrow" />
+    <view class="my-rank">
+      <text class="strong">--</text>
+      <text class="lbl">MY RANK</text>
+    </view>
   </view>
 
-  <!-- 赛事列表 -->
+  <!-- 赛事分区标题 -->
+  <view class="tournament-eyebrow">
+    <text>赛事</text>
+    <text class="meta">TOURNAMENTS</text>
+    <text class="meta">{{tournaments.length}}</text>
+  </view>
+
+  <!-- 空状态 -->
   <block wx:if="{{!loading && tournaments.length === 0}}">
     <view class="empty-state">
       <view class="empty-icon"><icon name="trophy" size="112" /></view>
@@ -31,23 +42,41 @@
     </view>
   </block>
 
-  <view
-    wx:for="{{tournaments}}"
-    wx:key="_id"
-    class="card"
-    data-id="{{item._id}}"
-    bindtap="goTournamentDetail"
-  >
-    <view class="card-eyebrow">{{item.levelText}} · {{item.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</view>
-    <view class="card-title">{{item.title}}</view>
-    <view class="card-meta">
-      <view class="meta-item"><icon name="clock" size="28" /><text>{{item.dateText}}</text></view>
-      <view class="meta-item"><icon name="people" size="28" /><text class="display-num">{{item.playerCount}}</text><text class="mono-unit">人</text></view>
-    </view>
-    <view class="card-foot">
-      <view class="card-status">{{item.statusText}}</view>
-      <icon name="arrow-right" size="32" class="card-arrow" />
+  <!-- 赛事列表 -->
+  <view class="tournament-list" wx:if="{{tournaments.length > 0}}">
+    <view
+      wx:for="{{tournaments}}"
+      wx:key="_id"
+      class="tournament-row {{item.status === 'finished' ? 'is-finished' : ''}}"
+      data-id="{{item._id}}"
+      bindtap="goTournamentDetail"
+    >
+      <view class="level">
+        <text class="num">{{index < 9 ? '0' : ''}}{{index + 1}}</text>
+        <view class="pip"></view>
+        <text>{{item.levelText}}</text>
+      </view>
+      <view class="title">{{item.title}}</view>
+      <view class="status-pill" data-status="{{item.status}}">{{item.statusText}}</view>
+      <view class="meta-row">
+        <view class="meta-cell">
+          <text class="lbl">DATE</text>
+          <text class="val">{{item.dateText}}</text>
+        </view>
+        <view class="meta-cell">
+          <text class="lbl">PLAYERS</text>
+          <text class="val">{{item.playerCount}}<text class="em">人</text></text>
+        </view>
+        <view class="meta-cell">
+          <text class="lbl">FORMAT</text>
+          <text class="val">{{item.type === 'doubles' ? '双打' : '单打'}}</text>
+        </view>
+      </view>
     </view>
   </view>
-</view>
 
+  <!-- FAB 创建按钮 -->
+  <view class="fab" bindtap="goCreate">
+    <icon name="plus" size="40" />
+  </view>
+</view>

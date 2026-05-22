@@ -223,7 +223,7 @@ Page({
 
     if (!data || data.length < 2) {
       // 数据不足，显示提示
-      ctx.fillStyle = '#999';
+      ctx.fillStyle = '#5d6e63';
       ctx.font = '12px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('参加更多赛事后显示趋势图', width / 2, height / 2);
@@ -244,7 +244,7 @@ Page({
     const getY = (v) => padding.top + chartH - ((v - minVal) / range) * chartH;
 
     // 绘制网格线
-    ctx.strokeStyle = '#f0f0f0';
+    ctx.strokeStyle = '#ddd6c4';
     ctx.lineWidth = 0.5;
     for (let i = 0; i <= 4; i++) {
       const y = padding.top + (i / 4) * chartH;
@@ -255,7 +255,7 @@ Page({
     }
 
     // Y轴标签
-    ctx.fillStyle = '#999';
+    ctx.fillStyle = '#5d6e63';
     ctx.font = '10px sans-serif';
     ctx.textAlign = 'right';
     for (let i = 0; i <= 4; i++) {
@@ -265,7 +265,7 @@ Page({
     }
 
     // 绘制折线
-    const color = this.data.chartTab === 0 ? '#1976d2' : '#ff9800';
+    const color = this.data.chartTab === 0 ? '#243a30' : '#b87a36';
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.lineJoin = 'round';

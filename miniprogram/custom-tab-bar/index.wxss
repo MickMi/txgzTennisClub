@@ -1,44 +1,17 @@
 .tabbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 999;
-  background: #f8f4e8;
-  border-top: 1rpx solid #ddd6c4;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+  background: #f8f4e8; border-top: 1rpx solid #ddd6c4;
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
   padding: 12rpx 0 52rpx;
 }
 .tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6rpx;
-  padding: 16rpx 0 12rpx;
-  color: #5d6e63;
-  position: relative;
-  background: none;
-  border: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 8rpx;
+  padding: 16rpx 0 12rpx; position: relative; color: #5d6e63;
 }
-.tab-icon {
-  width: 44rpx;
-  height: 44rpx;
-}
-.tab-label {
-  font-size: 21rpx;
-}
-.tab.is-active {
-  color: #1f2e22;
-}
+.tab-icon { width: 44rpx; height: 44rpx; }
+.tab-label { font-size: 21rpx; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+.tab.is-active { color: #1f2e22; }
 .tab.is-active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 36rpx;
-  height: 4rpx;
-  background: #b87a36;
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 36rpx; height: 4rpx; background: #b87a36;
 }

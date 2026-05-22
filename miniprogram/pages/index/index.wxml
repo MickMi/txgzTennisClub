@@ -7,7 +7,7 @@
     </view>
     <view class="masthead-actions">
       <view class="icon-pill" bindtap="goCreate">
-        <icon name="plus" size="32" />
+        <icon name="plus" size="28" />
       </view>
     </view>
   </view>

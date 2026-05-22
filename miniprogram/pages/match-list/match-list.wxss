@@ -1,27 +1,288 @@
-/* match-list 赛事列表页 */
-.ranking-entry {
-  display: flex;
+/* match-list 赛事列表页 — emerald-heritage */
+
+/* ─── Ranking Feature Card ─── */
+.ranking-feature {
+  margin: 28rpx 48rpx 0;
+  padding: 36rpx 40rpx;
+  background: var(--color-surface);
+  border: 1rpx solid var(--color-border);
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 72rpx 1fr auto;
+  column-gap: 28rpx;
   align-items: center;
-  justify-content: space-between;
-  padding: 28rpx 0;
-  border-bottom: var(--border-strong);
-  margin-bottom: var(--space-4);
 }
-.ranking-entry-left {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
+
+.ranking-feature::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 28rpx;
+  bottom: 28rpx;
+  width: 4rpx;
+  background: var(--color-accent);
 }
-.ranking-text {
-  font-family: var(--font-display);
-  font-size: var(--text-display-sm);
-  color: var(--color-fg);
-}
-.ranking-arrow {
+
+.ranking-feature .crest {
+  width: 72rpx;
+  height: 72rpx;
+  border: 1rpx solid var(--color-accent);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   color: var(--color-accent);
 }
-.meta-item {
+
+.ranking-feature .body {
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.ranking-feature .body .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 8rpx;
+}
+
+.ranking-feature .body .title {
+  font-family: var(--font-display);
+  font-size: 33rpx;
+  font-weight: 500;
+  color: var(--color-fg);
+  letter-spacing: 0.005em;
+}
+
+.ranking-feature .my-rank {
+  text-align: end;
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.18em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.ranking-feature .my-rank .strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 44rpx;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--color-fg);
+  text-transform: none;
+  font-feature-settings: 'lnum', 'tnum';
+}
+
+.ranking-feature .my-rank .lbl {
+  display: block;
+}
+
+/* ─── Tournament Eyebrow ─── */
+.tournament-eyebrow {
+  border-top: var(--border-strong);
+  margin: 44rpx 48rpx 0;
+  padding-top: 28rpx;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  column-gap: 32rpx;
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: 21rpx;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+}
+
+.tournament-eyebrow .meta {
+  color: var(--color-muted);
+  font-size: 19rpx;
+}
+
+/* ─── Tournament List ─── */
+.tournament-list {
+  padding: 0 48rpx 48rpx;
+}
+
+/* ─── Tournament Row ─── */
+.tournament-row {
+  border-bottom: 1rpx solid var(--color-border);
+  padding: 40rpx 0 44rpx;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 28rpx;
+}
+
+.tournament-row:last-child {
+  border-bottom: none;
+}
+
+.tournament-row .level {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 16rpx;
   display: flex;
+  gap: 28rpx;
   align-items: center;
-  gap: 8rpx;
+}
+
+.tournament-row .level .num {
+  color: var(--color-accent);
+}
+
+.tournament-row .level .pip {
+  display: inline-block;
+  width: 8rpx;
+  height: 8rpx;
+  background: var(--color-border);
+  border-radius: 50%;
+}
+
+.tournament-row .title {
+  font-family: var(--font-display);
+  font-size: 42rpx;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--color-fg);
+  line-height: 1.2;
+}
+
+.tournament-row .status-pill {
+  align-self: start;
+  margin-top: 8rpx;
+  font-family: var(--font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 8rpx 16rpx;
+  white-space: nowrap;
+}
+
+.tournament-row .status-pill[data-status='signup'] {
+  color: var(--color-accent);
+  border: 1rpx solid var(--color-accent);
+}
+
+.tournament-row .status-pill[data-status='group'],
+.tournament-row .status-pill[data-status='knockout'] {
+  color: var(--color-bg);
+  background: var(--color-emerald-deep);
+  border: 1rpx solid var(--color-emerald-deep);
+}
+
+.tournament-row .status-pill[data-status='finished'] {
+  color: var(--color-muted);
+  border: 1rpx solid var(--color-border);
+}
+
+.tournament-row .meta-row {
+  grid-column: 1 / -1;
+  margin-top: 24rpx;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.tournament-row .meta-cell {
+  border-inline-start: 1rpx solid var(--color-border);
+  padding-inline-start: 24rpx;
+  line-height: 1.2;
+}
+
+.tournament-row .meta-cell:first-child {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.tournament-row .meta-cell .lbl {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 8rpx;
+}
+
+.tournament-row .meta-cell .val {
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  color: var(--color-fg);
+  font-feature-settings: 'lnum', 'tnum';
+  letter-spacing: 0.005em;
+}
+
+.tournament-row .meta-cell .val .em {
+  font-style: normal;
+  color: var(--color-muted);
+  font-size: 22rpx;
+  margin-inline-start: 6rpx;
+}
+
+/* ─── Finished state ─── */
+.tournament-row.is-finished .title {
+  color: var(--color-muted);
+}
+
+/* ─── FAB ─── */
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 184rpx;
+  width: 104rpx;
+  height: 104rpx;
+  background: var(--color-emerald-deep);
+  color: var(--color-bg);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8rpx 24rpx rgba(36, 58, 48, 0.3);
+}
+
+.fab::after {
+  content: '';
+  position: absolute;
+  bottom: -16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52rpx;
+  height: 2rpx;
+  background: var(--color-accent);
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 48rpx 80rpx;
+}
+
+.empty-icon {
+  color: var(--color-border);
+  margin-bottom: 32rpx;
+}
+
+.empty-title {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  font-weight: 500;
+  color: var(--color-fg);
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.12em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  margin-bottom: 48rpx;
+  text-align: center;
 }

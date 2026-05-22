@@ -16,6 +16,7 @@
     "icon": "/components/icon/icon"
   },
   "window": {
+    "navigationStyle": "custom",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#243a30",
     "navigationBarTitleText": "腾讯广州网球社",

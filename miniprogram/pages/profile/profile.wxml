@@ -1,3 +1,29 @@
+<wxs module="fmt">
+module.exports = {
+  firstChar: function(name) {
+    return name ? name.charAt(0) : '?';
+  },
+  joinedMonths: function(createdAt) {
+    if (!createdAt) return '';
+    var now = getDate();
+    var created = getDate(createdAt);
+    var months = (now.getFullYear() - created.getFullYear()) * 12 + now.getMonth() - created.getMonth();
+    return months > 0 ? months : 1;
+  },
+  day: function(dateStr) {
+    if (!dateStr) return '--';
+    var d = getDate(dateStr);
+    return d.getDate();
+  },
+  month: function(dateStr) {
+    if (!dateStr) return '';
+    var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    var d = getDate(dateStr);
+    return months[d.getMonth()];
+  }
+};
+</wxs>
+
 <view class="container">
   <!-- Masthead -->
   <view class="masthead">
@@ -7,178 +33,134 @@
     </view>
     <view class="masthead-actions">
       <view class="icon-pill" bindtap="onEdit">
-        <icon name="pencil" size="32" />
+        <icon name="pencil" size="28" />
       </view>
     </view>
   </view>
 
-  <!-- 个人信息卡片 -->
-  <view class="card profile-card">
-    <view class="avatar"><icon name="tennis" size="112" /></view>
-    <block wx:if="{{!editing}}">
+  <!-- 1. Profile Hero -->
+  <view class="profile-hero">
+    <view class="avatar">{{fmt.firstChar(user.wecomName)}}</view>
+    <view class="who">
       <view class="name">{{user.wecomName || '未登记'}}</view>
-      <view class="gender-tag" wx:if="{{user.gender}}">{{user.gender === 'male' ? '男' : '女'}}</view>
-      <view class="muted" wx:if="{{user.role === 'admin'}}">管理员</view>
-      <button class="btn-default edit-btn" bindtap="onEdit">修改信息</button>
+      <view class="role">
+        <text class="role-badge" wx:if="{{user.role === 'admin'}}">ADMIN</text>
+        <text class="role-badge" wx:else>MEMBER</text>
+        <text class="pip"></text>
+        <text class="joined" wx:if="{{user.createdAt}}">入队 {{fmt.joinedMonths(user.createdAt)}} 个月</text>
+        <text class="joined" wx:else>已入队</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 2. Identity Grid -->
+  <view class="identity-grid">
+    <view class="cell">
+      <text class="lbl">NTRP</text>
+      <text class="val">{{rating}}</text>
+    </view>
+    <view class="cell">
+      <text class="lbl">积分</text>
+      <text class="val">{{totalPoints}}</text>
+    </view>
+    <view class="cell">
+      <text class="lbl">ELO</text>
+      <text class="val">{{eloRating}}</text>
+    </view>
+  </view>
+
+  <!-- 3. Stats Strip -->
+  <view class="stats-strip">
+    <view class="stat win">
+      <text class="n">{{stats.wins}}</text>
+      <text class="l">胜</text>
+    </view>
+    <view class="stat">
+      <text class="n">{{stats.losses}}</text>
+      <text class="l">负</text>
+    </view>
+    <view class="stat">
+      <text class="n">{{stats.pending}}</text>
+      <text class="l">待录</text>
+    </view>
+    <view class="stat">
+      <text class="n">{{stats.total}}</text>
+      <text class="l">共</text>
+    </view>
+  </view>
+
+  <!-- 4. Chart Block -->
+  <view class="chart-block">
+    <view class="chart-tabs">
+      <view class="tab {{chartTab === 0 ? 'is-active' : ''}}" data-tab="0" bindtap="onChartTabChange">ELO</view>
+      <view class="tab {{chartTab === 1 ? 'is-active' : ''}}" data-tab="1" bindtap="onChartTabChange">积分</view>
+    </view>
+    <view class="chart-canvas-wrap">
+      <canvas id="trendChart" type="2d" class="profile-chart"></canvas>
+    </view>
+    <view class="chart-foot">
+      <text>{{chartTab === 0 ? 'ELO TREND' : 'POINTS TREND'}}</text>
+      <text>CURRENT <text class="chart-foot-val">{{chartTab === 0 ? eloRating : totalPoints}}</text></text>
+    </view>
+  </view>
+
+  <!-- 5. Recent Block -->
+  <view class="recent-block">
+    <view class="recent-eyebrow">
+      <text>近期战绩</text>
+      <text class="meta">RECENT</text>
+    </view>
+
+    <block wx:if="{{matchHistory.length > 0}}">
+      <view
+        wx:for="{{matchHistory}}"
+        wx:key="_id"
+        class="match-row {{item.resultClass === 'loss' ? 'is-loss' : ''}} {{item.resultClass === 'pending' ? 'is-pending' : ''}}"
+        data-id="{{item._id}}"
+        bindtap="goMatchDetail"
+      >
+        <view class="when">
+          <text class="d">{{fmt.day(item.matchDate)}}</text>
+          <text class="m">{{fmt.month(item.matchDate)}}</text>
+        </view>
+        <view class="who">
+          <view class="title">{{item.title}}</view>
+          <view class="vs">{{item.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</view>
+        </view>
+        <text class="score">{{item.scoreSummary || item.resultText}}</text>
+      </view>
     </block>
-    <block wx:else>
+
+    <view wx:else class="no-data">NO DATA</view>
+  </view>
+
+  <!-- Edit Overlay (keeps existing JS logic working) -->
+  <view wx:if="{{editing}}" class="edit-overlay" bindtap="onCancel">
+    <view class="edit-panel" catchtap="">
+      <view class="edit-heading">修改信息</view>
       <input
-        class="input"
+        class="edit-input"
         placeholder="企业微信名"
         value="{{wecomNameInput}}"
         bindinput="onInput"
         maxlength="20"
       />
-      <view class="gender-edit">
-        <radio-group bindchange="onGenderChange" class="gender-group-inline">
+      <view class="edit-gender">
+        <radio-group bindchange="onGenderChange">
           <label class="gender-opt {{genderInput === 'male' ? 'sel' : ''}}">
-            <radio value="male" checked="{{genderInput === 'male'}}" color="#243a30" />
+            <radio value="male" checked="{{genderInput === 'male'}}" color="#b87a36" />
             <text>男</text>
           </label>
           <label class="gender-opt {{genderInput === 'female' ? 'sel' : ''}}">
-            <radio value="female" checked="{{genderInput === 'female'}}" color="#243a30" />
+            <radio value="female" checked="{{genderInput === 'female'}}" color="#b87a36" />
             <text>女</text>
           </label>
         </radio-group>
       </view>
-      <view class="row btns">
-        <button class="btn-default flex1" bindtap="onCancel">取消</button>
-        <view style="width: 20rpx;"></view>
-        <button class="btn-primary flex1" bindtap="onSave">保存</button>
-      </view>
-    </block>
-  </view>
-
-  <!-- 评级 & 积分卡片 -->
-  <view class="card">
-    <view class="section-title">当前评级 (NTRP)</view>
-    <view class="rating-row">
-      <view class="rating-value {{rating === '未设置' ? 'muted' : ''}}">{{rating}}</view>
-      <block wx:if="{{!editingRating}}">
-        <view class="rating-edit-btn" bindtap="onEditRating">修改</view>
-      </block>
-      <block wx:else>
-        <picker mode="selector" range="{{ratingOptions}}" value="{{ratingIndex}}" bindchange="onRatingChange">
-          <view class="rating-edit-btn">选择评级</view>
-        </picker>
-        <view class="rating-cancel-btn" bindtap="onCancelRating">取消</view>
-      </block>
-    </view>
-    <view class="rating-hint muted">NTRP 1.0(初学) ~ 7.0(职业)</view>
-
-    <view class="divider" style="margin: 24rpx 0;"></view>
-
-    <view class="stats-inline">
-      <view class="stat-inline-item">
-        <view class="stat-inline-num points-color">{{totalPoints}}</view>
-        <view class="stat-inline-label">总积分</view>
-      </view>
-      <view class="stat-inline-item">
-        <view class="stat-inline-num elo-color">{{eloRating}}</view>
-        <view class="stat-inline-label">ELO等级分</view>
+      <view class="edit-actions">
+        <view class="edit-btn cancel" bindtap="onCancel">CANCEL</view>
+        <view class="edit-btn save" bindtap="onSave">SAVE</view>
       </view>
     </view>
-    <view class="rating-hint muted">总积分=最佳10场赛事收益 · ELO反映实力水平</view>
-  </view>
-
-  <!-- 战绩统计卡片 -->
-  <view class="card">
-    <view class="section-title">战绩统计</view>
-    <view class="stats-row">
-      <view class="stat-item">
-        <view class="stat-num win-color">{{stats.wins}}</view>
-        <view class="stat-label">胜</view>
-      </view>
-      <view class="stat-item">
-        <view class="stat-num loss-color">{{stats.losses}}</view>
-        <view class="stat-label">负</view>
-      </view>
-      <view class="stat-item">
-        <view class="stat-num">{{stats.total}}</view>
-        <view class="stat-label">总场次</view>
-      </view>
-      <view class="stat-item">
-        <view class="stat-num">{{winRate}}</view>
-        <view class="stat-label">胜率</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 趋势图表 -->
-  <view class="card chart-card">
-    <view class="chart-tabs">
-      <view class="chart-tab {{chartTab === 0 ? 'chart-tab-active elo-active' : ''}}" data-tab="0" bindtap="onChartTabChange">ELO 趋势</view>
-      <view class="chart-tab {{chartTab === 1 ? 'chart-tab-active pts-active' : ''}}" data-tab="1" bindtap="onChartTabChange">积分趋势</view>
-    </view>
-    <view class="chart-container">
-      <canvas id="trendChart" type="2d" class="trend-canvas"></canvas>
-    </view>
-  </view>
-
-  <!-- Tab 切换：历史战绩 / 参与活动 -->
-  <view class="card tab-card">
-    <view class="tab-bar">
-      <view class="tab-item {{activeTab === 0 ? 'tab-active' : ''}}" data-tab="0" bindtap="onTabChange">历史战绩</view>
-      <view class="tab-item {{activeTab === 1 ? 'tab-active' : ''}}" data-tab="1" bindtap="onTabChange">参与的活动</view>
-    </view>
-
-    <!-- 历史战绩列表 -->
-    <view wx:if="{{activeTab === 0}}">
-      <view wx:if="{{matchHistory.length === 0}}" class="empty-state-sm">
-        <view class="empty-icon-sm"><icon name="tennis" size="112" /></view>
-        <view class="empty-title-sm">暂无比赛记录</view>
-        <view class="empty-desc-sm">参加一场比赛，这里会记录你的每一次精彩对决</view>
-        <button class="btn-primary empty-btn-sm" bindtap="goMatchTab">去参加比赛</button>
-      </view>
-      <view wx:for="{{matchHistory}}" wx:key="_id" class="list-item" data-id="{{item._id}}" bindtap="goMatchDetail">
-        <view class="list-item-top">
-          <text class="list-item-title">{{item.title}}</text>
-          <text class="result-tag {{item.resultClass}}">{{item.resultText}}</text>
-        </view>
-        <view class="list-item-meta muted">
-          <text>{{item.matchDateStr}}</text>
-          <text wx:if="{{item.scoreSummary}}"> · {{item.scoreSummary}}</text>
-          <text> · {{item.type === 'doubles' ? '双打' : '单打'}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 参与的活动列表 -->
-    <view wx:if="{{activeTab === 1}}">
-      <view wx:if="{{activities.length === 0}}" class="empty-state-sm">
-        <view class="empty-icon-sm"><icon name="list" size="112" /></view>
-        <view class="empty-title-sm">暂无参与的活动</view>
-        <view class="empty-desc-sm">去活动列表报名参加，和大家一起打球吧</view>
-        <button class="btn-primary empty-btn-sm" bindtap="goActivityTab">去报名活动</button>
-      </view>
-      <view wx:for="{{activities}}" wx:key="_id" class="list-item" data-id="{{item._id}}" bindtap="goActivityDetail">
-        <view class="list-item-top">
-          <text class="list-item-title">{{item.title}}</text>
-          <text class="status-tag {{item.status === 'open' ? 'open' : 'closed'}}">{{item.status === 'open' ? '进行中' : '已结束'}}</text>
-        </view>
-        <view class="list-item-meta muted">
-          <text>{{item.startTimeStr}}</text>
-          <text> · {{item.location}}</text>
-          <text> · </text><text class="display-num">{{item.participantCount}}</text><text class="mono-unit">人</text><text>参与</text>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 关于 -->
-  <view class="card">
-    <view class="row-between item" hover-class="hover">
-      <text>关于本小程序</text>
-      <text class="muted">v1.1.0</text>
-    </view>
-    <view class="divider"></view>
-    <view class="row-between item">
-      <text>使用说明</text>
-      <text class="muted">仅限社团内部</text>
-    </view>
-  </view>
-
-  <view class="muted tip">
-    本工具用于腾讯广州网球社内部活动与比赛记录，仅收集你的企微名，不会用于其他用途。
   </view>
 </view>
