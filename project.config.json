@@ -31,7 +31,7 @@
   "projectname": "tennis-club",
   "description": "腾讯广州网球社活动与比赛记录工具",
   "compileType": "miniprogram",
-  "libVersion": "2.32.3",
+  "libVersion": "3.7.3",
   "cloudfunctionTemplateRoot": "",
   "packOptions": {
     "ignore": [],
