@@ -35,8 +35,11 @@
   color: var(--color-fg);
 }
 
-/* Container bottom padding for fixed button */
+/* Container bottom padding for fixed button + top safe area */
 .container {
+  padding-top: 120rpx;
+  padding-left: 48rpx;
+  padding-right: 48rpx;
   padding-bottom: 200rpx;
 }
 

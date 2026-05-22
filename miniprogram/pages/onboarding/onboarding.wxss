@@ -1,3 +1,6 @@
+.container {
+  padding-top: 120rpx;
+}
 .hero {
   text-align: center;
   padding: 80rpx 0 40rpx;

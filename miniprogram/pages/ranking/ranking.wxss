@@ -1,4 +1,9 @@
 /* ranking 排行榜页 */
+.container {
+  padding-top: 120rpx;
+  padding-left: 48rpx;
+  padding-right: 48rpx;
+}
 .page-header {
   padding-bottom: var(--space-4);
   border-bottom: var(--border-strong);
