@@ -19,9 +19,11 @@
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#243a30",
     "navigationBarTitleText": "腾讯广州网球社",
-    "navigationBarTextStyle": "white"
+    "navigationBarTextStyle": "white",
+    "navigationStyle": "custom"
   },
   "tabBar": {
+    "custom": true,
     "color": "#5d6e63",
     "selectedColor": "#243a30",
     "backgroundColor": "#f8f4e8",

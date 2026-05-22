@@ -10,6 +10,9 @@ Page({
   },
 
   onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
     ensureRegistered().then(user => {
       if (!user) return;
       this.setData({ user });

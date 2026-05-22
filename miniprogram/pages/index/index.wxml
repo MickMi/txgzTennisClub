@@ -1,4 +1,17 @@
 <view class="container">
+  <!-- Masthead -->
+  <view class="masthead">
+    <view class="masthead-left">
+      <view class="wordmark">活动</view>
+      <view class="wordmark-caption">ACTIVITIES</view>
+    </view>
+    <view class="masthead-actions">
+      <view class="icon-pill" bindtap="goCreate">
+        <icon name="plus" size="32" />
+      </view>
+    </view>
+  </view>
+
   <block wx:if="{{!loading && list.length === 0}}">
     <view class="empty-state">
       <view class="empty-icon"><icon name="tennis" size="112" /></view>
@@ -30,4 +43,3 @@
   </view>
 </view>
 
-<view class="fab" bindtap="goCreate"><icon name="plus" size="48" /></view>

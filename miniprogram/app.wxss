@@ -64,15 +64,15 @@ page {
 
 /* === 布局基础 === */
 .container {
-  padding: var(--space-4) var(--space-4) 200rpx;
+  padding: 0 0 160rpx;
   box-sizing: border-box;
 }
 
 /* === §5.1 卡片（边线分隔，无阴影无圆角） === */
 .card {
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-top: var(--border-strong);
-  padding: var(--space-4) 0;
+  padding: var(--space-4) var(--space-5);
   margin: 0;
   display: block;
 }
@@ -509,6 +509,50 @@ page {
   font-family: var(--font-display);
   font-size: 44rpx;
   font-weight: 500;
+}
+
+/* === Masthead（自定义顶栏） === */
+.masthead {
+  padding: 120rpx 48rpx 28rpx;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 24rpx;
+  align-items: end;
+  border-bottom: var(--border-hairline);
+  margin-bottom: var(--space-4);
+}
+.masthead-left {
+  min-width: 0;
+}
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 44rpx;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--color-fg);
+  line-height: 1;
+}
+.wordmark-caption {
+  margin-top: 12rpx;
+  font-family: var(--font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.24em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+}
+.masthead-actions {
+  display: flex;
+  gap: 20rpx;
+}
+.icon-pill {
+  width: 68rpx;
+  height: 68rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--color-muted);
+  background: none;
 }
 
 /* === 辅助布局类 === */

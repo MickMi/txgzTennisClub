@@ -1,4 +1,17 @@
 <view class="container">
+  <!-- Masthead -->
+  <view class="masthead">
+    <view class="masthead-left">
+      <view class="wordmark">赛事</view>
+      <view class="wordmark-caption">TOURNAMENTS</view>
+    </view>
+    <view class="masthead-actions">
+      <view class="icon-pill" bindtap="goCreate">
+        <icon name="plus" size="32" />
+      </view>
+    </view>
+  </view>
+
   <!-- 排行榜入口 -->
   <view class="ranking-entry" bindtap="goRanking">
     <view class="ranking-entry-left">
@@ -38,4 +51,3 @@
   </view>
 </view>
 
-<view class="fab" bindtap="goCreate"><icon name="plus" size="48" /></view>
