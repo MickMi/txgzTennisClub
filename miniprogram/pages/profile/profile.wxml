@@ -1,4 +1,17 @@
 <view class="container">
+  <!-- Masthead -->
+  <view class="masthead">
+    <view class="masthead-left">
+      <view class="wordmark">我的</view>
+      <view class="wordmark-caption">PROFILE</view>
+    </view>
+    <view class="masthead-actions">
+      <view class="icon-pill" bindtap="onEdit">
+        <icon name="pencil" size="32" />
+      </view>
+    </view>
+  </view>
+
   <!-- 个人信息卡片 -->
   <view class="card profile-card">
     <view class="avatar"><icon name="tennis" size="112" /></view>
