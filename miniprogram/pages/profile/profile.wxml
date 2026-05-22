@@ -58,14 +58,17 @@ module.exports = {
     <view class="cell">
       <text class="lbl">NTRP</text>
       <text class="val">{{rating}}</text>
+      <view class="delta flat">—</view>
     </view>
     <view class="cell">
       <text class="lbl">积分</text>
       <text class="val">{{totalPoints}}</text>
+      <view class="delta">+0</view>
     </view>
     <view class="cell">
       <text class="lbl">ELO</text>
       <text class="val">{{eloRating}}</text>
+      <view class="delta">+0</view>
     </view>
   </view>
 
@@ -107,8 +110,9 @@ module.exports = {
   <!-- 5. Recent Block -->
   <view class="recent-block">
     <view class="recent-eyebrow">
-      <text>近期战绩</text>
-      <text class="meta">RECENT</text>
+      <text>近期比赛</text>
+      <text class="meta">RECENT MATCHES</text>
+      <text class="arrow">→</text>
     </view>
 
     <block wx:if="{{matchHistory.length > 0}}">

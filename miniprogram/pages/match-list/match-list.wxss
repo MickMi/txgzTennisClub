@@ -34,6 +34,8 @@
   color: var(--color-accent);
 }
 
+.ranking-feature .crest-icon { width: 36rpx; height: 36rpx; }
+
 .ranking-feature .body {
   min-width: 0;
   line-height: 1.2;
@@ -243,17 +245,19 @@
   display: grid;
   place-items: center;
   box-shadow: 0 8rpx 24rpx rgba(36, 58, 48, 0.3);
+  z-index: 35;
 }
 
 .fab::after {
   content: '';
   position: absolute;
-  bottom: -16rpx;
   left: 50%;
+  bottom: -8rpx;
   transform: translateX(-50%);
   width: 52rpx;
   height: 2rpx;
   background: var(--color-accent);
+  opacity: 0.5;
 }
 
 /* ─── Empty State ─── */

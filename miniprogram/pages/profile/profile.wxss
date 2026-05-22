@@ -107,6 +107,14 @@
   letter-spacing: -0.005em;
 }
 
+.identity-grid .delta {
+  display: block; margin-top: 12rpx;
+  font-family: var(--font-mono); font-size: 20rpx;
+  color: var(--color-accent); font-feature-settings: 'tnum';
+  letter-spacing: 0.06em;
+}
+.identity-grid .delta.flat { color: var(--color-muted); }
+
 /* ============ Stats Strip ============ */
 .stats-strip {
   margin: 0 48rpx;
@@ -193,6 +201,7 @@
   display: grid;
   grid-template-columns: 1fr auto;
   column-gap: 32rpx;
+  margin-top: 16rpx;
   padding: 20rpx 0 0;
   font-family: var(--font-mono);
   font-size: 19rpx;
@@ -201,6 +210,7 @@
   text-transform: uppercase;
 }
 
+.chart-foot strong,
 .chart-foot-val {
   color: var(--color-fg);
   font-family: var(--font-display);
@@ -219,7 +229,7 @@
 
 .recent-eyebrow {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   column-gap: 28rpx;
   align-items: baseline;
   font-family: var(--font-mono);
@@ -227,13 +237,18 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--color-fg);
-  border-top: 2rpx solid var(--color-fg);
+  border-top: 1rpx solid var(--color-fg);
   padding-top: 24rpx;
+  margin-bottom: 24rpx;
 }
 
 .recent-eyebrow .meta {
   color: var(--color-muted);
   font-size: 18rpx;
+}
+
+.recent-eyebrow .arrow {
+  color: var(--color-muted);
 }
 
 .match-row {

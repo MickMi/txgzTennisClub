@@ -296,19 +296,13 @@
   border-bottom: none;
 }
 
-.player-avatar {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  border: 1rpx solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.player-rank {
+  width: 48rpx;
   font-family: var(--font-display);
-  font-size: 22rpx;
-  color: var(--color-fg);
-  margin-right: 16rpx;
-  flex-shrink: 0;
+  font-size: 26rpx;
+  font-feature-settings: 'tnum','lnum';
+  color: var(--color-muted);
+  text-align: center;
 }
 
 .player-info {
@@ -327,20 +321,19 @@
   white-space: nowrap;
 }
 
+.player-pts {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  color: var(--color-muted);
+  letter-spacing: 0.08em;
+}
+
 .player-rating {
   font-family: var(--font-mono);
   font-size: 20rpx;
   color: var(--color-muted);
-  letter-spacing: 0.04em;
-}
-
-.player-pts {
-  font-family: var(--font-display);
-  font-size: 26rpx;
-  color: var(--color-fg);
-  font-feature-settings: 'tnum','lnum';
-  margin-left: 12rpx;
-  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border: 1rpx solid var(--color-border);
 }
 
 .empty-hint {
@@ -404,8 +397,8 @@
   text-align: center;
 }
 
-/* ========== Group Standings ========== */
-.group-section {
+/* ========== Group Block ========== */
+.group-block {
   margin-bottom: 8rpx;
 }
 
@@ -547,43 +540,18 @@
   font-size: 28rpx;
 }
 
-.score-edit-btns {
+.score-btns {
   display: flex;
   gap: 16rpx;
+  margin-top: 16rpx;
 }
 
-.score-edit-btns .btn-default {
+.flex1 {
   flex: 1;
-  height: 68rpx;
-  font-size: 26rpx;
-  background: transparent;
-  border: 1rpx solid var(--color-border);
-  color: var(--color-fg);
-  padding: 0;
-  line-height: 68rpx;
-}
-
-.score-edit-btns .btn-default::after {
-  display: none;
-}
-
-.score-edit-btns .btn-accent {
-  flex: 1;
-  height: 68rpx;
-  font-size: 26rpx;
-  background: var(--color-emerald-deep);
-  border: 1rpx solid var(--color-emerald-deep);
-  color: var(--color-bg);
-  padding: 0;
-  line-height: 68rpx;
-}
-
-.score-edit-btns .btn-accent::after {
-  display: none;
 }
 
 /* ========== Knockout ========== */
-.knockout-section {
+.knockout-block {
   margin-top: 8rpx;
 }
 
@@ -606,15 +574,15 @@
   margin-bottom: 4rpx;
 }
 
-/* ========== Advance Action ========== */
-.advance-action {
+/* ========== Admin Action ========== */
+.admin-action {
   margin-top: 32rpx;
   padding-top: 32rpx;
   border-top: var(--border-hairline);
 }
 
 /* ========== Champion ========== */
-.champion-section {
+.champion-block {
   text-align: center;
   padding: 60rpx 0;
   border-top: var(--border-strong);
@@ -848,7 +816,8 @@
   display: none;
 }
 
-.cta-inline {
-  margin-top: 24rpx;
+.cta-inline,
+.draw-btn {
+  margin-top: 32rpx;
   width: 100%;
 }

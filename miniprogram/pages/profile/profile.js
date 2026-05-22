@@ -222,11 +222,31 @@ Page({
     ctx.clearRect(0, 0, width, height);
 
     if (!data || data.length < 2) {
-      // 数据不足，显示提示
+      // Draw hairline grid placeholder
+      ctx.strokeStyle = '#ddd6c4';
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([2, 2]);
+      for (let i = 0; i <= 4; i++) {
+        const y = 20 + (i / 4) * (height - 45);
+        ctx.beginPath();
+        ctx.moveTo(40, y);
+        ctx.lineTo(width - 15, y);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      // Y-axis placeholder labels
       ctx.fillStyle = '#5d6e63';
-      ctx.font = '12px sans-serif';
+      ctx.font = '10px ui-monospace, monospace';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 4; i++) {
+        const y = 20 + (i / 4) * (height - 45);
+        ctx.fillText('—', 35, y + 3);
+      }
+      // Center label
+      ctx.fillStyle = '#5d6e63';
+      ctx.font = '10px ui-monospace, monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('参加更多赛事后显示趋势图', width / 2, height / 2);
+      ctx.fillText('NO DATA · 暂无趋势', width / 2, height / 2);
       return;
     }
 
