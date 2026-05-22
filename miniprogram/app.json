@@ -6,8 +6,6 @@
     "pages/onboarding/onboarding",
     "pages/activity-create/activity-create",
     "pages/activity-detail/activity-detail",
-    "pages/match-create/match-create",
-    "pages/match-detail/match-detail",
     "pages/tournament-create/tournament-create",
     "pages/tournament-detail/tournament-detail",
     "pages/ranking/ranking"

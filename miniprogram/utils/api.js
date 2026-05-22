@@ -50,15 +50,6 @@ module.exports = {
   joinActivity: id => call('activity', { action: 'join', id }),
   leaveActivity: id => call('activity', { action: 'leave', id }),
 
-  // match
-  listMatches: () => call('match', { action: 'list' }),
-  getMatch: id => call('match', { action: 'get', id }),
-  createMatch: payload => call('match', { action: 'create', payload }),
-  signupMatch: id => call('match', { action: 'signup', id }),
-  leaveMatch: id => call('match', { action: 'leave', id }),
-  randomizeMatch: id => call('match', { action: 'randomize', id }),
-  saveScore: (id, scoreA, scoreB) => call('match', { action: 'saveScore', id, scoreA, scoreB }),
-
   // user
   updateUser: payload => call('login', { action: 'update', payload }),
   getProfile: () => call('login', { action: 'getProfile' }),

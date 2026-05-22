@@ -168,10 +168,10 @@ Page({
     this.setData({ editingRating: false });
   },
 
-  // 跳转比赛详情
+  // 跳转赛事详情
   goMatchDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/match-detail/match-detail?id=${id}` });
+    wx.navigateTo({ url: `/pages/tournament-detail/tournament-detail?id=${id}` });
   },
 
   // 跳转活动详情
