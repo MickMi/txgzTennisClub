@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "选手档案",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "icon": "/components/icon/icon"
+  }
+}

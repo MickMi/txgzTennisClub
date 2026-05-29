@@ -1,0 +1,84 @@
+/* user-detail 页面样式：复用 profile 大部分样式 + 自定义 topnav 和小调整 */
+@import '../profile/profile.wxss';
+
+/* 头像默认深色（男性），女性走 inline style 覆盖为 accent */
+.profile-hero .avatar {
+  border-color: var(--color-fg);
+  color: var(--color-fg);
+}
+
+/* Top navigation (custom navigation style，因为 navigationStyle: custom) */
+.topnav {
+  display: flex;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + 16rpx) 32rpx 16rpx;
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topnav .icon-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: grid;
+  place-items: center;
+  border: 1rpx solid var(--color-border);
+}
+.topnav-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  color: var(--color-fg);
+  letter-spacing: 0.02em;
+}
+.topnav-spacer {
+  width: 64rpx;
+}
+
+/* Activity row（在 user-detail 独有） */
+.activity-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 24rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--color-border);
+  align-items: center;
+}
+.activity-row .activity-info {
+  min-width: 0;
+}
+.activity-row .title {
+  font-size: 27rpx;
+  color: var(--color-fg);
+  line-height: 1.25;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.activity-row .vs {
+  margin-top: 8rpx;
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  color: var(--color-muted);
+  letter-spacing: 0.05em;
+}
+.activity-row .meta-pill {
+  font-family: var(--font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  padding: 8rpx 16rpx;
+  border: 1rpx solid var(--color-border);
+}
+
+.bottom-padding {
+  height: 80rpx;
+}
+
+.muted {
+  font-family: var(--font-mono);
+  color: var(--color-muted);
+  letter-spacing: 0.18em;
+}

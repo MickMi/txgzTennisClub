@@ -8,7 +8,8 @@
     "pages/activity-detail/activity-detail",
     "pages/tournament-create/tournament-create",
     "pages/tournament-detail/tournament-detail",
-    "pages/ranking/ranking"
+    "pages/ranking/ranking",
+    "pages/user-detail/user-detail"
   ],
   "usingComponents": {
     "icon": "/components/icon/icon"

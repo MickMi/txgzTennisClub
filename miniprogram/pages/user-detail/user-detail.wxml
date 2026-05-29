@@ -1,0 +1,152 @@
+<wxs module="fmt">
+module.exports = {
+  firstChar: function(name) {
+    return name ? name.charAt(0) : '?';
+  },
+  day: function(dateStr) {
+    if (!dateStr) return '--';
+    var d = getDate(dateStr);
+    return d.getDate();
+  },
+  month: function(dateStr) {
+    if (!dateStr) return '';
+    var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    var d = getDate(dateStr);
+    return months[d.getMonth()];
+  }
+};
+</wxs>
+
+<view class="container">
+  <!-- Top nav with back button (custom navigation) -->
+  <view class="topnav">
+    <view class="icon-btn" bindtap="goBack">
+      <image style="width:32rpx;height:32rpx;" src="/assets/icons/back.svg" />
+    </view>
+    <view class="topnav-title">{{user.wecomName || '选手'}}</view>
+    <view class="topnav-spacer"></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="muted" style="text-align:center;padding:120rpx 0;">加载中...</view>
+
+  <block wx:if="{{!loading && user}}">
+    <!-- 1. Profile Hero -->
+    <view class="profile-hero">
+      <view class="avatar" style="{{user.gender === 'female' ? 'border-color: var(--color-accent); color: var(--color-accent);' : ''}}">{{fmt.firstChar(user.wecomName)}}</view>
+      <view class="who">
+        <view class="name">{{user.wecomName || '匿名'}}</view>
+        <view class="role">
+          <block wx:if="{{user.role === 'admin'}}">
+            <text class="role-badge accent">ADMIN</text>
+            <text class="role-muted"> · 管理员</text>
+          </block>
+          <text class="role-badge muted" wx:else>MEMBER</text>
+          <text class="role-muted" wx:if="{{user.gender}}"> · {{user.gender === 'female' ? '女' : '男'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 2. Identity Grid -->
+    <view class="identity-grid">
+      <view class="cell">
+        <text class="lbl">NTRP</text>
+        <text class="val">{{rating || '—'}}</text>
+        <view class="delta flat">—</view>
+      </view>
+      <view class="cell">
+        <text class="lbl">积分</text>
+        <text class="val">{{totalPoints}}</text>
+        <view class="delta flat">—</view>
+      </view>
+      <view class="cell">
+        <text class="lbl">ELO</text>
+        <text class="val">{{eloRating}}</text>
+        <view class="delta flat">—</view>
+      </view>
+    </view>
+
+    <!-- 3. Stats Strip -->
+    <view class="stats-strip">
+      <view class="stat win">
+        <text class="n">{{stats.wins}}</text>
+        <text class="l">胜</text>
+      </view>
+      <view class="stat">
+        <text class="n">{{stats.losses}}</text>
+        <text class="l">负</text>
+      </view>
+      <view class="stat">
+        <text class="n">{{winRate}}</text>
+        <text class="l">胜率</text>
+      </view>
+      <view class="stat">
+        <text class="n">{{stats.total}}</text>
+        <text class="l">总计</text>
+      </view>
+    </view>
+
+    <!-- 4. Chart Block -->
+    <view class="chart-block">
+      <view class="chart-tabs">
+        <view class="tab {{chartTab === 0 ? 'is-active' : ''}}" data-tab="0" bindtap="onChartTabChange">ELO</view>
+        <view class="tab {{chartTab === 1 ? 'is-active' : ''}}" data-tab="1" bindtap="onChartTabChange">积分</view>
+      </view>
+      <view class="chart-canvas-wrap">
+        <canvas id="trendChart" type="2d" class="profile-chart"></canvas>
+      </view>
+      <view class="chart-foot">
+        <text>{{chartTab === 0 ? 'ELO TREND' : 'POINTS TREND'}}</text>
+        <text>CURRENT <text class="chart-foot-val">{{chartTab === 0 ? eloRating : totalPoints}}</text></text>
+      </view>
+    </view>
+
+    <!-- 5. Recent Matches -->
+    <view class="recent-block">
+      <view class="recent-eyebrow">
+        <text>近期比赛</text>
+        <text class="meta">RECENT MATCHES</text>
+      </view>
+
+      <block wx:if="{{matchHistory.length > 0}}">
+        <view
+          wx:for="{{matchHistory}}"
+          wx:key="_id"
+          class="match-row {{item.resultClass === 'loss' ? 'is-loss' : ''}} {{item.resultClass === 'pending' ? 'is-pending' : ''}}"
+        >
+          <view class="when">
+            <text class="d">{{fmt.day(item.matchDate)}}</text>
+            <text class="m">{{fmt.month(item.matchDate)}}</text>
+          </view>
+          <view class="who">
+            <view class="title">{{item.title}}</view>
+            <view class="vs">vs {{item.opponent || 'TBD'}} · {{item.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</view>
+          </view>
+          <text class="score">{{item.scoreSummary || item.resultText}}</text>
+        </view>
+      </block>
+
+      <view wx:else class="no-data">NO DATA · 暂无比赛记录</view>
+    </view>
+
+    <!-- 6. Activities -->
+    <view class="recent-block" wx:if="{{activities.length > 0}}">
+      <view class="recent-eyebrow">
+        <text>参与的活动</text>
+        <text class="meta">ACTIVITIES</text>
+      </view>
+      <view
+        wx:for="{{activities}}"
+        wx:key="_id"
+        class="activity-row"
+      >
+        <view class="activity-info">
+          <view class="title">{{item.title}}</view>
+          <view class="vs">{{item.startTimeStr}} · {{item.location}}</view>
+        </view>
+        <text class="meta-pill">{{item.status === 'closed' ? '已结束' : '报名中'}}</text>
+      </view>
+    </view>
+
+    <view class="bottom-padding"></view>
+  </block>
+</view>

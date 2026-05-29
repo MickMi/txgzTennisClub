@@ -100,13 +100,26 @@ exports.main = async (event, context) => {
   }
 
   // 获取个人档案：评级 + 战绩统计 + 参与的活动
+  // 支持查看其他用户：传 event.openid 即可。社团内部，不限隐私。
   if (action === 'getProfile') {
-    const profile = await buildProfile(OPENID, user);
+    const targetOpenid = event.openid || OPENID;
+    let targetUser = user;
+    if (targetOpenid !== OPENID) {
+      targetUser = await getUserByOpenid(targetOpenid);
+      if (!targetUser) return { code: 1, msg: '用户不存在' };
+    }
+    const profile = await buildProfile(targetOpenid, targetUser);
     return { code: 0, data: profile };
   }
 
   return { code: 0, data: user };
 };
+
+// 按 openid 直查（buildProfile 时复用）
+async function getUserByOpenid(openid) {
+  const r = await db.collection(USERS).where({ openid }).get();
+  return r.data[0];
+}
 
 // 构建个人档案
 async function buildProfile(openid, user) {

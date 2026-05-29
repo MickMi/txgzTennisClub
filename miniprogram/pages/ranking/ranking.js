@@ -34,5 +34,14 @@ Page({
         });
       })
       .catch(() => this.setData({ loading: false }));
+  },
+
+  // 点击榜单项 → 个人详情
+  goUserDetail(e) {
+    const { openid, name } = e.currentTarget.dataset;
+    if (!openid) return;
+    wx.navigateTo({
+      url: `/pages/user-detail/user-detail?openid=${openid}&name=${encodeURIComponent(name || '')}`
+    });
   }
 });

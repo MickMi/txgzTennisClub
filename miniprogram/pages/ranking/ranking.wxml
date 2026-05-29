@@ -16,7 +16,14 @@
     <view class="empty-desc">参加赛事获得积分后即可上榜</view>
   </view>
 
-  <view wx:for="{{list}}" wx:key="openid" class="ranking-row {{item.openid === myOpenid ? 'my-row' : ''}}">
+  <view
+    wx:for="{{list}}"
+    wx:key="openid"
+    class="ranking-row {{item.openid === myOpenid ? 'my-row' : ''}}"
+    data-openid="{{item.openid}}"
+    data-name="{{item.wecomName}}"
+    bindtap="goUserDetail"
+  >
     <view class="ranking-rank {{item.rank <= 3 ? 'top3' : ''}}">{{item.rank}}</view>
     <view class="avatar" style="{{item.gender === 'female' ? 'border-color: var(--color-accent); color: var(--color-accent);' : ''}}">{{item.wecomName[0]}}</view>
     <view class="ranking-info">
