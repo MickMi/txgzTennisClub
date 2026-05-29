@@ -23,11 +23,45 @@ exports.main = async event => {
   const action = event.action;
 
   if (action === 'list') {
-    const res = await db.collection(ACT)
-      .orderBy('startTime', 'desc')
-      .limit(100)
-      .get();
-    return { code: 0, data: res.data };
+    // 分页：limit 默认 20，最大 50；before 为上一页最后一条 startTime（cursor）
+    const limit = Math.min(Math.max(parseInt(event.limit) || 20, 1), 50);
+    let q = db.collection(ACT)
+      .field({
+        title: true,
+        startTime: true,
+        location: true,
+        maxPeople: true,
+        status: true,
+        creator: true,
+        creatorName: true,
+        participants: true,  // 服务端需要算 count / joined
+        createdAt: true
+      })
+      .orderBy('startTime', 'desc');
+    if (event.before) {
+      q = q.where({ startTime: _.lt(event.before) });
+    }
+    const res = await q.limit(limit).get();
+    // 仅返回前端需要的字段（剥离 participants 全量数组，只保留 count + 自己是否报名）
+    const list = (res.data || []).map(a => {
+      const ps = a.participants || [];
+      return {
+        _id: a._id,
+        title: a.title,
+        startTime: a.startTime,
+        location: a.location,
+        maxPeople: a.maxPeople || 0,
+        status: a.status,
+        creator: a.creator,
+        creatorName: a.creatorName,
+        participantCount: ps.length,
+        joined: ps.some(p => p.openid === OPENID),
+        createdAt: a.createdAt
+      };
+    });
+    const hasMore = list.length === limit;
+    const nextCursor = hasMore && list.length > 0 ? list[list.length - 1].startTime : null;
+    return { code: 0, data: { list, hasMore, nextCursor } };
   }
 
   if (action === 'get') {

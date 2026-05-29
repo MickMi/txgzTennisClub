@@ -42,7 +42,11 @@ module.exports = {
   login: () => call('login'),
 
   // activity
-  listActivities: () => call('activity', { action: 'list' }),
+  listActivities: (opts = {}) => {
+    const fn = opts.silent ? callSilent : call;
+    const { silent, ...rest } = opts;
+    return fn('activity', { action: 'list', ...rest });
+  },
   getActivity: id => call('activity', { action: 'get', id }),
   createActivity: payload => call('activity', { action: 'create', payload }),
   updateActivity: (id, payload) => call('activity', { action: 'update', id, payload }),
@@ -55,8 +59,8 @@ module.exports = {
   getProfile: () => call('login', { action: 'getProfile' }),
   getRanking: () => call('login', { action: 'getRanking' }),
 
-  // tournament（使用静默调用，云函数未部署时不报错）
-  listTournaments: () => callSilent('tournament', { action: 'list' }),
+  // tournament（默认静默调用，云函数未部署时不报错）
+  listTournaments: (opts = {}) => callSilent('tournament', { action: 'list', ...opts }),
   getTournament: id => call('tournament', { action: 'get', id }),
   createTournament: payload => call('tournament', { action: 'create', payload }),
   signupTournament: id => call('tournament', { action: 'signup', id }),
