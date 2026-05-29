@@ -46,6 +46,37 @@ async function getUser(openid) {
   return r.data[0];
 }
 
+// 给定 user 当前数据 + 比赛信息，构造 user 文档的更新 payload。
+// 用于事务内"一次写入"合并 ELO 变动 + 赛事积分收益 + 最佳10场总分 + ELO 历史。
+// ELO history 限长 200 条，避免老用户数组无限膨胀。
+function buildUserSettlePayload(user, tournamentId, tournamentTitle, tournamentDate, eloDelta, pointsToAdd) {
+  const oldElo = user.eloRating || 1500;
+  const newElo = oldElo + eloDelta;
+
+  const earnings = (user.tournamentEarnings || []).slice();
+  const idx = earnings.findIndex(e => e.tournamentId === tournamentId);
+  if (idx >= 0) {
+    earnings[idx] = { ...earnings[idx], earned: earnings[idx].earned + pointsToAdd };
+  } else {
+    earnings.push({ tournamentId, title: tournamentTitle, earned: pointsToAdd, date: tournamentDate });
+  }
+  const totalPoints = earnings.slice()
+    .sort((a, b) => b.earned - a.earned)
+    .slice(0, 10)
+    .reduce((s, e) => s + e.earned, 0);
+
+  const history = (user.eloHistory || []).slice(-199);
+  history.push({ date: Date.now(), value: newElo, tournamentId });
+
+  return {
+    eloRating: newElo,
+    eloHistory: history,
+    tournamentEarnings: earnings,
+    totalPoints,
+    updatedAt: Date.now()
+  };
+}
+
 // Fisher-Yates 随机洗牌
 function shuffle(arr) {
   const a = arr.slice();
@@ -277,6 +308,8 @@ function validateScore(scoreA, scoreB, target) {
 }
 
 // 更新用户在某赛事中的积分收益，并重新计算 totalPoints（取最佳10场）
+// 注：仅 awardPlacementBonus（赛事结束发奖）使用此函数，
+// scoreGroup/scoreKnockout 走 runTransaction 路径以避免竞态。
 async function addTournamentEarning(openid, tournamentId, pointsToAdd, tournamentTitle, tournamentDate) {
   const user = await getUser(openid);
   if (!user) return;
@@ -300,57 +333,7 @@ async function addTournamentEarning(openid, tournamentId, pointsToAdd, tournamen
   });
 }
 
-// 结算单场 ELO 小分 + 更新隐藏 ELO 等级分
-async function settleMatchPoints(tournament, winnerOpenid, loserOpenid) {
-  // 查询双方当前 ELO
-  const winnerUser = await getUser(winnerOpenid);
-  const loserUser = await getUser(loserOpenid);
-  const winnerElo = (winnerUser && winnerUser.eloRating) || 1500;
-  const loserElo = (loserUser && loserUser.eloRating) || 1500;
-
-  // 计算 ELO 小分（可见积分）
-  const { winnerPts, loserPts } = calcMatchPoints(winnerElo, loserElo);
-  const factor = tournament.type === 'doubles' ? DOUBLES_FACTOR : 1;
-  const finalWinnerPts = Math.round(winnerPts * factor);
-  const finalLoserPts = Math.round(loserPts * factor);
-
-  // 计算 ELO 等级分变动（隐藏分）
-  const { winnerDelta, loserDelta } = calcEloChange(winnerElo, loserElo);
-
-  const tId = tournament._id;
-  const tTitle = tournament.title;
-  const tDate = tournament.matchDate || tournament.createdAt;
-
-  // 更新胜者：ELO等级分 + 赛事积分收益 + ELO历史
-  const newWinnerElo = winnerElo + winnerDelta;
-  const winnerHistory = (winnerUser && winnerUser.eloHistory) || [];
-  winnerHistory.push({ date: Date.now(), value: newWinnerElo, tournamentId: tId });
-  await db.collection(USERS).where({ openid: winnerOpenid }).update({
-    data: {
-      eloRating: _.inc(winnerDelta),
-      eloHistory: winnerHistory,
-      updatedAt: Date.now()
-    }
-  });
-  await addTournamentEarning(winnerOpenid, tId, finalWinnerPts, tTitle, tDate);
-
-  // 更新负者
-  const newLoserElo = loserElo + loserDelta;
-  const loserHistory = (loserUser && loserUser.eloHistory) || [];
-  loserHistory.push({ date: Date.now(), value: newLoserElo, tournamentId: tId });
-  await db.collection(USERS).where({ openid: loserOpenid }).update({
-    data: {
-      eloRating: _.inc(loserDelta),
-      eloHistory: loserHistory,
-      updatedAt: Date.now()
-    }
-  });
-  await addTournamentEarning(loserOpenid, tId, finalLoserPts, tTitle, tDate);
-
-  return { winnerPts: finalWinnerPts, loserPts: finalLoserPts, winnerEloChange: winnerDelta, loserEloChange: loserDelta };
-}
-
-// 赛事结束时发放名次奖励
+// 赛事结束时发放名次奖励（事务外执行：status=finished 后不会再有 score 操作）
 async function awardPlacementBonus(tournament) {
   const level = tournament.level || 'friendly';
   const bonus = PLACEMENT_BONUS[level] || PLACEMENT_BONUS.friendly;
@@ -365,18 +348,12 @@ async function awardPlacementBonus(tournament) {
   const rounds = ko.rounds;
   const finalMatch = rounds[rounds.length - 1].matches[0];
 
-  // 冠军
+  // 冠军 / 亚军
   if (finalMatch.winner) {
     const championOpenid = finalMatch.winner === 'A' ? finalMatch.playerA.openid : finalMatch.playerB.openid;
-    const championPts = Math.round(bonus.champion * factor);
-    await addTournamentEarning(championOpenid, tId, championPts, tTitle, tDate);
-    awards.push({ openid: championOpenid, place: '冠军', pts: championPts });
-
-    // 亚军
+    awards.push({ openid: championOpenid, place: '冠军', pts: Math.round(bonus.champion * factor) });
     const runnerUpOpenid = finalMatch.winner === 'A' ? finalMatch.playerB.openid : finalMatch.playerA.openid;
-    const runnerUpPts = Math.round(bonus.runnerUp * factor);
-    await addTournamentEarning(runnerUpOpenid, tId, runnerUpPts, tTitle, tDate);
-    awards.push({ openid: runnerUpOpenid, place: '亚军', pts: runnerUpPts });
+    awards.push({ openid: runnerUpOpenid, place: '亚军', pts: Math.round(bonus.runnerUp * factor) });
   }
 
   // 四强（半决赛负者）
@@ -385,11 +362,8 @@ async function awardPlacementBonus(tournament) {
     for (const m of semiFinals) {
       if (m.winner) {
         const loserOpenid = m.winner === 'A' ? m.playerB.openid : m.playerA.openid;
-        const alreadyAwarded = awards.some(a => a.openid === loserOpenid);
-        if (!alreadyAwarded && loserOpenid) {
-          const pts = Math.round(bonus.semiFinal * factor);
-          await addTournamentEarning(loserOpenid, tId, pts, tTitle, tDate);
-          awards.push({ openid: loserOpenid, place: '四强', pts });
+        if (loserOpenid && !awards.some(a => a.openid === loserOpenid)) {
+          awards.push({ openid: loserOpenid, place: '四强', pts: Math.round(bonus.semiFinal * factor) });
         }
       }
     }
@@ -401,11 +375,8 @@ async function awardPlacementBonus(tournament) {
     for (const m of quarterFinals) {
       if (m.winner) {
         const loserOpenid = m.winner === 'A' ? m.playerB.openid : m.playerA.openid;
-        const alreadyAwarded = awards.some(a => a.openid === loserOpenid);
-        if (!alreadyAwarded && loserOpenid) {
-          const pts = Math.round(bonus.quarterFinal * factor);
-          await addTournamentEarning(loserOpenid, tId, pts, tTitle, tDate);
-          awards.push({ openid: loserOpenid, place: '八强', pts });
+        if (loserOpenid && !awards.some(a => a.openid === loserOpenid)) {
+          awards.push({ openid: loserOpenid, place: '八强', pts: Math.round(bonus.quarterFinal * factor) });
         }
       }
     }
@@ -416,11 +387,14 @@ async function awardPlacementBonus(tournament) {
   const players = tournament.players || [];
   for (const p of players) {
     if (!awardedOpenids.has(p.openid)) {
-      const pts = Math.round(bonus.participant * factor);
-      await addTournamentEarning(p.openid, tId, pts, tTitle, tDate);
-      awards.push({ openid: p.openid, place: '参与', pts });
+      awards.push({ openid: p.openid, place: '参与', pts: Math.round(bonus.participant * factor) });
     }
   }
+
+  // 并行发放（每个 user 唯一，无相互冲突）
+  await Promise.all(
+    awards.map(a => addTournamentEarning(a.openid, tId, a.pts, tTitle, tDate))
+  );
 
   return awards;
 }
@@ -429,13 +403,47 @@ exports.main = async event => {
   const { OPENID } = cloud.getWXContext();
   const action = event.action;
 
-  // 列表
+  // 列表（分页 + 字段裁剪：剥离 groups/knockout 等大对象）
   if (action === 'list') {
-    const res = await db.collection(TOURNAMENTS)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
-      .get();
-    return { code: 0, data: res.data };
+    const limit = Math.min(Math.max(parseInt(event.limit) || 20, 1), 50);
+    let q = db.collection(TOURNAMENTS)
+      .field({
+        title: true,
+        type: true,
+        bestOf: true,
+        level: true,
+        matchDate: true,
+        status: true,
+        players: true,  // 服务端用于算 count + joined
+        creator: true,
+        creatorName: true,
+        createdAt: true
+      })
+      .orderBy('createdAt', 'desc');
+    if (event.before) {
+      q = q.where({ createdAt: _.lt(event.before) });
+    }
+    const res = await q.limit(limit).get();
+    const list = (res.data || []).map(t => {
+      const ps = t.players || [];
+      return {
+        _id: t._id,
+        title: t.title,
+        type: t.type,
+        bestOf: t.bestOf,
+        level: t.level,
+        matchDate: t.matchDate,
+        status: t.status,
+        playerCount: ps.length,
+        joined: ps.some(p => p.openid === OPENID),
+        creator: t.creator,
+        creatorName: t.creatorName,
+        createdAt: t.createdAt
+      };
+    });
+    const hasMore = list.length === limit;
+    const nextCursor = hasMore && list.length > 0 ? list[list.length - 1].createdAt : null;
+    return { code: 0, data: { list, hasMore, nextCursor } };
   }
 
   // 详情
@@ -550,67 +558,113 @@ exports.main = async event => {
     return { code: 0, data: { groups } };
   }
 
-  // 录入小组赛比分（总比分模式）
+  // 录入小组赛比分（事务化，防止并发录分互相覆盖）
   if (action === 'scoreGroup') {
     const me = await getUser(OPENID);
-    const res = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
-    if (!res || !res.data) return { code: 1, msg: '赛事不存在' };
-    const t = res.data;
-    if (t.status !== 'group') return { code: 1, msg: '当前不是小组赛阶段' };
-
     const { groupIndex, matchId, scoreA, scoreB } = event;
     if (groupIndex === undefined || !matchId || scoreA === undefined || scoreB === undefined) {
       return { code: 1, msg: '参数不完整' };
     }
-
     const sa = parseInt(scoreA);
     const sb = parseInt(scoreB);
-    if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0) {
-      return { code: 1, msg: '比分格式错误' };
-    }
-    if (sa === sb) {
-      return { code: 1, msg: '必须决出胜负' };
-    }
-    if (!validateScore(sa, sb, t.bestOf)) {
-      return { code: 1, msg: `比分不合法（先赢${t.bestOf}局制，含抢七规则）` };
-    }
+    if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0) return { code: 1, msg: '比分格式错误' };
+    if (sa === sb) return { code: 1, msg: '必须决出胜负' };
 
-    // 权限检查
-    const group = t.groups[groupIndex];
-    if (!group) return { code: 1, msg: '分组不存在' };
-    const match = group.matches.find(m => m.id === matchId);
-    if (!match) return { code: 1, msg: '比赛不存在' };
-    const inMatch = match.playerA.openid === OPENID || match.playerB.openid === OPENID;
-    const isCreator = t.creator === OPENID;
-    const isAdmin = me && me.role === 'admin';
-    if (!inMatch && !isCreator && !isAdmin) {
-      return { code: 1, msg: '无权限录入比分' };
+    // 事前预读：状态/比分校验/权限/取 winner-loser openid
+    const previewRes = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
+    if (!previewRes || !previewRes.data) return { code: 1, msg: '赛事不存在' };
+    const tPreview = previewRes.data;
+    if (tPreview.status !== 'group') return { code: 1, msg: '当前不是小组赛阶段' };
+    if (!validateScore(sa, sb, tPreview.bestOf)) {
+      return { code: 1, msg: `比分不合法（先赢${tPreview.bestOf}局制，含抢七规则）` };
     }
+    const groupPreview = tPreview.groups[groupIndex];
+    if (!groupPreview) return { code: 1, msg: '分组不存在' };
+    const matchPreview = groupPreview.matches.find(m => m.id === matchId);
+    if (!matchPreview) return { code: 1, msg: '比赛不存在' };
+    if (matchPreview.winner) return { code: 1, msg: '该场比分已录入' };
+
+    const inMatch = matchPreview.playerA.openid === OPENID || matchPreview.playerB.openid === OPENID;
+    const isCreator = tPreview.creator === OPENID;
+    const isAdmin = me && me.role === 'admin';
+    if (!inMatch && !isCreator && !isAdmin) return { code: 1, msg: '无权限录入比分' };
 
     const { winner, scoreSummary } = judgeMatch(sa, sb);
     if (!winner) return { code: 1, msg: '比分未能决出胜负' };
+    const winnerOpenid = winner === 'A' ? matchPreview.playerA.openid : matchPreview.playerB.openid;
+    const loserOpenid = winner === 'A' ? matchPreview.playerB.openid : matchPreview.playerA.openid;
 
-    // 更新比赛结果
-    match.scoreA = sa;
-    match.scoreB = sb;
-    match.winner = winner;
-    match.scoreSummary = scoreSummary;
+    // 预查双方 user._id（事务内不支持 .where，必须用 .doc(id)）
+    const [winnerUserPre, loserUserPre] = await Promise.all([
+      getUser(winnerOpenid),
+      getUser(loserOpenid)
+    ]);
+    if (!winnerUserPre || !loserUserPre) return { code: 1, msg: '用户数据缺失' };
 
-    // 重新计算该组排名
-    group.standings = calcStandings(group);
+    const factor = tPreview.type === 'doubles' ? DOUBLES_FACTOR : 1;
 
-    // 结算积分
-    const winnerOpenid = winner === 'A' ? match.playerA.openid : match.playerB.openid;
-    const loserOpenid = winner === 'A' ? match.playerB.openid : match.playerA.openid;
-    await settleMatchPoints(t, winnerOpenid, loserOpenid);
+    try {
+      const result = await db.runTransaction(async transaction => {
+        // 事务内重新读 tournament（保证最新；若被并发更新会自动 retry）
+        const tRes = await transaction.collection(TOURNAMENTS).doc(event.id).get();
+        const t = tRes.data;
+        if (t.status !== 'group') throw new Error('当前不是小组赛阶段');
+        const group = t.groups[groupIndex];
+        if (!group) throw new Error('分组不存在');
+        const match = group.matches.find(m => m.id === matchId);
+        if (!match) throw new Error('比赛不存在');
+        if (match.winner) throw new Error('该场比分已录入'); // 防重复录入
 
-    // 更新数据库
-    const groups = t.groups.slice();
-    groups[groupIndex] = group;
-    await db.collection(TOURNAMENTS).doc(event.id).update({
-      data: { groups, updatedAt: Date.now() }
-    });
-    return { code: 0, data: { winner, scoreSummary } };
+        // 更新比赛结果 + 重算排名
+        match.scoreA = sa;
+        match.scoreB = sb;
+        match.winner = winner;
+        match.scoreSummary = scoreSummary;
+        group.standings = calcStandings(group);
+
+        // 事务内重新读双方 user
+        const [wRes, lRes] = await Promise.all([
+          transaction.collection(USERS).doc(winnerUserPre._id).get(),
+          transaction.collection(USERS).doc(loserUserPre._id).get()
+        ]);
+        const wu = wRes.data;
+        const lu = lRes.data;
+
+        const wElo = wu.eloRating || 1500;
+        const lElo = lu.eloRating || 1500;
+        const { winnerPts, loserPts } = calcMatchPoints(wElo, lElo);
+        const finalWinnerPts = Math.round(winnerPts * factor);
+        const finalLoserPts = Math.round(loserPts * factor);
+        const { winnerDelta, loserDelta } = calcEloChange(wElo, lElo);
+
+        const tDate = t.matchDate || t.createdAt;
+
+        // 一次写入：tournament + 两个 user（合并 ELO/earnings/totalPoints）
+        await transaction.collection(TOURNAMENTS).doc(event.id).update({
+          data: { groups: t.groups, updatedAt: Date.now() }
+        });
+        await Promise.all([
+          transaction.collection(USERS).doc(wu._id).update({
+            data: buildUserSettlePayload(wu, event.id, t.title, tDate, winnerDelta, finalWinnerPts)
+          }),
+          transaction.collection(USERS).doc(lu._id).update({
+            data: buildUserSettlePayload(lu, event.id, t.title, tDate, loserDelta, finalLoserPts)
+          })
+        ]);
+
+        return {
+          winner,
+          scoreSummary,
+          winnerPts: finalWinnerPts,
+          loserPts: finalLoserPts,
+          winnerEloChange: winnerDelta,
+          loserEloChange: loserDelta
+        };
+      });
+      return { code: 0, data: result };
+    } catch (e) {
+      return { code: 1, msg: e.message || '录分失败，请重试' };
+    }
   }
 
   // 开始淘汰赛（小组赛全部完成后）
@@ -657,87 +711,151 @@ exports.main = async event => {
     return { code: 0, data: { knockout } };
   }
 
-  // 录入淘汰赛比分（总比分模式）
+  // 录入淘汰赛比分（事务化，防止并发录分互相覆盖）
   if (action === 'scoreKnockout') {
     const me = await getUser(OPENID);
-    const res = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
-    if (!res || !res.data) return { code: 1, msg: '赛事不存在' };
-    const t = res.data;
-    if (t.status !== 'knockout') return { code: 1, msg: '当前不是淘汰赛阶段' };
-
     const { roundIndex, matchId, scoreA, scoreB } = event;
     if (roundIndex === undefined || !matchId || scoreA === undefined || scoreB === undefined) {
       return { code: 1, msg: '参数不完整' };
     }
-
     const sa = parseInt(scoreA);
     const sb = parseInt(scoreB);
-    if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0) {
-      return { code: 1, msg: '比分格式错误' };
-    }
-    if (sa === sb) {
-      return { code: 1, msg: '必须决出胜负' };
-    }
-    if (!validateScore(sa, sb, t.bestOf)) {
-      return { code: 1, msg: `比分不合法（先赢${t.bestOf}局制，含抢七规则）` };
+    if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0) return { code: 1, msg: '比分格式错误' };
+    if (sa === sb) return { code: 1, msg: '必须决出胜负' };
+
+    // 事前预读
+    const previewRes = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
+    if (!previewRes || !previewRes.data) return { code: 1, msg: '赛事不存在' };
+    const tPreview = previewRes.data;
+    if (tPreview.status !== 'knockout') return { code: 1, msg: '当前不是淘汰赛阶段' };
+    if (!validateScore(sa, sb, tPreview.bestOf)) {
+      return { code: 1, msg: `比分不合法（先赢${tPreview.bestOf}局制，含抢七规则）` };
     }
 
-    const round = t.knockout.rounds[roundIndex];
-    if (!round) return { code: 1, msg: '轮次不存在' };
-    const match = round.matches.find(m => m.id === matchId);
-    if (!match) return { code: 1, msg: '比赛不存在' };
-    if (!match.playerA || !match.playerB) return { code: 1, msg: '对手尚未确定' };
+    const roundPreview = tPreview.knockout && tPreview.knockout.rounds && tPreview.knockout.rounds[roundIndex];
+    if (!roundPreview) return { code: 1, msg: '轮次不存在' };
+    const matchPreview = roundPreview.matches.find(m => m.id === matchId);
+    if (!matchPreview) return { code: 1, msg: '比赛不存在' };
+    if (!matchPreview.playerA || !matchPreview.playerB) return { code: 1, msg: '对手尚未确定' };
+    if (matchPreview.winner) return { code: 1, msg: '该场比分已录入' };
 
-    // 权限
-    const inMatch = match.playerA.openid === OPENID || match.playerB.openid === OPENID;
-    const isCreator = t.creator === OPENID;
+    const inMatch = matchPreview.playerA.openid === OPENID || matchPreview.playerB.openid === OPENID;
+    const isCreator = tPreview.creator === OPENID;
     const isAdmin = me && me.role === 'admin';
-    if (!inMatch && !isCreator && !isAdmin) {
-      return { code: 1, msg: '无权限录入比分' };
-    }
+    if (!inMatch && !isCreator && !isAdmin) return { code: 1, msg: '无权限录入比分' };
 
     const { winner, scoreSummary } = judgeMatch(sa, sb);
     if (!winner) return { code: 1, msg: '比分未能决出胜负' };
+    const winnerOpenid = winner === 'A' ? matchPreview.playerA.openid : matchPreview.playerB.openid;
+    const loserOpenid = winner === 'A' ? matchPreview.playerB.openid : matchPreview.playerA.openid;
 
-    match.scoreA = sa;
-    match.scoreB = sb;
-    match.winner = winner;
-    match.scoreSummary = scoreSummary;
+    const [winnerUserPre, loserUserPre] = await Promise.all([
+      getUser(winnerOpenid),
+      getUser(loserOpenid)
+    ]);
+    if (!winnerUserPre || !loserUserPre) return { code: 1, msg: '用户数据缺失' };
 
-    // 结算积分
-    const winnerOpenid = winner === 'A' ? match.playerA.openid : match.playerB.openid;
-    const loserOpenid = winner === 'A' ? match.playerB.openid : match.playerA.openid;
-    await settleMatchPoints(t, winnerOpenid, loserOpenid);
+    const factor = tPreview.type === 'doubles' ? DOUBLES_FACTOR : 1;
 
-    // 胜者晋级到下一轮
-    const nextRoundIndex = roundIndex + 1;
-    if (nextRoundIndex < t.knockout.rounds.length) {
-      const matchIdx = round.matches.indexOf(match);
-      const nextMatchIdx = Math.floor(matchIdx / 2);
-      const nextMatch = t.knockout.rounds[nextRoundIndex].matches[nextMatchIdx];
-      const winnerPlayer = winner === 'A' ? match.playerA : match.playerB;
-      if (matchIdx % 2 === 0) {
-        nextMatch.playerA = winnerPlayer;
-      } else {
-        nextMatch.playerB = winnerPlayer;
-      }
+    let txResult;
+    try {
+      txResult = await db.runTransaction(async transaction => {
+        const tRes = await transaction.collection(TOURNAMENTS).doc(event.id).get();
+        const t = tRes.data;
+        if (t.status !== 'knockout') throw new Error('当前不是淘汰赛阶段');
+        const round = t.knockout.rounds[roundIndex];
+        if (!round) throw new Error('轮次不存在');
+        const match = round.matches.find(m => m.id === matchId);
+        if (!match) throw new Error('比赛不存在');
+        if (!match.playerA || !match.playerB) throw new Error('对手尚未确定');
+        if (match.winner) throw new Error('该场比分已录入');
+
+        match.scoreA = sa;
+        match.scoreB = sb;
+        match.winner = winner;
+        match.scoreSummary = scoreSummary;
+
+        // 胜者晋级到下一轮
+        const nextRoundIndex = roundIndex + 1;
+        if (nextRoundIndex < t.knockout.rounds.length) {
+          const matchIdx = round.matches.indexOf(match);
+          const nextMatchIdx = Math.floor(matchIdx / 2);
+          const nextMatch = t.knockout.rounds[nextRoundIndex].matches[nextMatchIdx];
+          const winnerPlayer = winner === 'A' ? match.playerA : match.playerB;
+          if (matchIdx % 2 === 0) {
+            nextMatch.playerA = winnerPlayer;
+          } else {
+            nextMatch.playerB = winnerPlayer;
+          }
+        }
+
+        // 检查是否决赛结束
+        const lastRound = t.knockout.rounds[t.knockout.rounds.length - 1];
+        const finalMatch = lastRound.matches[0];
+        const finished = !!finalMatch.winner;
+
+        // 事务内更新双方 user
+        const [wRes, lRes] = await Promise.all([
+          transaction.collection(USERS).doc(winnerUserPre._id).get(),
+          transaction.collection(USERS).doc(loserUserPre._id).get()
+        ]);
+        const wu = wRes.data;
+        const lu = lRes.data;
+
+        const wElo = wu.eloRating || 1500;
+        const lElo = lu.eloRating || 1500;
+        const { winnerPts, loserPts } = calcMatchPoints(wElo, lElo);
+        const finalWinnerPts = Math.round(winnerPts * factor);
+        const finalLoserPts = Math.round(loserPts * factor);
+        const { winnerDelta, loserDelta } = calcEloChange(wElo, lElo);
+
+        const tDate = t.matchDate || t.createdAt;
+        const newStatus = finished ? 'finished' : 'knockout';
+
+        await transaction.collection(TOURNAMENTS).doc(event.id).update({
+          data: { knockout: t.knockout, status: newStatus, updatedAt: Date.now() }
+        });
+        await Promise.all([
+          transaction.collection(USERS).doc(wu._id).update({
+            data: buildUserSettlePayload(wu, event.id, t.title, tDate, winnerDelta, finalWinnerPts)
+          }),
+          transaction.collection(USERS).doc(lu._id).update({
+            data: buildUserSettlePayload(lu, event.id, t.title, tDate, loserDelta, finalLoserPts)
+          })
+        ]);
+
+        return {
+          winner, scoreSummary,
+          winnerPts: finalWinnerPts, loserPts: finalLoserPts,
+          winnerEloChange: winnerDelta, loserEloChange: loserDelta,
+          status: newStatus,
+          finishedNow: finished,
+          tournamentSnapshot: finished ? t : null  // 决赛结束时把快照带出，给 awardPlacementBonus
+        };
+      });
+    } catch (e) {
+      return { code: 1, msg: e.message || '录分失败，请重试' };
     }
 
-    // 检查赛事是否全部结束
-    const lastRound = t.knockout.rounds[t.knockout.rounds.length - 1];
-    const finalMatch = lastRound.matches[0];
-    let tournamentStatus = 'knockout';
+    // 决赛结束后发奖（事务外，因可能涉及很多用户）
     let placementAwards = null;
-    if (finalMatch.winner) {
-      tournamentStatus = 'finished';
-      // 发放赛事名次奖励
-      placementAwards = await awardPlacementBonus(t);
+    if (txResult.finishedNow && txResult.tournamentSnapshot) {
+      placementAwards = await awardPlacementBonus(txResult.tournamentSnapshot);
+      // 把名次写回 tournament（用 dot path 不影响其他字段）
+      await db.collection(TOURNAMENTS).doc(event.id).update({
+        data: { placementAwards, updatedAt: Date.now() }
+      });
     }
 
-    await db.collection(TOURNAMENTS).doc(event.id).update({
-      data: { knockout: t.knockout, status: tournamentStatus, placementAwards, updatedAt: Date.now() }
-    });
-    return { code: 0, data: { winner, scoreSummary, status: tournamentStatus, placementAwards } };
+    return {
+      code: 0,
+      data: {
+        winner: txResult.winner,
+        scoreSummary: txResult.scoreSummary,
+        status: txResult.status,
+        placementAwards
+      }
+    };
   }
 
   return { code: 1, msg: '未知 action' };
