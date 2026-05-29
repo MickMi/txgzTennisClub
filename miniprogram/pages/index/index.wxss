@@ -39,3 +39,40 @@
 .empty-arrow {
   font-family: var(--font-mono); color: var(--color-accent);
 }
+
+/* Filter segmented control — emerald-heritage hairline style */
+.filter-bar {
+  display: flex;
+  margin: 0 32rpx 24rpx;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.filter-tab {
+  flex: 1;
+  padding: 20rpx 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 22rpx;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  border-bottom: 3rpx solid transparent;
+  transition: color 0.18s, border-color 0.18s;
+}
+.filter-tab.is-active {
+  color: var(--color-fg);
+  border-bottom-color: var(--color-emerald-deep);
+}
+
+/* Loading-more / end-of-list footer */
+.loading-more {
+  text-align: center;
+  padding: 32rpx 0 48rpx;
+  font-family: var(--font-mono);
+  font-size: 22rpx;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.loading-more--end {
+  color: var(--color-border);
+}

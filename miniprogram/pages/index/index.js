@@ -27,7 +27,8 @@ Page({
     user: null,
     hasMore: false,
     nextCursor: null,
-    loadingMore: false
+    loadingMore: false,
+    filter: 'open'  // 'open' | 'closed' | 'all'
   },
 
   onShow() {
@@ -51,9 +52,17 @@ Page({
     this.loadMore();
   },
 
+  // 切换筛选
+  onFilterChange(e) {
+    const filter = e.currentTarget.dataset.filter;
+    if (filter === this.data.filter) return;
+    this.setData({ filter, list: [], loading: true, hasMore: false, nextCursor: null });
+    this.loadList();
+  },
+
   loadList() {
     return api
-      .listActivities()
+      .listActivities({ filter: this.data.filter })
       .then(res => {
         // 兼容老接口（直接返回数组）和新接口（{ list, hasMore, nextCursor }）
         const isPaged = res && Array.isArray(res.list);
@@ -73,7 +82,7 @@ Page({
     if (!this.data.nextCursor) return Promise.resolve();
     this.setData({ loadingMore: true });
     return api
-      .listActivities({ before: this.data.nextCursor, silent: true })
+      .listActivities({ before: this.data.nextCursor, filter: this.data.filter, silent: true })
       .then(res => {
         const isPaged = res && Array.isArray(res.list);
         const rawList = isPaged ? res.list : (res || []);

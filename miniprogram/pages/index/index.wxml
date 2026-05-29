@@ -12,13 +12,32 @@
     </view>
   </view>
 
+  <!-- Filter segmented control -->
+  <view class="filter-bar">
+    <view
+      class="filter-tab {{filter === 'open' ? 'is-active' : ''}}"
+      data-filter="open"
+      bindtap="onFilterChange"
+    >报名中</view>
+    <view
+      class="filter-tab {{filter === 'closed' ? 'is-active' : ''}}"
+      data-filter="closed"
+      bindtap="onFilterChange"
+    >已结束</view>
+    <view
+      class="filter-tab {{filter === 'all' ? 'is-active' : ''}}"
+      data-filter="all"
+      bindtap="onFilterChange"
+    >全部</view>
+  </view>
+
   <block wx:if="{{!loading && list.length === 0}}">
     <view class="empty-state">
       <image class="empty-icon" src="/assets/icons/clock.svg" />
-      <view class="empty-eyebrow">EMPTY · 暂无活动</view>
-      <view class="empty-title">还没有活动</view>
-      <view class="empty-desc">组织一场，邀请伙伴一起运动</view>
-      <view class="empty-cta" bindtap="goCreate">
+      <view class="empty-eyebrow">EMPTY · {{filter === 'closed' ? '暂无已结束活动' : filter === 'open' ? '暂无报名中活动' : '暂无活动'}}</view>
+      <view class="empty-title">{{filter === 'closed' ? '还没有结束的活动' : '还没有活动'}}</view>
+      <view class="empty-desc">{{filter === 'closed' ? '过往活动会在这里归档' : '组织一场，邀请伙伴一起运动'}}</view>
+      <view wx:if="{{filter !== 'closed'}}" class="empty-cta" bindtap="goCreate">
         <text>创建活动</text>
         <text class="empty-arrow">→</text>
       </view>
@@ -45,5 +64,8 @@
       <icon name="arrow-right" size="32" class="card-arrow" />
     </view>
   </view>
+
+  <view wx:if="{{loadingMore}}" class="loading-more">加载中…</view>
+  <view wx:if="{{!hasMore && list.length > 0}}" class="loading-more loading-more--end">— 已经到底了 —</view>
 </view>
 

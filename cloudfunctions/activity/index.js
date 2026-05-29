@@ -25,6 +25,27 @@ exports.main = async event => {
   if (action === 'list') {
     // 分页：limit 默认 20，最大 50；before 为上一页最后一条 startTime（cursor）
     const limit = Math.min(Math.max(parseInt(event.limit) || 20, 1), 50);
+    const filter = event.filter || 'all'; // 'open' | 'closed' | 'all'
+    const now = Date.now();
+
+    // 构造 where 条件（合并 filter + cursor，避免同字段 where 冲突）
+    let where = {};
+    if (filter === 'open') {
+      // 报名中：status=open 且 startTime > now
+      where.status = 'open';
+      where.startTime = event.before
+        ? _.and(_.gt(now), _.lt(event.before))
+        : _.gt(now);
+    } else if (filter === 'closed') {
+      // 已结束：status=closed 或 startTime <= now（含过期未关闭的边界）
+      const baseClosed = _.or([{ status: 'closed' }, { startTime: _.lte(now) }]);
+      where = event.before
+        ? _.and(baseClosed, { startTime: _.lt(event.before) })
+        : baseClosed;
+    } else if (event.before) {
+      where.startTime = _.lt(event.before);
+    }
+
     let q = db.collection(ACT)
       .field({
         title: true,
@@ -34,15 +55,14 @@ exports.main = async event => {
         status: true,
         creator: true,
         creatorName: true,
-        participants: true,  // 服务端需要算 count / joined
+        participants: true,
         createdAt: true
       })
       .orderBy('startTime', 'desc');
-    if (event.before) {
-      q = q.where({ startTime: _.lt(event.before) });
+    if (Object.keys(where).length > 0 || filter !== 'all') {
+      q = q.where(where);
     }
     const res = await q.limit(limit).get();
-    // 仅返回前端需要的字段（剥离 participants 全量数组，只保留 count + 自己是否报名）
     const list = (res.data || []).map(a => {
       const ps = a.participants || [];
       return {
