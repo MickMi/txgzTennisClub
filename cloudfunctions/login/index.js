@@ -111,10 +111,18 @@ exports.main = async (event, context) => {
 // 构建个人档案
 async function buildProfile(openid, user) {
   // 从 tournaments 集合统计战绩（小组赛 + 淘汰赛）
+  // 只拉构建战绩需要的字段，避免老用户拉几 MB 的 placementAwards/config/handicapRule 等
   const tournamentRes = await db.collection('tournaments')
     .where({ 'players.openid': openid })
+    .field({
+      title: true,
+      type: true,
+      matchDate: true,
+      groups: true,
+      knockout: true
+    })
     .orderBy('createdAt', 'desc')
-    .limit(50)
+    .limit(30)
     .get();
   const tournaments = tournamentRes.data || [];
 
@@ -185,8 +193,15 @@ async function buildProfile(openid, user) {
   // 查询参与的活动
   const actRes = await db.collection('activities')
     .where({ 'participants.openid': openid })
+    .field({
+      title: true,
+      startTime: true,
+      location: true,
+      participants: true,
+      status: true
+    })
     .orderBy('startTime', 'desc')
-    .limit(50)
+    .limit(30)
     .get();
   const activities = (actRes.data || []).map(a => ({
     _id: a._id,
@@ -226,38 +241,25 @@ async function isFirstUser() {
   return total === 0;
 }
 
-// 用户改名后同步活动/比赛/赛事中保存的冗余名称
+// 用户改名后同步活动/赛事中保存的冗余名称
+// 注：match 集合已废弃（独立比赛功能于 2026-05-24 删除），不再同步
 async function syncWecomName(openid, newName) {
-  // 活动 participants
-  const acts = await db.collection('activities')
-    .where({ 'participants.openid': openid }).get();
-  for (const a of acts.data) {
+  // 并行拉取需要更新的活动 + 赛事
+  const [actsRes, tourRes] = await Promise.all([
+    db.collection('activities').where({ 'participants.openid': openid }).get(),
+    db.collection('tournaments').where({ 'players.openid': openid }).get()
+  ]);
+
+  // 活动 participants（并行更新）
+  const actUpdates = (actsRes.data || []).map(a => {
     const ps = (a.participants || []).map(p =>
       p.openid === openid ? { ...p, wecomName: newName } : p
     );
-    await db.collection('activities').doc(a._id).update({ data: { participants: ps } });
-  }
+    return db.collection('activities').doc(a._id).update({ data: { participants: ps } });
+  });
 
-  // 比赛 teamA / teamB
-  const matches = await db.collection('matches')
-    .where(_.or([
-      { 'teamA.openid': openid },
-      { 'teamB.openid': openid }
-    ])).get();
-  for (const m of matches.data) {
-    const teamA = (m.teamA || []).map(p =>
-      p.openid === openid ? { ...p, wecomName: newName } : p
-    );
-    const teamB = (m.teamB || []).map(p =>
-      p.openid === openid ? { ...p, wecomName: newName } : p
-    );
-    await db.collection('matches').doc(m._id).update({ data: { teamA, teamB } });
-  }
-
-  // 赛事 tournaments：players / groups / knockout 中的冗余名称
-  const tournaments = await db.collection('tournaments')
-    .where({ 'players.openid': openid }).get();
-  for (const t of tournaments.data) {
+  // 赛事 tournaments：players / groups / knockout 中的冗余名称（并行更新）
+  const tourUpdates = (tourRes.data || []).map(t => {
     const updateData = {};
 
     // players 列表
@@ -304,9 +306,10 @@ async function syncWecomName(openid, newName) {
       };
     }
 
-    if (Object.keys(updateData).length > 0) {
-      updateData.updatedAt = Date.now();
-      await db.collection('tournaments').doc(t._id).update({ data: updateData });
-    }
-  }
+    if (Object.keys(updateData).length === 0) return null;
+    updateData.updatedAt = Date.now();
+    return db.collection('tournaments').doc(t._id).update({ data: updateData });
+  }).filter(Boolean);
+
+  await Promise.all([...actUpdates, ...tourUpdates]);
 }
