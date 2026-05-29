@@ -858,5 +858,23 @@ exports.main = async event => {
     };
   }
 
+  // 删除赛事（仅 signup 阶段允许）
+  // 设计：一旦抽签进入 group 阶段就开始结算积分，删除会留下幽灵积分。
+  // 因此仅 signup 阶段（未抽签、零积分变动）支持硬删除。
+  if (action === 'delete') {
+    const me = await getUser(OPENID);
+    const res = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
+    if (!res || !res.data) return { code: 1, msg: '赛事不存在' };
+    const t = res.data;
+    if (t.creator !== OPENID && (!me || me.role !== 'admin')) {
+      return { code: 1, msg: '无权限删除' };
+    }
+    if (t.status !== 'signup') {
+      return { code: 1, msg: '赛事已开赛，无法删除（如需取消请联系管理员）' };
+    }
+    await db.collection(TOURNAMENTS).doc(event.id).remove();
+    return { code: 0, data: true };
+  }
+
   return { code: 1, msg: '未知 action' };
 };

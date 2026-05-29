@@ -104,6 +104,14 @@
             <text>{{drawSeedCount > 0 ? '抽签分组（种子制）' : '随机抽签分组'}}</text>
           </button>
         </view>
+
+        <!-- 删除赛事（仅 signup 阶段、creator/admin 可见） -->
+        <view class="danger-zone" wx:if="{{isOwner}}">
+          <view class="danger-action" bindtap="onDeleteTournament">
+            <text>删除赛事</text>
+            <text class="danger-meta">DELETE · 不可撤销</text>
+          </view>
+        </view>
       </block>
 
       <!-- GROUP PHASE -->

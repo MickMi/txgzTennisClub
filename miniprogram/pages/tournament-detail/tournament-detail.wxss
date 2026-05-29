@@ -821,3 +821,32 @@
   margin-top: 32rpx;
   width: 100%;
 }
+
+/* Danger zone — emerald-heritage 风格的危险操作 */
+.danger-zone {
+  margin-top: 80rpx;
+  padding-top: 32rpx;
+  border-top: 1rpx solid var(--color-border);
+}
+.danger-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 0;
+  border: 1rpx solid var(--color-border);
+  border-left: 3rpx solid var(--color-accent);
+  padding-left: 24rpx;
+  padding-right: 24rpx;
+}
+.danger-action text:first-child {
+  font-family: var(--font-display);
+  font-size: 28rpx;
+  color: var(--color-fg);
+}
+.danger-meta {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}

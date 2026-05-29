@@ -217,5 +217,24 @@ Page({
       this.setData({ editingKO: null });
       this.load();
     });
+  },
+
+  // 删除赛事（仅 signup 阶段、creator/admin）
+  onDeleteTournament() {
+    const t = this.data.t;
+    if (!t || t.status !== 'signup') return;
+    wx.showModal({
+      title: '删除赛事',
+      content: `确认删除「${t.title}」？已报名的 ${t.players ? t.players.length : 0} 人将被解除报名。此操作不可撤销。`,
+      confirmColor: '#b87a36',
+      success: res => {
+        if (res.confirm) {
+          api.deleteTournament(this.data.id).then(() => {
+            wx.showToast({ title: '已删除', icon: 'success' });
+            setTimeout(() => wx.navigateBack(), 600);
+          });
+        }
+      }
+    });
   }
 });

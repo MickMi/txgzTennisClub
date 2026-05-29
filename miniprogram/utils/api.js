@@ -57,6 +57,7 @@ module.exports = {
   // user
   updateUser: payload => call('login', { action: 'update', payload }),
   getProfile: () => call('login', { action: 'getProfile' }),
+  getProfileByOpenid: openid => call('login', { action: 'getProfile', openid }),
   getRanking: () => call('login', { action: 'getRanking' }),
 
   // tournament（默认静默调用，云函数未部署时不报错）
@@ -65,6 +66,7 @@ module.exports = {
   createTournament: payload => call('tournament', { action: 'create', payload }),
   signupTournament: id => call('tournament', { action: 'signup', id }),
   cancelSignupTournament: id => call('tournament', { action: 'cancelSignup', id }),
+  deleteTournament: id => call('tournament', { action: 'delete', id }),
   drawTournament: (id, opts) => call('tournament', { action: 'draw', id, ...opts }),
   scoreGroup: (id, groupIndex, matchId, scoreA, scoreB) =>
     call('tournament', { action: 'scoreGroup', id, groupIndex, matchId, scoreA, scoreB }),
