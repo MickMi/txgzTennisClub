@@ -305,21 +305,28 @@ page {
   color: var(--color-disabled);
 }
 
-/* === §5.6 主 CTA 按钮 === */
+/* === §5.6 主 CTA 按钮 ===
+   关键防御：用 min-height 让文字多行时自然撑高；line-height 1.4 不依赖
+   外部高度；box-sizing 让 padding 计入宽度（防止微信 <button> 默认溢出） */
 .cta-primary {
   background: var(--color-emerald-deep);
   color: var(--color-bg);
   border: 1rpx solid var(--color-emerald-deep);
-  padding: 28rpx 36rpx;
+  padding: 22rpx 36rpx;
   font-family: var(--font-body);
   font-weight: 500;
   font-size: var(--text-body-lg);
+  line-height: 1.4;
   border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   gap: 24rpx;
-  height: 100rpx;
+  min-height: 100rpx;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: break-word;
   position: relative;
 }
 .cta-primary::after {
@@ -327,7 +334,7 @@ page {
   position: absolute;
   left: 28rpx;
   right: 28rpx;
-  bottom: 14rpx;
+  bottom: 10rpx;
   height: 1rpx;
   background: var(--color-accent);
   opacity: 0.85;
@@ -573,15 +580,20 @@ page {
   color: var(--color-fg);
 }
 
-/* === 按钮兼容旧类名 === */
+/* === 按钮兼容旧类名（统一防溢出：min-height + line-height + box-sizing） === */
 .btn-primary {
   background: var(--color-emerald-deep);
   color: var(--color-bg);
   border: 1rpx solid var(--color-emerald-deep);
   border-radius: 0;
   font-size: var(--text-body-lg);
-  padding: 24rpx 36rpx;
+  line-height: 1.4;
+  padding: 20rpx 36rpx;
   font-weight: 500;
+  min-height: 88rpx;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: break-word;
 }
 .btn-primary[disabled] {
   background: var(--color-disabled);
@@ -594,7 +606,12 @@ page {
   border: 1rpx solid var(--color-fg);
   border-radius: 0;
   font-size: var(--text-body-lg);
-  padding: 24rpx 36rpx;
+  line-height: 1.4;
+  padding: 20rpx 36rpx;
+  min-height: 88rpx;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: break-word;
 }
 .btn-danger {
   background: transparent;
@@ -602,7 +619,12 @@ page {
   border: 1rpx solid var(--color-danger);
   border-radius: 0;
   font-size: var(--text-body-lg);
-  padding: 24rpx 36rpx;
+  line-height: 1.4;
+  padding: 20rpx 36rpx;
+  min-height: 88rpx;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* === FAB === */

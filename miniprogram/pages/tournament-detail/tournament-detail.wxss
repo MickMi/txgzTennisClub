@@ -773,26 +773,33 @@
   margin-top: 10rpx;
 }
 
-/* ========== CTA Buttons ========== */
+/* ========== CTA Buttons ==========
+   修复：之前 height + line-height: 100rpx 导致两行文字（如"小组赛
+   结束，进入淘汰赛"）被裁切。改用 min-height + line-height: 1.4 +
+   上下 padding 自然撑高，box-sizing 防止微信 button 默认 padding 溢出。 */
 .cta-primary {
   appearance: none;
   -webkit-appearance: none;
   background: var(--color-emerald-deep);
   color: var(--color-bg);
   border: 1rpx solid var(--color-emerald-deep);
-  padding: 0 36rpx;
+  padding: 22rpx 36rpx;
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 30rpx;
+  line-height: 1.4;
   letter-spacing: 0.06em;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   gap: 12rpx;
   border-radius: 0;
-  height: 100rpx;
-  line-height: 100rpx;
+  min-height: 100rpx;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .cta-primary::after {
@@ -800,7 +807,7 @@
   position: absolute;
   left: 28rpx;
   right: 28rpx;
-  bottom: 14rpx;
+  bottom: 10rpx;
   height: 1rpx;
   background: var(--color-accent);
   opacity: 0.85;
