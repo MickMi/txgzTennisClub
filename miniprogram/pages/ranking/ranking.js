@@ -14,6 +14,10 @@ Page({
     this.setData({ myOpenid: user ? user.openid : '' });
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
   onShow() {
     this.loadRanking();
   },

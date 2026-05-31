@@ -101,7 +101,7 @@
             </view>
           </view>
           <button class="cta-primary draw-btn" bindtap="onDraw">
-            <text>{{drawSeedCount > 0 ? '抽签分组（种子制）' : '随机抽签分组'}}</text>
+            <text>{{drawSeedCount > 0 ? '种子抽签' : '随机抽签'}}</text>
           </button>
         </view>
 

@@ -16,6 +16,14 @@
 }
 .form-row:last-child { border-bottom: none; }
 
+/* 赛制说明 / 提示文字 — 与 form-content 同 padding 对齐 */
+.tip {
+  padding: 24rpx 48rpx 0;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
 .form-label {
   display: block;
   font-family: var(--font-mono);

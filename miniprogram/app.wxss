@@ -553,6 +553,26 @@ page {
   background: none;
 }
 
+/* 通用返回按钮（custom 导航子页用）— 浅底页面专用，深色描边
+   深底 hero 页面（activity-detail / tournament-detail）用各自页内的 topnav 实现 */
+.page-back {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 16rpx);
+  left: 32rpx;
+  width: 64rpx;
+  height: 64rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-bg);
+  z-index: 50;
+}
+.page-back image {
+  width: 32rpx;
+  height: 32rpx;
+}
+
 /* === 辅助布局类 === */
 .row {
   display: flex;

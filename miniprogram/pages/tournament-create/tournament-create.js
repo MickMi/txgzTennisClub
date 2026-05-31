@@ -40,6 +40,10 @@ Page({
     this.setData({ 'form.matchDate': todayStr() });
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
   onInput(e) {
     const key = e.currentTarget.dataset.key;
     this.setData({ [`form.${key}`]: e.detail.value });

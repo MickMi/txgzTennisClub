@@ -1,4 +1,9 @@
 <view class="container">
+  <!-- 返回按钮 -->
+  <view class="page-back" bindtap="goBack">
+    <image src="/assets/icons/back.svg" />
+  </view>
+
   <!-- Masthead -->
   <view class="masthead">
     <view class="masthead-left">

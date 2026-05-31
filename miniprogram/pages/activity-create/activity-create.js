@@ -65,6 +65,10 @@ Page({
     this.setData({ 'form.time': e.detail.value });
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
   onSubmit() {
     const { title, date, time, location, maxPeople, note } = this.data.form;
     if (!title.trim()) return wx.showToast({ title: '请填写活动标题', icon: 'none' });

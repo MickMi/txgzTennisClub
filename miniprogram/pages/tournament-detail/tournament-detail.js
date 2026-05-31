@@ -37,6 +37,10 @@ Page({
     if (this.data.id) this.load();
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
   load() {
     return api.getTournament(this.data.id).then(t => {
       const me = this.data.user;
