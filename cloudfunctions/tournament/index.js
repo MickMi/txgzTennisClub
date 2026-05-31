@@ -622,11 +622,10 @@ exports.main = async event => {
         match.scoreSummary = scoreSummary;
         group.standings = calcStandings(group);
 
-        // 事务内重新读双方 user
-        const [wRes, lRes] = await Promise.all([
-          transaction.collection(USERS).doc(winnerUserPre._id).get(),
-          transaction.collection(USERS).doc(loserUserPre._id).get()
-        ]);
+        // 事务内重新读双方 user（串行：微信云开发事务对 Promise.all 支持不稳，
+        // 必须按顺序 await）
+        const wRes = await transaction.collection(USERS).doc(winnerUserPre._id).get();
+        const lRes = await transaction.collection(USERS).doc(loserUserPre._id).get();
         const wu = wRes.data;
         const lu = lRes.data;
 
@@ -639,18 +638,16 @@ exports.main = async event => {
 
         const tDate = t.matchDate || t.createdAt;
 
-        // 一次写入：tournament + 两个 user（合并 ELO/earnings/totalPoints）
+        // 顺序写入：tournament + winner + loser（事务内不能并发）
         await transaction.collection(TOURNAMENTS).doc(event.id).update({
           data: { groups: t.groups, updatedAt: Date.now() }
         });
-        await Promise.all([
-          transaction.collection(USERS).doc(wu._id).update({
-            data: buildUserSettlePayload(wu, event.id, t.title, tDate, winnerDelta, finalWinnerPts)
-          }),
-          transaction.collection(USERS).doc(lu._id).update({
-            data: buildUserSettlePayload(lu, event.id, t.title, tDate, loserDelta, finalLoserPts)
-          })
-        ]);
+        await transaction.collection(USERS).doc(wu._id).update({
+          data: buildUserSettlePayload(wu, event.id, t.title, tDate, winnerDelta, finalWinnerPts)
+        });
+        await transaction.collection(USERS).doc(lu._id).update({
+          data: buildUserSettlePayload(lu, event.id, t.title, tDate, loserDelta, finalLoserPts)
+        });
 
         return {
           winner,
@@ -663,7 +660,8 @@ exports.main = async event => {
       });
       return { code: 0, data: result };
     } catch (e) {
-      return { code: 1, msg: e.message || '录分失败，请重试' };
+      console.error('[scoreGroup] transaction failed:', e && e.message, e && e.stack);
+      return { code: 1, msg: (e && e.message) || '录分失败，请重试' };
     }
   }
 
@@ -794,11 +792,9 @@ exports.main = async event => {
         const finalMatch = lastRound.matches[0];
         const finished = !!finalMatch.winner;
 
-        // 事务内更新双方 user
-        const [wRes, lRes] = await Promise.all([
-          transaction.collection(USERS).doc(winnerUserPre._id).get(),
-          transaction.collection(USERS).doc(loserUserPre._id).get()
-        ]);
+        // 事务内更新双方 user（串行：微信云开发事务内不可并发）
+        const wRes = await transaction.collection(USERS).doc(winnerUserPre._id).get();
+        const lRes = await transaction.collection(USERS).doc(loserUserPre._id).get();
         const wu = wRes.data;
         const lu = lRes.data;
 
@@ -815,14 +811,12 @@ exports.main = async event => {
         await transaction.collection(TOURNAMENTS).doc(event.id).update({
           data: { knockout: t.knockout, status: newStatus, updatedAt: Date.now() }
         });
-        await Promise.all([
-          transaction.collection(USERS).doc(wu._id).update({
-            data: buildUserSettlePayload(wu, event.id, t.title, tDate, winnerDelta, finalWinnerPts)
-          }),
-          transaction.collection(USERS).doc(lu._id).update({
-            data: buildUserSettlePayload(lu, event.id, t.title, tDate, loserDelta, finalLoserPts)
-          })
-        ]);
+        await transaction.collection(USERS).doc(wu._id).update({
+          data: buildUserSettlePayload(wu, event.id, t.title, tDate, winnerDelta, finalWinnerPts)
+        });
+        await transaction.collection(USERS).doc(lu._id).update({
+          data: buildUserSettlePayload(lu, event.id, t.title, tDate, loserDelta, finalLoserPts)
+        });
 
         return {
           winner, scoreSummary,
@@ -834,7 +828,8 @@ exports.main = async event => {
         };
       });
     } catch (e) {
-      return { code: 1, msg: e.message || '录分失败，请重试' };
+      console.error('[scoreKnockout] transaction failed:', e && e.message, e && e.stack);
+      return { code: 1, msg: (e && e.message) || '录分失败，请重试' };
     }
 
     // 决赛结束后发奖（事务外，因可能涉及很多用户）
