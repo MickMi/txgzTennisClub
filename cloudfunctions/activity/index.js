@@ -25,7 +25,7 @@ exports.main = async event => {
   if (action === 'list') {
     // 分页：limit 默认 20，最大 50；before 为上一页最后一条 startTime（cursor）
     const limit = Math.min(Math.max(parseInt(event.limit) || 20, 1), 50);
-    const filter = event.filter || 'all'; // 'open' | 'closed' | 'all'
+    const filter = event.filter || 'all'; // 'open' | 'joined' | 'all'
     const now = Date.now();
 
     // 构造 where 条件（合并 filter + cursor，避免同字段 where 冲突）
@@ -36,12 +36,12 @@ exports.main = async event => {
       where.startTime = event.before
         ? _.and(_.gt(now), _.lt(event.before))
         : _.gt(now);
-    } else if (filter === 'closed') {
-      // 已结束：status=closed 或 startTime <= now（含过期未关闭的边界）
-      const baseClosed = _.or([{ status: 'closed' }, { startTime: _.lte(now) }]);
-      where = event.before
-        ? _.and(baseClosed, { startTime: _.lt(event.before) })
-        : baseClosed;
+    } else if (filter === 'joined') {
+      // 已报名：当前用户在 participants 中（dot notation 查嵌套数组对象）
+      where['participants.openid'] = OPENID;
+      if (event.before) {
+        where.startTime = _.lt(event.before);
+      }
     } else if (event.before) {
       where.startTime = _.lt(event.before);
     }

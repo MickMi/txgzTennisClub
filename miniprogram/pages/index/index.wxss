@@ -11,6 +11,28 @@
   color: var(--color-muted);
 }
 
+/* 已报名活动 — 左侧 emerald-deep 强调线 + eyebrow 行右侧 chip */
+.card.is-joined {
+  border-left: 4rpx solid var(--color-emerald-deep);
+  padding-left: calc(var(--space-5) - 4rpx);
+}
+.card.is-joined .card-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.joined-pill {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border: 1rpx solid var(--color-emerald-deep);
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.18em;
+  color: var(--color-emerald-deep);
+  text-transform: uppercase;
+  background: transparent;
+}
+
 /* Empty state — emerald-heritage ghost style */
 .empty-state {
   display: flex; flex-direction: column; align-items: center;
@@ -40,11 +62,11 @@
   font-family: var(--font-mono); color: var(--color-accent);
 }
 
-/* Filter segmented control — emerald-heritage hairline style */
+/* Filter segmented control — emerald-heritage hairline style
+   去掉全宽底线，让分割只通过 active tab 的下划线呈现 */
 .filter-bar {
   display: flex;
-  margin: 0 32rpx 24rpx;
-  border-bottom: 1rpx solid var(--color-border);
+  margin: 0 32rpx 16rpx;
 }
 .filter-tab {
   flex: 1;
