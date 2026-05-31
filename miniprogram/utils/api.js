@@ -53,6 +53,7 @@ module.exports = {
   deleteActivity: id => call('activity', { action: 'delete', id }),
   joinActivity: id => call('activity', { action: 'join', id }),
   leaveActivity: id => call('activity', { action: 'leave', id }),
+  closeActivity: id => call('activity', { action: 'close', id }),
 
   // user
   updateUser: payload => call('login', { action: 'update', payload }),

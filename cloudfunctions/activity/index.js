@@ -145,6 +145,10 @@ exports.main = async event => {
     if (!res || !res.data) return { code: 1, msg: '活动不存在' };
     const a = res.data;
     if (a.status === 'closed') return { code: 1, msg: '活动已结束' };
+    // 开始时间过了：禁止加入（但 leave 仍允许，方便临时退出）
+    if (a.startTime && a.startTime <= Date.now()) {
+      return { code: 1, msg: '活动已开始，无法加入' };
+    }
 
     const list = a.participants || [];
     if (list.some(p => p.openid === OPENID)) {
@@ -163,9 +167,30 @@ exports.main = async event => {
   if (action === 'leave') {
     const res = await db.collection(ACT).doc(event.id).get().catch(() => null);
     if (!res || !res.data) return { code: 1, msg: '活动不存在' };
-    const list = (res.data.participants || []).filter(p => p.openid !== OPENID);
+    const a = res.data;
+    // 关闭后不允许退出（保持名单完整）；超时但未关闭仍允许（业务需要：临时不能到场）
+    if (a.status === 'closed') {
+      return { code: 1, msg: '活动已结束，名单已归档' };
+    }
+    const list = (a.participants || []).filter(p => p.openid !== OPENID);
     await db.collection(ACT).doc(event.id).update({
       data: { participants: list, updatedAt: Date.now() }
+    });
+    return { code: 0, data: true };
+  }
+
+  // 关闭活动（creator/admin 手动归档；status: open → closed）
+  if (action === 'close') {
+    const res = await db.collection(ACT).doc(event.id).get().catch(() => null);
+    if (!res || !res.data) return { code: 1, msg: '活动不存在' };
+    const a = res.data;
+    const me = await getUser(OPENID);
+    if (a.creator !== OPENID && (!me || me.role !== 'admin')) {
+      return { code: 1, msg: '无权限关闭' };
+    }
+    if (a.status === 'closed') return { code: 1, msg: '活动已经是关闭状态' };
+    await db.collection(ACT).doc(event.id).update({
+      data: { status: 'closed', updatedAt: Date.now() }
     });
     return { code: 0, data: true };
   }

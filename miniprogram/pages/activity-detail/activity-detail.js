@@ -9,6 +9,10 @@ Page({
     user: null,
     joined: false,
     full: false,
+    isStarted: false,
+    isClosed: false,
+    canJoin: false,
+    canLeave: false,
     loading: true,
     isOwner: false // 是否为创建者或管理员
   },
@@ -29,6 +33,15 @@ Page({
       const full =
         detail.maxPeople > 0 && participants.length >= detail.maxPeople;
       const isOwner = !!(me && (detail.creator === me.openid || me.role === 'admin'));
+
+      // 时间相关派生：是否已开始 / 是否已关闭
+      const now = Date.now();
+      const isStarted = !!(detail.startTime && detail.startTime <= now);
+      const isClosed = detail.status === 'closed';
+      // 是否禁止加入：关闭 / 已开始 / 已满 / 已报名
+      const canJoin = !isClosed && !isStarted && !full && !joined;
+      // 是否能退出：已报名 + 未关闭（超时但未关闭仍能退）
+      const canLeave = joined && !isClosed;
 
       // 派生字段：日期戳
       const d = new Date(detail.startTime);
@@ -54,6 +67,10 @@ Page({
         },
         joined,
         full,
+        isStarted,
+        isClosed,
+        canJoin,
+        canLeave,
         isOwner,
         loading: false
       });
@@ -98,6 +115,24 @@ Page({
           api.deleteActivity(this.data.id).then(() => {
             wx.showToast({ title: '已删除', icon: 'success' });
             setTimeout(() => wx.navigateBack(), 600);
+          });
+        }
+      }
+    });
+  },
+
+  // 关闭活动（归档：参与者无法再退出，列表里展示已结束）
+  onClose() {
+    const count = (this.data.detail && this.data.detail.participants || []).length;
+    wx.showModal({
+      title: '关闭活动',
+      content: `确认关闭活动？关闭后名单（${count} 人）将归档，参与者无法再退出。`,
+      confirmColor: '#243a30',
+      success: res => {
+        if (res.confirm) {
+          api.closeActivity(this.data.id).then(() => {
+            wx.showToast({ title: '活动已关闭', icon: 'success' });
+            this.load();
           });
         }
       }

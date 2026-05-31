@@ -91,6 +91,16 @@
         <text>管理</text>
         <text class="meta">ADMIN</text>
       </view>
+
+      <!-- 关闭报名（独立一行，仅 status=open 时显示） -->
+      <button
+        wx:if="{{!isClosed}}"
+        class="btn-default admin-close-btn"
+        bindtap="onClose"
+      >
+        <icon name="check" size="32" /> 关闭报名（归档名单）
+      </button>
+
       <view class="admin-btns">
         <button class="btn-default admin-btn" bindtap="onExport">
           <icon name="list" size="32" /> 导出名单
@@ -111,17 +121,24 @@
       <view class="status-num">{{detail.participants.length}}<em> / {{detail.maxPeople || '∞'}}</em></view>
       <text class="status-label">已报名</text>
     </view>
+    <!-- 未报名：报名按钮（关闭/已开始/满员/未到时段都禁用） -->
     <button
       wx:if="{{!joined}}"
       class="cta-primary"
       bindtap="onJoin"
-      disabled="{{full || detail.status === 'closed'}}"
+      disabled="{{!canJoin}}"
     >
-      <text>{{detail.status === 'closed' ? '活动已结束' : (full ? '已满员' : '立即报名')}}</text>
-      <icon name="arrow-right" size="32" />
+      <text>{{isClosed ? '活动已结束' : (isStarted ? '活动已开始' : (full ? '已满员' : '立即报名'))}}</text>
+      <icon wx:if="{{canJoin}}" name="arrow-right" size="32" />
     </button>
-    <button wx:else class="btn-danger cta-cancel" bindtap="onLeave">
-      取消报名
+    <!-- 已报名：取消按钮（关闭后才禁用，超时仍可退） -->
+    <button
+      wx:else
+      class="btn-danger cta-cancel"
+      bindtap="onLeave"
+      disabled="{{!canLeave}}"
+    >
+      {{isClosed ? '活动已结束' : '取消报名'}}
     </button>
   </view>
 </view>
