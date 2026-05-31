@@ -180,16 +180,6 @@ Page({
     wx.navigateTo({ url: `/pages/activity-detail/activity-detail?id=${id}` });
   },
 
-  // 跳转到比赛 Tab
-  goMatchTab() {
-    wx.switchTab({ url: '/pages/match-list/match-list' });
-  },
-
-  // 跳转到活动 Tab
-  goActivityTab() {
-    wx.switchTab({ url: '/pages/index/index' });
-  },
-
   // 跳转成员管理（admin only，wxml 已用 user.role === 'admin' 包裹）
   goMemberManagement() {
     wx.navigateTo({ url: '/pages/member-management/member-management' });
