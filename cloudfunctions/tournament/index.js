@@ -721,8 +721,15 @@ exports.main = async event => {
       }
 
       const knockout = generateKnockout(sorted);
+      // 关键：用 _.set() 强制整字段替换，避免云开发把 knockout: { rounds: [...] }
+      // 自动拆成 dot path 'knockout.rounds'。原 knockout 字段是 null 时拆 dot path
+      // 会报 "Cannot create field 'rounds' in element {knockout: null}"
       await db.collection(TOURNAMENTS).doc(event.id).update({
-        data: { knockout, status: 'knockout', updatedAt: Date.now() }
+        data: {
+          knockout: _.set(knockout),
+          status: 'knockout',
+          updatedAt: Date.now()
+        }
       });
       return { code: 0, data: { knockout } };
     } catch (e) {
