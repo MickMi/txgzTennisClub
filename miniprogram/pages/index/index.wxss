@@ -62,6 +62,13 @@
   font-family: var(--font-mono); color: var(--color-accent);
 }
 
+/* 修复筛选器与第一张卡片之间的"两条线"视觉冲突：
+   筛选器 active tab 的 emerald-deep 下划线已是分隔线，
+   第一张卡片的 border-top（深色实线）就显得重复刺眼 */
+.card:first-of-type {
+  border-top: none;
+}
+
 /* Filter segmented control — emerald-heritage hairline style
    去掉全宽底线，让分割只通过 active tab 的下划线呈现 */
 .filter-bar {

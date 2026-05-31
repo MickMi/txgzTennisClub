@@ -1,11 +1,11 @@
 <view class="tabbar">
   <view class="tab {{selected === 0 ? 'is-active' : ''}}" data-index="0" bindtap="switchTab">
     <image class="tab-icon" src="{{selected === 0 ? activeIcons[0] : inactiveIcons[0]}}" />
-    <text>活动</text>
+    <text>赛事</text>
   </view>
   <view class="tab {{selected === 1 ? 'is-active' : ''}}" data-index="1" bindtap="switchTab">
     <image class="tab-icon" src="{{selected === 1 ? activeIcons[1] : inactiveIcons[1]}}" />
-    <text>赛事</text>
+    <text>活动</text>
   </view>
   <view class="tab {{selected === 2 ? 'is-active' : ''}}" data-index="2" bindtap="switchTab">
     <image class="tab-icon" src="{{selected === 2 ? activeIcons[2] : inactiveIcons[2]}}" />

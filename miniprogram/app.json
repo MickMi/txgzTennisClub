@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/index/index",
     "pages/match-list/match-list",
+    "pages/index/index",
     "pages/profile/profile",
     "pages/onboarding/onboarding",
     "pages/activity-create/activity-create",
@@ -29,12 +29,12 @@
     "borderStyle": "white",
     "list": [
       {
-        "pagePath": "pages/index/index",
-        "text": "活动"
-      },
-      {
         "pagePath": "pages/match-list/match-list",
         "text": "赛事"
+      },
+      {
+        "pagePath": "pages/index/index",
+        "text": "活动"
       },
       {
         "pagePath": "pages/profile/profile",
