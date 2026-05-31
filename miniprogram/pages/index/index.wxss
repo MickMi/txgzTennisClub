@@ -62,10 +62,10 @@
   font-family: var(--font-mono); color: var(--color-accent);
 }
 
-/* 修复筛选器与第一张卡片之间的"两条线"视觉冲突：
-   筛选器 active tab 的 emerald-deep 下划线已是分隔线，
-   第一张卡片的 border-top（深色实线）就显得重复刺眼 */
-.card:first-of-type {
+/* 第一张 card 不画 border-top（避免与筛选器 active 下划线重复）。
+   注：不能用 :first-of-type — WXSS 按 view 标签匹配，第一个 view 是 masthead 不是 card。
+   改用 wxml 显式加 is-first 类。 */
+.card.is-first {
   border-top: none;
 }
 

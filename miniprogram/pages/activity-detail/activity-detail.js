@@ -25,6 +25,14 @@ Page({
     if (this.data.id) this.load();
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
+  goBack() {
+    wx.navigateBack();
+  },
+
   load() {
     return api.getActivity(this.data.id).then(detail => {
       const me = this.data.user;

@@ -1,6 +1,16 @@
 <view class="page" wx:if="{{detail}}">
   <!-- Hero -->
   <view class="hero">
+    <!-- 网球场线条纹理（解决 hero 全绿丑） -->
+    <view class="court-bg">
+      <image class="court-bg-img" src="/assets/icons/court-lines.svg" />
+    </view>
+    <!-- 返回按钮（custom 导航必须自带） -->
+    <view class="topnav">
+      <view class="icon-btn" bindtap="goBack">
+        <image style="width:32rpx;height:32rpx;" src="/assets/icons/back-light.svg" />
+      </view>
+    </view>
     <view class="hero-kicker">ACTIVITY</view>
     <view class="hero-title">{{detail.title}}</view>
     <view class="hero-organiser">
@@ -98,7 +108,7 @@
         class="btn-default admin-close-btn"
         bindtap="onClose"
       >
-        <icon name="check" size="32" /> 关闭报名（归档名单）
+        <icon name="check" size="32" /> 关闭报名
       </button>
 
       <view class="admin-btns">

@@ -47,7 +47,7 @@
   <view
     wx:for="{{list}}"
     wx:key="_id"
-    class="card {{item.joined ? 'is-joined' : ''}}"
+    class="card {{index === 0 ? 'is-first' : ''}} {{item.joined ? 'is-joined' : ''}}"
     data-id="{{item._id}}"
     bindtap="goDetail"
   >
