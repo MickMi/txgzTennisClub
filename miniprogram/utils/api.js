@@ -60,6 +60,9 @@ module.exports = {
   getProfile: () => call('login', { action: 'getProfile' }),
   getProfileByOpenid: openid => call('login', { action: 'getProfile', openid }),
   getRanking: () => call('login', { action: 'getRanking' }),
+  // 成员管理（admin 限定）
+  listMembers: () => call('login', { action: 'listMembers' }),
+  setRole: (targetOpenid, role) => call('login', { action: 'setRole', targetOpenid, role }),
 
   // tournament（默认静默调用，云函数未部署时不报错）
   listTournaments: (opts = {}) => callSilent('tournament', { action: 'list', ...opts }),

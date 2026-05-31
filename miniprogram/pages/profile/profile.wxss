@@ -221,6 +221,39 @@
   font-feature-settings: 'tnum', 'lnum';
 }
 
+/* ============ Admin Entry（管理员功能入口） ============ */
+.admin-entry {
+  margin: 40rpx 48rpx 0;
+  padding: 28rpx 32rpx;
+  border: 1rpx solid var(--color-emerald-deep);
+  border-left: 4rpx solid var(--color-emerald-deep);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.admin-entry-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+.admin-entry-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.admin-entry-title {
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  color: var(--color-fg);
+}
+.admin-entry-arrow {
+  font-family: var(--font-mono);
+  font-size: 28rpx;
+  color: var(--color-emerald-deep);
+}
+
 /* ============ Recent Block ============ */
 .recent-block {
   margin: 40rpx 48rpx 0;

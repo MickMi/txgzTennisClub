@@ -190,6 +190,11 @@ Page({
     wx.switchTab({ url: '/pages/index/index' });
   },
 
+  // 跳转成员管理（admin only，wxml 已用 user.role === 'admin' 包裹）
+  goMemberManagement() {
+    wx.navigateTo({ url: '/pages/member-management/member-management' });
+  },
+
   // 图表 Tab 切换
   onChartTabChange(e) {
     this.setData({ chartTab: parseInt(e.currentTarget.dataset.tab) });

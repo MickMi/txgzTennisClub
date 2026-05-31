@@ -100,6 +100,15 @@ module.exports = {
     </view>
   </view>
 
+  <!-- ADMIN-ONLY: 成员管理入口 -->
+  <view wx:if="{{user.role === 'admin'}}" class="admin-entry" bindtap="goMemberManagement">
+    <view class="admin-entry-left">
+      <text class="admin-entry-eyebrow">ADMIN</text>
+      <text class="admin-entry-title">成员管理</text>
+    </view>
+    <text class="admin-entry-arrow">→</text>
+  </view>
+
   <!-- 5. Recent Block -->
   <view class="recent-block">
     <view class="recent-eyebrow">

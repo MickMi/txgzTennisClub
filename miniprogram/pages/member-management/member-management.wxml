@@ -1,0 +1,117 @@
+<wxs module="fmt">
+module.exports = {
+  firstChar: function(name) {
+    return name ? name.charAt(0) : '?';
+  }
+};
+</wxs>
+
+<view class="container">
+  <!-- Top nav -->
+  <view class="topnav">
+    <view class="icon-btn" bindtap="goBack">
+      <image style="width:32rpx;height:32rpx;" src="/assets/icons/back.svg" />
+    </view>
+    <view class="topnav-title">成员管理</view>
+    <view class="topnav-spacer"></view>
+  </view>
+
+  <!-- Hero / 概览 -->
+  <view class="overview">
+    <view class="overview-eyebrow">CLUB MEMBERS</view>
+    <view class="overview-stats">
+      <view class="stat-cell">
+        <text class="stat-num">{{total}}</text>
+        <text class="stat-label">总成员</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-cell">
+        <text class="stat-num accent">{{adminCount}}</text>
+        <text class="stat-label">管理员</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Filter -->
+  <view class="filter-bar">
+    <view
+      class="filter-tab {{filter === 'all' ? 'is-active' : ''}}"
+      data-filter="all"
+      bindtap="onFilterChange"
+    >全部</view>
+    <view
+      class="filter-tab {{filter === 'admin' ? 'is-active' : ''}}"
+      data-filter="admin"
+      bindtap="onFilterChange"
+    >管理员</view>
+    <view
+      class="filter-tab {{filter === 'member' ? 'is-active' : ''}}"
+      data-filter="member"
+      bindtap="onFilterChange"
+    >普通会员</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="muted center">加载中...</view>
+
+  <view wx:if="{{!loading && filteredList.length === 0}}" class="muted center" style="padding:80rpx 0;">
+    暂无成员
+  </view>
+
+  <!-- 成员列表 -->
+  <view
+    wx:for="{{filteredList}}"
+    wx:key="openid"
+    class="member-row"
+  >
+    <!-- 头像 + 信息（点击跳详情） -->
+    <view class="member-info"
+          data-openid="{{item.openid}}"
+          data-name="{{item.wecomName}}"
+          bindtap="goUserDetail">
+      <view class="avatar {{item.gender === 'female' ? 'avatar--f' : ''}}">{{fmt.firstChar(item.wecomName)}}</view>
+      <view class="who">
+        <view class="name-row">
+          <text class="name">{{item.wecomName}}</text>
+          <text wx:if="{{item.openid === myOpenid}}" class="me-tag">我</text>
+        </view>
+        <view class="meta">
+          <text wx:if="{{item.role === 'admin'}}" class="role-pill role-pill--admin">ADMIN</text>
+          <text wx:else class="role-pill role-pill--member">MEMBER</text>
+          <text wx:if="{{item.rating}}" class="ntrp">NTRP {{item.rating}}</text>
+          <text class="dot">·</text>
+          <text class="pts">{{item.totalPoints || 0}} 分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="member-actions">
+      <view
+        wx:if="{{item.role === 'member' && item.openid !== myOpenid}}"
+        class="role-btn role-btn--promote"
+        data-openid="{{item.openid}}"
+        data-name="{{item.wecomName}}"
+        bindtap="onPromote"
+      >提升管理员</view>
+      <view
+        wx:elif="{{item.role === 'admin' && item.openid !== myOpenid && adminCount > 1}}"
+        class="role-btn role-btn--demote"
+        data-openid="{{item.openid}}"
+        data-name="{{item.wecomName}}"
+        bindtap="onDemote"
+      >降为会员</view>
+      <view
+        wx:elif="{{item.openid === myOpenid && item.role === 'admin'}}"
+        class="role-btn role-btn--locked"
+      >当前账号</view>
+      <view
+        wx:elif="{{item.role === 'admin' && adminCount === 1}}"
+        class="role-btn role-btn--locked"
+      >仅一位管理员</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && filteredList.length > 0}}" class="hint">
+    至少需保留一位管理员；不能降级自己
+  </view>
+</view>

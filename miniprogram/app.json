@@ -9,7 +9,8 @@
     "pages/tournament-create/tournament-create",
     "pages/tournament-detail/tournament-detail",
     "pages/ranking/ranking",
-    "pages/user-detail/user-detail"
+    "pages/user-detail/user-detail",
+    "pages/member-management/member-management"
   ],
   "usingComponents": {
     "icon": "/components/icon/icon"

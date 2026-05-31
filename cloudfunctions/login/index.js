@@ -112,6 +112,59 @@ exports.main = async (event, context) => {
     return { code: 0, data: profile };
   }
 
+  // 列出全部成员（admin 限定，用于成员管理页）
+  if (action === 'listMembers') {
+    if (!user || user.role !== 'admin') return { code: 1, msg: '无权限' };
+    const r = await db.collection(USERS)
+      .where({ wecomName: _.neq('') })
+      .orderBy('role', 'desc')      // admin 排前面
+      .orderBy('createdAt', 'asc')   // 同角色按加入时间
+      .field({
+        openid: true, wecomName: true, gender: true, rating: true,
+        role: true, totalPoints: true, eloRating: true, createdAt: true
+      })
+      .limit(200)
+      .get();
+    return {
+      code: 0,
+      data: {
+        list: r.data || [],
+        myOpenid: OPENID,
+        adminCount: (r.data || []).filter(u => u.role === 'admin').length
+      }
+    };
+  }
+
+  // 切换某成员角色（admin 限定）
+  if (action === 'setRole') {
+    if (!user || user.role !== 'admin') return { code: 1, msg: '无权限' };
+    const { targetOpenid, role } = event;
+    if (!targetOpenid) return { code: 1, msg: '缺少目标 openid' };
+    if (role !== 'admin' && role !== 'member') return { code: 1, msg: '角色无效' };
+
+    // 防止自降级（避免无 admin 死锁）
+    if (targetOpenid === OPENID && role !== 'admin') {
+      return { code: 1, msg: '不能降级自己（请先把另一位提升为 admin 再降自己）' };
+    }
+
+    const target = await getUserByOpenid(targetOpenid);
+    if (!target) return { code: 1, msg: '目标用户不存在' };
+    if (target.role === role) return { code: 1, msg: '角色未变更' };
+
+    // 防止把"最后一个 admin"降级（即便不是自己，也要保证至少一个 admin）
+    if (target.role === 'admin' && role === 'member') {
+      const r = await db.collection(USERS).where({ role: 'admin' }).count();
+      if ((r.total || 0) <= 1) {
+        return { code: 1, msg: '至少要保留一位管理员' };
+      }
+    }
+
+    await db.collection(USERS).doc(target._id).update({
+      data: { role, updatedAt: Date.now() }
+    });
+    return { code: 0, data: { openid: targetOpenid, role } };
+  }
+
   return { code: 0, data: user };
 };
 

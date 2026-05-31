@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "成员管理",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "icon": "/components/icon/icon"
+  }
+}

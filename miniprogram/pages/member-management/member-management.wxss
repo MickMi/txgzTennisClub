@@ -1,0 +1,247 @@
+/* member-management 页样式 — emerald-heritage 风格 */
+.container {
+  background: var(--color-bg);
+  min-height: 100vh;
+  padding-bottom: 80rpx;
+}
+
+/* Top nav */
+.topnav {
+  display: flex;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + 16rpx) 32rpx 16rpx;
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topnav .icon-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: grid;
+  place-items: center;
+  border: 1rpx solid var(--color-border);
+}
+.topnav-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  color: var(--color-fg);
+  letter-spacing: 0.02em;
+}
+.topnav-spacer { width: 64rpx; }
+
+/* 概览 */
+.overview {
+  padding: 36rpx 48rpx 28rpx;
+}
+.overview-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.24em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  margin-bottom: 20rpx;
+}
+.overview-stats {
+  display: flex;
+  align-items: stretch;
+  border-top: 2rpx solid var(--color-fg);
+  border-bottom: 1rpx solid var(--color-border);
+}
+.stat-cell {
+  flex: 1;
+  padding: 24rpx 0;
+  display: flex;
+  flex-direction: column;
+}
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 52rpx;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-fg);
+  font-feature-settings: 'tnum', 'lnum';
+}
+.stat-num.accent {
+  color: var(--color-accent);
+}
+.stat-label {
+  margin-top: 12rpx;
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.stat-divider {
+  width: 1rpx;
+  background: var(--color-border);
+}
+
+/* Filter bar — 三段切换 */
+.filter-bar {
+  display: flex;
+  margin: 0 32rpx 8rpx;
+}
+.filter-tab {
+  flex: 1;
+  padding: 20rpx 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 22rpx;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  border-bottom: 3rpx solid transparent;
+}
+.filter-tab.is-active {
+  color: var(--color-fg);
+  border-bottom-color: var(--color-emerald-deep);
+}
+
+/* 成员行 */
+.member-row {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 48rpx;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.member-row:first-of-type {
+  border-top: none;
+}
+
+.member-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  min-width: 0;
+}
+
+.avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--color-fg);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  color: var(--color-fg);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+.avatar.avatar--f {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.who {
+  flex: 1;
+  min-width: 0;
+}
+.name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+.name {
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  color: var(--color-fg);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.me-tag {
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.18em;
+  color: var(--color-accent);
+  border: 1rpx solid var(--color-accent);
+  padding: 2rpx 10rpx;
+}
+.meta {
+  margin-top: 8rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  color: var(--color-muted);
+  letter-spacing: 0.06em;
+}
+.role-pill {
+  padding: 2rpx 10rpx;
+  font-size: 18rpx;
+  letter-spacing: 0.2em;
+}
+.role-pill--admin {
+  background: var(--color-emerald-deep);
+  color: var(--color-bg);
+  border: 1rpx solid var(--color-emerald-deep);
+}
+.role-pill--member {
+  color: var(--color-muted);
+  border: 1rpx solid var(--color-border);
+}
+.ntrp {
+  color: var(--color-fg);
+}
+.dot {
+  color: var(--color-border);
+}
+.pts {
+  color: var(--color-fg);
+  font-feature-settings: 'tnum', 'lnum';
+}
+
+/* 操作按钮 */
+.member-actions {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+.role-btn {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.14em;
+  padding: 10rpx 18rpx;
+  border: 1rpx solid var(--color-border);
+  text-align: center;
+  white-space: nowrap;
+}
+.role-btn--promote {
+  color: var(--color-emerald-deep);
+  border-color: var(--color-emerald-deep);
+}
+.role-btn--demote {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.role-btn--locked {
+  color: var(--color-muted);
+  border-color: var(--color-border);
+  border-style: dashed;
+}
+
+.hint {
+  margin: 32rpx 48rpx 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.18em;
+  color: var(--color-muted);
+}
+
+.muted {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.18em;
+}
+.center {
+  text-align: center;
+  padding: 60rpx 0;
+}
