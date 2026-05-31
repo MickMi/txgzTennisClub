@@ -37,26 +37,25 @@
   height: 100%;
 }
 
-/* Top navigation */
+/* Top navigation — 与全局 .page-back / activity-detail 保持一致：
+   safe-area-inset-top + 16rpx，圆形 64×64，1rpx 描边 */
 .topnav {
   position: absolute;
-  top: 94rpx;
+  top: calc(env(safe-area-inset-top) + 16rpx);
   left: 0;
   right: 0;
   z-index: 30;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24rpx 32rpx;
+  padding: 0 32rpx;
 }
 
 .topnav .icon-btn {
-  width: 72rpx;
-  height: 72rpx;
-  border: 1rpx solid rgba(245,239,224,0.22);
-  background: rgba(20,28,22,0.32);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  width: 64rpx;
+  height: 64rpx;
+  border: 1rpx solid rgba(248, 244, 232, 0.4);
+  background: rgba(36, 58, 48, 0.4);
   border-radius: 50%;
   display: flex;
   align-items: center;

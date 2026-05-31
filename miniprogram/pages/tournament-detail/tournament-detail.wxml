@@ -11,9 +11,10 @@
         <image style="width:32rpx;height:32rpx;" src="/assets/icons/back-light.svg" />
       </view>
       <view class="actions">
-        <button class="icon-btn" open-type="share">
+        <!-- TODO: 海报生成功能（占位入口，先用 toast 提示）-->
+        <view class="icon-btn" bindtap="goPoster">
           <image style="width:32rpx;height:32rpx;" src="/assets/icons/share-light.svg" />
-        </button>
+        </view>
       </view>
     </view>
     <!-- Masthead -->

@@ -33,6 +33,51 @@ emerald-heritage 风格：米白纸 + 深翠墨绿 + 单色黄铜金。**禁用 
 - **Token 优先**：颜色用 OKLCH 变量（`--bg / --surface / --fg / --muted / --border / --accent / --emerald-deep`），不要硬编码 hex。
 - **三个实体不要混用同一套模板**：Activity（活动，无胜负）、Match（单场对阵，有比分积分）、Tournament（赛事，含小组+淘汰）。视觉对应见 SPEC §2.3。
 
+## 组件规范（必读，禁止违反）
+
+> 全局已设置 `navigationStyle: custom`，每个非 tabBar 子页都必须自己画返回按钮。**所有返回按钮统一规格如下，不要再发明第二种**。
+
+### 返回按钮 — 统一规格
+
+| 维度 | 标准 | 备注 |
+|---|---|---|
+| 定位 | `top: calc(env(safe-area-inset-top) + 16rpx)` | **永远走 safe-area，禁止硬编码 `94rpx` 之类的值** |
+| 尺寸 | `64rpx × 64rpx` | 圆形（`border-radius: 50%`） |
+| 描边 | `1rpx solid` | 浅底页用 `var(--color-border)`；深色 hero 上用 `rgba(248, 244, 232, 0.4)` |
+| 背景 | 浅底页 `var(--color-bg)`；深色 hero 上 `rgba(36, 58, 48, 0.4)` | 不用 `backdrop-filter`（性能 + 不一致风险） |
+| 图标 | `32rpx × 32rpx`，`back.svg` 或 `back-light.svg` | hero 上用 light 版本 |
+| z-index | `5`（hero 内） / `50`（浅底 absolute） | 高于卡片，低于 toast |
+
+### 用法二选一
+
+**A. 浅底页（activity-create / tournament-create / ranking 等）**：用全局 `.page-back` 类
+```wxml
+<view class="page-back" bindtap="goBack">
+  <image src="/assets/icons/back.svg" />
+</view>
+```
+
+**B. 深色 hero 页（activity-detail / tournament-detail）**：用页内 `.hero .topnav` 或 `.topnav`
+```wxml
+<view class="topnav">
+  <view class="icon-btn" bindtap="goBack">
+    <image src="/assets/icons/back-light.svg" />
+  </view>
+  <!-- 右侧操作区可选（如海报按钮） -->
+</view>
+```
+
+### Topnav 布局规则
+
+如果 topnav 同时承载左侧返回 + 右侧操作（分享/海报/编辑），用 `flex + justify-content: space-between`，**禁止把右侧按钮做得比左侧大**（必须同样 64×64）。
+
+### 新增子页面 checklist
+
+- [ ] `goBack()` 方法在 js 里
+- [ ] wxml 顶部按 A 或 B 写返回按钮
+- [ ] 不要在页面 wxss 重新定义 `.page-back`，用全局的
+- [ ] 子页面除非极特殊情况，**禁止**使用 `wx.switchTab` 替代 `wx.navigateBack`
+
 ## 迁移工作流（按顺序执行，单一阶段单一变更）
 
 参考 `DESIGN_SPEC.md §9`：

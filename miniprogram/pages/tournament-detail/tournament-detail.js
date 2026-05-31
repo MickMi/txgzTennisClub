@@ -41,6 +41,11 @@ Page({
     wx.navigateBack();
   },
 
+  // TODO: 生成赛事战报海报（图片）。目前只是占位入口
+  goPoster() {
+    wx.showToast({ title: '海报功能 即将上线', icon: 'none' });
+  },
+
   load() {
     return api.getTournament(this.data.id).then(t => {
       const me = this.data.user;
