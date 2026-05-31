@@ -34,6 +34,20 @@ Page({
     wx.navigateBack();
   },
 
+  // 跳转赛事详情（用 tournamentId 而非合并 _id）
+  goMatchDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/tournament-detail/tournament-detail?id=${id}` });
+  },
+
+  // 跳转活动详情
+  goActivityDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/activity-detail/activity-detail?id=${id}` });
+  },
+
   loadProfile() {
     api
       .getProfileByOpenid(this.data.openid)

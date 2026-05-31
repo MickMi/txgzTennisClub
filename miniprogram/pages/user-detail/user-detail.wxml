@@ -112,6 +112,8 @@ module.exports = {
           wx:for="{{matchHistory}}"
           wx:key="_id"
           class="match-row {{item.resultClass === 'loss' ? 'is-loss' : ''}} {{item.resultClass === 'pending' ? 'is-pending' : ''}}"
+          data-id="{{item.tournamentId}}"
+          bindtap="goMatchDetail"
         >
           <view class="when">
             <text class="d">{{fmt.day(item.matchDate)}}</text>
@@ -138,6 +140,8 @@ module.exports = {
         wx:for="{{activities}}"
         wx:key="_id"
         class="activity-row"
+        data-id="{{item._id}}"
+        bindtap="goActivityDetail"
       >
         <view class="activity-info">
           <view class="title">{{item.title}}</view>

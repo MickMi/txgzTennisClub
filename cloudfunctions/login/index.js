@@ -158,6 +158,7 @@ async function buildProfile(openid, user) {
           else losses++;
           matchHistory.push({
             _id: t._id + '_' + m.id,
+            tournamentId: t._id,
             title: t.title + ' · ' + g.name + '组',
             type: t.type,
             matchDate: t.matchDate,
@@ -185,6 +186,7 @@ async function buildProfile(openid, user) {
             else losses++;
             matchHistory.push({
               _id: t._id + '_' + m.id,
+              tournamentId: t._id,
               title: t.title + ' · ' + round.name,
               type: t.type,
               matchDate: t.matchDate,

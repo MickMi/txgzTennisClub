@@ -113,7 +113,7 @@ module.exports = {
         wx:for="{{matchHistory}}"
         wx:key="_id"
         class="match-row {{item.resultClass === 'loss' ? 'is-loss' : ''}} {{item.resultClass === 'pending' ? 'is-pending' : ''}}"
-        data-id="{{item._id}}"
+        data-id="{{item.tournamentId}}"
         bindtap="goMatchDetail"
       >
         <view class="when">
