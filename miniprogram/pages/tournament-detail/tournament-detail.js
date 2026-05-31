@@ -40,11 +40,50 @@ Page({
   load() {
     return api.getTournament(this.data.id).then(t => {
       const me = this.data.user;
+      const myOpenid = me && me.openid;
       const isOwner = !!(me && (t.creator === me.openid || me.role === 'admin'));
       const signed = !!(me && (t.players || []).some(p => p.openid === me.openid));
+
+      // 给每场 match 加 canRevert 标记（前端展示控制；后端仍会再校验）
+      // 规则：match.winner 存在 + (我是参赛方 || 我是 creator || 我是 admin)
+      const tagMatch = (m) => {
+        if (!m || !m.winner) return m;
+        const inMatch = !!(myOpenid && m.playerA && m.playerB && (
+          m.playerA.openid === myOpenid || m.playerB.openid === myOpenid
+        ));
+        return { ...m, canRevert: inMatch || isOwner };
+      };
+      const groups = (t.groups || []).map(g => ({
+        ...g,
+        matches: (g.matches || []).map(tagMatch)
+      }));
+      const knockout = t.knockout
+        ? {
+            ...t.knockout,
+            rounds: (t.knockout.rounds || []).map((r, ri) => ({
+              ...r,
+              matches: (r.matches || []).map((m, mi) => {
+                const tagged = tagMatch(m);
+                if (!tagged.canRevert) return tagged;
+                // 末梢限制：如果下一轮的对应位置已录分，前端隐藏撤回（提示后端会拦）
+                const nextRound = t.knockout.rounds[ri + 1];
+                if (nextRound) {
+                  const nextMatch = nextRound.matches[Math.floor(mi / 2)];
+                  if (nextMatch && nextMatch.winner) {
+                    return { ...tagged, canRevert: false, revertBlockedByNext: true };
+                  }
+                }
+                return tagged;
+              })
+            }))
+          }
+        : null;
+
       this.setData({
         t: {
           ...t,
+          groups,
+          knockout,
           dateText: formatDate(t.matchDate),
           levelText: LEVEL_MAP[t.level] || '周赛',
           statusText: STATUS_MAP[t.status] || t.status
@@ -232,6 +271,55 @@ Page({
           api.deleteTournament(this.data.id).then(() => {
             wx.showToast({ title: '已删除', icon: 'success' });
             setTimeout(() => wx.navigateBack(), 600);
+          });
+        }
+      }
+    });
+  },
+
+  // 撤回小组赛比分
+  onRevertGroup(e) {
+    const { gi, mid, score } = e.currentTarget.dataset;
+    wx.showModal({
+      title: '撤回比分',
+      content: `确认撤回这场比分（${score}）？双方本场获得的 ELO 和积分将被冲销，可重新录入。`,
+      confirmColor: '#b87a36',
+      success: res => {
+        if (res.confirm) {
+          api.revertScore(this.data.id, {
+            stage: 'group',
+            groupIndex: gi,
+            matchId: mid
+          }).then(() => {
+            wx.showToast({ title: '已撤回', icon: 'success' });
+            this.load();
+          });
+        }
+      }
+    });
+  },
+
+  // 撤回淘汰赛比分
+  onRevertKO(e) {
+    const { ri, mid, score } = e.currentTarget.dataset;
+    const t = this.data.t;
+    const willResetFinish = t && t.status === 'finished';
+    const extraWarn = willResetFinish
+      ? '\n注意：本赛事已结束，撤回决赛会同时清空名次奖（冠/亚/四强等），可补录后重发。'
+      : '';
+    wx.showModal({
+      title: '撤回比分',
+      content: `确认撤回这场比分（${score}）？双方本场获得的 ELO 和积分将被冲销，下一轮的对位将自动清空。${extraWarn}`,
+      confirmColor: '#b87a36',
+      success: res => {
+        if (res.confirm) {
+          api.revertScore(this.data.id, {
+            stage: 'knockout',
+            roundIndex: ri,
+            matchId: mid
+          }).then(() => {
+            wx.showToast({ title: '已撤回', icon: 'success' });
+            this.load();
           });
         }
       }

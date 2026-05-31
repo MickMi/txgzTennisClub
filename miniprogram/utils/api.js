@@ -73,5 +73,8 @@ module.exports = {
     call('tournament', { action: 'scoreGroup', id, groupIndex, matchId, scoreA, scoreB }),
   startKnockout: id => call('tournament', { action: 'startKnockout', id }),
   scoreKnockout: (id, roundIndex, matchId, scoreA, scoreB) =>
-    call('tournament', { action: 'scoreKnockout', id, roundIndex, matchId, scoreA, scoreB })
+    call('tournament', { action: 'scoreKnockout', id, roundIndex, matchId, scoreA, scoreB }),
+  // 撤回比分（参赛任一 / creator / admin 可发起）
+  revertScore: (id, payload) =>
+    call('tournament', { action: 'revertScore', id, ...payload })
 };

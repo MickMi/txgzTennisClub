@@ -507,6 +507,20 @@
   text-transform: uppercase;
 }
 
+/* 撤回比分按钮：低调款 — 灰边 hairline + accent 文字，避免和"录入比分"主操作混淆 */
+.match-revert {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.18em;
+  color: var(--color-muted);
+  border: 1rpx solid var(--color-border);
+  padding: 6rpx 16rpx;
+  margin-top: 6rpx;
+  margin-left: 16rpx;
+  text-transform: uppercase;
+}
+
 /* ========== Score Edit ========== */
 .score-edit {
   margin-top: 16rpx;

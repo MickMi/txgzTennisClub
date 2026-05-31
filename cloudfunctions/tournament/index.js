@@ -77,6 +77,48 @@ function buildUserSettlePayload(user, tournamentId, tournamentTitle, tournamentD
   };
 }
 
+// 反向冲销 user 文档（撤回比分时使用）：
+// - eloRating 减去 eloDelta
+// - tournamentEarnings 中该赛事的 earned 减去 pts，归零则移除条目
+// - totalPoints 重算最佳10场
+// - eloHistory 末尾删除一条匹配 tournamentId 的记录（曲线干净）
+function buildUserRevertPayload(user, tournamentId, eloDelta, ptsToRevert) {
+  const oldElo = user.eloRating || 1500;
+  const newElo = oldElo - eloDelta;
+
+  let earnings = (user.tournamentEarnings || []).slice();
+  const idx = earnings.findIndex(e => e.tournamentId === tournamentId);
+  if (idx >= 0) {
+    const newEarned = (earnings[idx].earned || 0) - ptsToRevert;
+    if (newEarned <= 0) {
+      earnings.splice(idx, 1); // 该赛事所有得分都撤光了
+    } else {
+      earnings[idx] = { ...earnings[idx], earned: newEarned };
+    }
+  }
+  const totalPoints = earnings.slice()
+    .sort((a, b) => b.earned - a.earned)
+    .slice(0, 10)
+    .reduce((s, e) => s + e.earned, 0);
+
+  // eloHistory 末尾删除一条该赛事记录（最近的那条；曲线还原）
+  const history = (user.eloHistory || []).slice();
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].tournamentId === tournamentId) {
+      history.splice(i, 1);
+      break;
+    }
+  }
+
+  return {
+    eloRating: newElo,
+    eloHistory: history,
+    tournamentEarnings: earnings,
+    totalPoints,
+    updatedAt: Date.now()
+  };
+}
+
 // Fisher-Yates 随机洗牌
 function shuffle(arr) {
   const a = arr.slice();
@@ -620,7 +662,6 @@ exports.main = async event => {
         match.scoreB = sb;
         match.winner = winner;
         match.scoreSummary = scoreSummary;
-        group.standings = calcStandings(group);
 
         // 事务内重新读双方 user（串行：微信云开发事务对 Promise.all 支持不稳，
         // 必须按顺序 await）
@@ -635,6 +676,16 @@ exports.main = async event => {
         const finalWinnerPts = Math.round(winnerPts * factor);
         const finalLoserPts = Math.round(loserPts * factor);
         const { winnerDelta, loserDelta } = calcEloChange(wElo, lElo);
+
+        // 写入本场积分发放明细（用于日后撤回时反向冲销）
+        match.pointsAwarded = {
+          winnerOpenid, loserOpenid,
+          winnerPts: finalWinnerPts, loserPts: finalLoserPts,
+          winnerEloDelta: winnerDelta, loserEloDelta: loserDelta,
+          awardedAt: Date.now()
+        };
+        // standings 必须在 match 完整赋值后再算
+        group.standings = calcStandings(group);
 
         const tDate = t.matchDate || t.createdAt;
 
@@ -834,6 +885,14 @@ exports.main = async event => {
         const finalLoserPts = Math.round(loserPts * factor);
         const { winnerDelta, loserDelta } = calcEloChange(wElo, lElo);
 
+        // 写入本场积分发放明细（撤回时反向冲销凭证）
+        match.pointsAwarded = {
+          winnerOpenid, loserOpenid,
+          winnerPts: finalWinnerPts, loserPts: finalLoserPts,
+          winnerEloDelta: winnerDelta, loserEloDelta: loserDelta,
+          awardedAt: Date.now()
+        };
+
         const tDate = t.matchDate || t.createdAt;
         const newStatus = finished ? 'finished' : 'knockout';
 
@@ -880,6 +939,205 @@ exports.main = async event => {
         placementAwards
       }
     };
+  }
+
+  // 撤回比分（事务化反向冲销 ELO + 积分；可重新录入）
+  // 权限：参赛双方任一 / creator / admin（与录分一致）
+  // 限制：
+  //   - 老数据无 match.pointsAwarded 时拒绝（明细缺失无法精确撤回）
+  //   - 淘汰赛末梢限制：下一轮自己出现的格子若已录分，必须先撤下一轮
+  //   - 已 finished 赛事撤回决赛/末轮：同时反向 placementAwards + status 回 knockout
+  if (action === 'revertScore') {
+    const me = await getUser(OPENID);
+    const { stage, groupIndex, roundIndex, matchId } = event;
+    if (!stage || !matchId) return { code: 1, msg: '参数不完整' };
+    if (stage !== 'group' && stage !== 'knockout') return { code: 1, msg: '参数错误（stage）' };
+
+    // 预读：定位比赛 + 校验权限 + 末梢校验
+    const previewRes = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
+    if (!previewRes || !previewRes.data) return { code: 1, msg: '赛事不存在' };
+    const tPreview = previewRes.data;
+
+    let matchPreview;
+    if (stage === 'group') {
+      if (tPreview.status !== 'group') {
+        return { code: 1, msg: '小组赛已结束（已进入淘汰赛），无法撤回' };
+      }
+      if (groupIndex === undefined) return { code: 1, msg: '缺少 groupIndex' };
+      const gp = tPreview.groups && tPreview.groups[groupIndex];
+      if (!gp) return { code: 1, msg: '分组不存在' };
+      matchPreview = (gp.matches || []).find(m => m.id === matchId);
+    } else {
+      if (tPreview.status !== 'knockout' && tPreview.status !== 'finished') {
+        return { code: 1, msg: '当前不在淘汰赛阶段' };
+      }
+      if (roundIndex === undefined) return { code: 1, msg: '缺少 roundIndex' };
+      const rd = tPreview.knockout && tPreview.knockout.rounds && tPreview.knockout.rounds[roundIndex];
+      if (!rd) return { code: 1, msg: '轮次不存在' };
+      matchPreview = (rd.matches || []).find(m => m.id === matchId);
+
+      // 末梢校验：下一轮的对应位置如果已录分，必须先撤下一轮
+      if (matchPreview && roundIndex + 1 < tPreview.knockout.rounds.length) {
+        const matchIdxInRound = rd.matches.indexOf(matchPreview);
+        const nextMatchIdx = Math.floor(matchIdxInRound / 2);
+        const nextMatch = tPreview.knockout.rounds[roundIndex + 1].matches[nextMatchIdx];
+        if (nextMatch && nextMatch.winner) {
+          return { code: 1, msg: '请先撤回下一轮的比分' };
+        }
+      }
+    }
+
+    if (!matchPreview) return { code: 1, msg: '比赛不存在' };
+    if (!matchPreview.winner) return { code: 1, msg: '该场尚未录分，无需撤回' };
+    if (!matchPreview.pointsAwarded) {
+      return { code: 1, msg: '历史数据缺少积分明细，无法自动撤回（请联系管理员）' };
+    }
+
+    // 权限：参赛双方 / creator / admin
+    const inMatch = matchPreview.playerA && matchPreview.playerB && (
+      matchPreview.playerA.openid === OPENID || matchPreview.playerB.openid === OPENID
+    );
+    const isCreator = tPreview.creator === OPENID;
+    const isAdmin = me && me.role === 'admin';
+    if (!inMatch && !isCreator && !isAdmin) return { code: 1, msg: '无权限撤回' };
+
+    const pa = matchPreview.pointsAwarded;
+    const [winnerUserPre, loserUserPre] = await Promise.all([
+      getUser(pa.winnerOpenid),
+      getUser(pa.loserOpenid)
+    ]);
+    if (!winnerUserPre || !loserUserPre) return { code: 1, msg: '用户数据缺失' };
+
+    // 若 finished 状态需要清 placementAwards 时，预读所有名次奖用户
+    let placementUsers = null;
+    const willResetFinish = stage === 'knockout' && tPreview.status === 'finished';
+    if (willResetFinish && Array.isArray(tPreview.placementAwards)) {
+      const awardOpenids = [...new Set(tPreview.placementAwards.map(a => a.openid))];
+      placementUsers = {};
+      for (const oid of awardOpenids) {
+        const u = await getUser(oid);
+        if (u) placementUsers[oid] = u;
+      }
+    }
+
+    try {
+      const result = await db.runTransaction(async transaction => {
+        const tRes = await transaction.collection(TOURNAMENTS).doc(event.id).get();
+        const t = tRes.data;
+
+        // 重新定位 match（事务内最新数据）
+        let match;
+        let group;
+        if (stage === 'group') {
+          if (t.status !== 'group') throw new Error('小组赛已结束，无法撤回');
+          group = t.groups[groupIndex];
+          match = group.matches.find(m => m.id === matchId);
+        } else {
+          if (t.status !== 'knockout' && t.status !== 'finished') {
+            throw new Error('当前不在淘汰赛阶段');
+          }
+          const round = t.knockout.rounds[roundIndex];
+          match = round.matches.find(m => m.id === matchId);
+          // 二次确认末梢
+          if (roundIndex + 1 < t.knockout.rounds.length) {
+            const matchIdxInRound = round.matches.indexOf(match);
+            const nextMatch = t.knockout.rounds[roundIndex + 1].matches[Math.floor(matchIdxInRound / 2)];
+            if (nextMatch && nextMatch.winner) throw new Error('请先撤回下一轮的比分');
+          }
+        }
+        if (!match || !match.winner || !match.pointsAwarded) {
+          throw new Error('比赛状态异常，无法撤回');
+        }
+
+        const pa2 = match.pointsAwarded;
+
+        // 反向冲销双方 user
+        const wRes = await transaction.collection(USERS).doc(winnerUserPre._id).get();
+        const lRes = await transaction.collection(USERS).doc(loserUserPre._id).get();
+        const wu = wRes.data;
+        const lu = lRes.data;
+        await transaction.collection(USERS).doc(wu._id).update({
+          data: buildUserRevertPayload(wu, event.id, pa2.winnerEloDelta, pa2.winnerPts)
+        });
+        await transaction.collection(USERS).doc(lu._id).update({
+          data: buildUserRevertPayload(lu, event.id, pa2.loserEloDelta, pa2.loserPts)
+        });
+
+        // 重置 match 字段
+        match.scoreA = null;
+        match.scoreB = null;
+        match.winner = null;
+        match.scoreSummary = '';
+        match.pointsAwarded = null;
+
+        // 小组赛：重算 standings
+        if (stage === 'group') {
+          group.standings = calcStandings(group);
+        }
+
+        // 淘汰赛：清掉下一轮自己晋级的位置
+        if (stage === 'knockout' && roundIndex + 1 < t.knockout.rounds.length) {
+          const round = t.knockout.rounds[roundIndex];
+          const matchIdxInRound = round.matches.indexOf(match);
+          const nextMatch = t.knockout.rounds[roundIndex + 1].matches[Math.floor(matchIdxInRound / 2)];
+          if (nextMatch) {
+            if (matchIdxInRound % 2 === 0) nextMatch.playerA = null;
+            else nextMatch.playerB = null;
+          }
+        }
+
+        // 决赛/已完赛场景：反向 placementAwards + status 回 knockout
+        let newStatus = t.status;
+        let newPlacementAwards = t.placementAwards;
+        if (stage === 'knockout' && t.status === 'finished') {
+          // 反向所有名次奖到对应 user
+          if (Array.isArray(t.placementAwards) && placementUsers) {
+            // 按 openid 聚合：同一 user 多笔奖（如冠军 + 不可能存在）这里防御性
+            const aggregated = {}; // openid -> totalPts
+            for (const a of t.placementAwards) {
+              aggregated[a.openid] = (aggregated[a.openid] || 0) + (a.pts || 0);
+            }
+            for (const [oid, totalPts] of Object.entries(aggregated)) {
+              const u = placementUsers[oid];
+              if (!u) continue;
+              const uRes = await transaction.collection(USERS).doc(u._id).get();
+              const uu = uRes.data;
+              await transaction.collection(USERS).doc(uu._id).update({
+                // ELO 不变，只反向 earnings + 重算 totalPoints
+                data: buildUserRevertPayload(uu, event.id, 0, totalPts)
+              });
+            }
+          }
+          newStatus = 'knockout';
+          newPlacementAwards = null;
+        }
+
+        // 写回 tournament
+        const updateData = {
+          updatedAt: Date.now(),
+          status: newStatus
+        };
+        if (stage === 'group') {
+          updateData.groups = t.groups;
+        } else {
+          updateData.knockout = _.set(t.knockout);
+          if (willResetFinish) updateData.placementAwards = newPlacementAwards;
+        }
+        await transaction.collection(TOURNAMENTS).doc(event.id).update({ data: updateData });
+
+        return {
+          revertedWinner: pa2.winnerOpenid,
+          revertedLoser: pa2.loserOpenid,
+          revertedWinnerPts: pa2.winnerPts,
+          revertedLoserPts: pa2.loserPts,
+          newStatus
+        };
+      });
+      return { code: 0, data: result };
+    } catch (e) {
+      console.error('[revertScore] failed:', e && e.message, e && e.stack);
+      return { code: 1, msg: (e && e.message) || '撤回失败，请重试' };
+    }
   }
 
   // 删除赛事（仅 signup 阶段允许）

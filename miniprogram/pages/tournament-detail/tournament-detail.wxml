@@ -147,7 +147,17 @@
                 <text class="match-vs">vs</text>
                 <text class="match-name {{m.winner === 'B' ? 'winner-name' : ''}}">{{m.playerB.wecomName}}</text>
               </view>
-              <view wx:if="{{m.winner}}" class="match-score">{{m.scoreSummary}}</view>
+              <block wx:if="{{m.winner}}">
+                <view class="match-score">{{m.scoreSummary}}</view>
+                <view
+                  wx:if="{{m.canRevert}}"
+                  class="match-revert"
+                  data-gi="{{gi}}"
+                  data-mid="{{m.id}}"
+                  data-score="{{m.scoreSummary}}"
+                  bindtap="onRevertGroup"
+                >撤回</view>
+              </block>
               <view wx:elif="{{editingGroup && editingGroup.groupIndex === gi && editingGroup.matchId === m.id}}" class="score-edit">
                 <view class="score-edit-simple">
                   <input class="score-input" type="number" placeholder="A" value="{{groupScoreA}}" bindinput="onGroupScoreAInput" />
@@ -186,7 +196,17 @@
                 <text class="match-vs">vs</text>
                 <text class="match-name {{m.winner === 'B' ? 'winner-name' : ''}}">{{m.playerB.wecomName || '待定'}}</text>
               </view>
-              <view wx:if="{{m.winner}}" class="match-score">{{m.scoreSummary || '轮空'}}</view>
+              <block wx:if="{{m.winner}}">
+                <view class="match-score">{{m.scoreSummary || '轮空'}}</view>
+                <view
+                  wx:if="{{m.canRevert}}"
+                  class="match-revert"
+                  data-ri="{{ri}}"
+                  data-mid="{{m.id}}"
+                  data-score="{{m.scoreSummary}}"
+                  bindtap="onRevertKO"
+                >撤回</view>
+              </block>
               <view wx:elif="{{editingKO && editingKO.roundIndex === ri && editingKO.matchId === m.id}}" class="score-edit">
                 <view class="score-edit-simple">
                   <input class="score-input" type="number" placeholder="A" value="{{koScoreA}}" bindinput="onKOScoreAInput" />
