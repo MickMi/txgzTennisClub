@@ -667,46 +667,68 @@ exports.main = async event => {
 
   // 开始淘汰赛（小组赛全部完成后）
   if (action === 'startKnockout') {
-    const me = await getUser(OPENID);
-    const res = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
-    if (!res || !res.data) return { code: 1, msg: '赛事不存在' };
-    const t = res.data;
-    if (t.creator !== OPENID && (!me || me.role !== 'admin')) {
-      return { code: 1, msg: '无权限操作' };
-    }
-    if (t.status !== 'group') return { code: 1, msg: '当前不是小组赛阶段' };
-
-    // 检查小组赛是否全部完成
-    for (const g of t.groups) {
-      const unfinished = g.matches.filter(m => !m.winner);
-      if (unfinished.length > 0) {
-        return { code: 1, msg: `${g.name} 组还有 ${unfinished.length} 场未完成` };
+    try {
+      const me = await getUser(OPENID);
+      const res = await db.collection(TOURNAMENTS).doc(event.id).get().catch(() => null);
+      if (!res || !res.data) return { code: 1, msg: '赛事不存在' };
+      const t = res.data;
+      if (t.creator !== OPENID && (!me || me.role !== 'admin')) {
+        return { code: 1, msg: '无权限操作' };
       }
-    }
+      if (t.status !== 'group') return { code: 1, msg: '当前不是小组赛阶段' };
 
-    // 取每组前 advanceCount 名
-    const advanced = [];
-    for (const g of t.groups) {
-      const topN = g.standings.slice(0, t.config.advanceCount);
-      topN.forEach((p, rank) => {
-        advanced.push({ ...p, groupName: g.name, groupRank: rank + 1 });
+      // 防御：mock 数据或异常状态可能缺字段
+      if (!Array.isArray(t.groups) || t.groups.length === 0) {
+        return { code: 1, msg: '赛事尚未抽签分组' };
+      }
+      const advanceCount = (t.config && t.config.advanceCount) || 2;
+
+      // 检查小组赛是否全部完成
+      for (const g of t.groups) {
+        if (!Array.isArray(g.matches)) {
+          return { code: 1, msg: `${g.name || '?'} 组数据异常（缺 matches）` };
+        }
+        const unfinished = g.matches.filter(m => !m.winner);
+        if (unfinished.length > 0) {
+          return { code: 1, msg: `${g.name} 组还有 ${unfinished.length} 场未完成` };
+        }
+      }
+
+      // 取每组前 advanceCount 名（standings 缺失时即时补算）
+      const advanced = [];
+      for (const g of t.groups) {
+        const standings = Array.isArray(g.standings) && g.standings.length > 0
+          ? g.standings
+          : calcStandings(g);
+        const topN = standings.slice(0, advanceCount);
+        topN.forEach((p, rank) => {
+          advanced.push({ ...p, groupName: g.name, groupRank: rank + 1 });
+        });
+      }
+
+      if (advanced.length < 2) {
+        return { code: 1, msg: '晋级人数不足，无法生成淘汰赛' };
+      }
+
+      // 按小组排名交叉排列（A组第1, B组第1, ... A组第2, B组第2, ...）
+      const sorted = [];
+      for (let rank = 0; rank < advanceCount; rank++) {
+        const thisRank = advanced.filter(p => p.groupRank === rank + 1);
+        thisRank.sort((a, b) =>
+          b.wins - a.wins || (b.setsWon - b.setsLost) - (a.setsWon - a.setsLost)
+        );
+        sorted.push(...thisRank);
+      }
+
+      const knockout = generateKnockout(sorted);
+      await db.collection(TOURNAMENTS).doc(event.id).update({
+        data: { knockout, status: 'knockout', updatedAt: Date.now() }
       });
+      return { code: 0, data: { knockout } };
+    } catch (e) {
+      console.error('[startKnockout] failed:', e && e.message, e && e.stack);
+      return { code: 1, msg: (e && e.message) || '开启淘汰赛失败' };
     }
-
-    // 按小组排名交叉排列（A组第1, B组第1, ... A组第2, B组第2, ...）
-    const sorted = [];
-    for (let rank = 0; rank < t.config.advanceCount; rank++) {
-      const thisRank = advanced.filter(p => p.groupRank === rank + 1);
-      // 组第一名按胜场排序
-      thisRank.sort((a, b) => b.wins - a.wins || (b.setsWon - b.setsLost) - (a.setsWon - a.setsLost));
-      sorted.push(...thisRank);
-    }
-
-    const knockout = generateKnockout(sorted);
-    await db.collection(TOURNAMENTS).doc(event.id).update({
-      data: { knockout, status: 'knockout', updatedAt: Date.now() }
-    });
-    return { code: 0, data: { knockout } };
   }
 
   // 录入淘汰赛比分（事务化，防止并发录分互相覆盖）
