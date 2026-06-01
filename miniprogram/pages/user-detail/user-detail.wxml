@@ -18,8 +18,9 @@ module.exports = {
 </wxs>
 
 <view class="container">
-  <!-- Top nav with back button (custom navigation) -->
-  <view class="topnav" style="padding-top: {{navTop}}rpx;">
+  <!-- Top nav with back button (custom navigation)
+       padding-right 用 capsuleGap 让出胶囊禁入区 -->
+  <view class="topnav" style="padding-top: {{navTop}}rpx; padding-right: {{capsuleGap}}rpx;">
     <view class="icon-btn" bindtap="goBack">
       <image style="width:32rpx;height:32rpx;" src="/assets/icons/back.svg" />
     </view>
@@ -32,7 +33,10 @@ module.exports = {
   <block wx:if="{{!loading && user}}">
     <!-- 1. Profile Hero -->
     <view class="profile-hero">
-      <view class="avatar" style="{{user.gender === 'female' ? 'border-color: var(--color-accent); color: var(--color-accent);' : ''}}">{{fmt.firstChar(user.wecomName)}}</view>
+      <view class="avatar" style="{{user.gender === 'female' ? 'border-color: var(--color-accent); color: var(--color-accent);' : ''}}">
+        <image wx:if="{{user.avatarUrl}}" class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill" />
+        <text wx:else>{{fmt.firstChar(user.wecomName)}}</text>
+      </view>
       <view class="who">
         <view class="name">{{user.wecomName || '匿名'}}</view>
         <view class="role">

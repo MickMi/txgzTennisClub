@@ -42,7 +42,9 @@ Page({
 
   onLoad(opts) {
     const app = getApp();
-    const navTop = app.globalData.nav ? app.globalData.nav.navTopRpx : 0;
+    const nav = app.globalData.nav;
+    const navTop = nav ? nav.navTopRpx : 0;
+    const capsuleGap = nav ? nav.capsuleGapRpx : 190;
     const posterType = opts.type === 'report' ? 'report' : 'personal';
     this.tournamentId = opts.tournamentId;
     if (!this.tournamentId) {
@@ -53,6 +55,7 @@ Page({
     this.me = getCachedUser();
     this.setData({
       navTop,
+      capsuleGap,
       posterType,
       currentStyle: POSTER_STYLES[0]
     });

@@ -5,8 +5,9 @@
     <view class="court-bg">
       <image class="court-bg" src="/assets/icons/court-lines.svg" />
     </view>
-    <!-- Top navigation -->
-    <view class="topnav" style="top: {{navTop}}rpx;">
+    <!-- Top navigation
+         右边界用 right=capsuleGap 把胶囊禁入区让出来，避免分享按钮被胶囊盖住 -->
+    <view class="topnav" style="top: {{navTop}}rpx; right: {{capsuleGap}}rpx;">
       <view class="icon-btn" bindtap="goBack">
         <image style="width:32rpx;height:32rpx;" src="/assets/icons/back-light.svg" />
       </view>

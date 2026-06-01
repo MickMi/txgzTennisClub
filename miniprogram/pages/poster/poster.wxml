@@ -1,6 +1,7 @@
 <view class="page" style="background: {{currentStyle.bg}};">
-  <!-- 顶部导航 -->
-  <view class="topnav" style="padding-top: {{navTop}}rpx;">
+  <!-- 顶部导航
+       padding-right 用 capsuleGap 让出胶囊禁入区，避免 title/右侧元素被胶囊盖住 -->
+  <view class="topnav" style="padding-top: {{navTop}}rpx; padding-right: {{capsuleGap}}rpx;">
     <view class="icon-btn" bindtap="goBack">
       <image src="/assets/icons/back.svg" />
     </view>

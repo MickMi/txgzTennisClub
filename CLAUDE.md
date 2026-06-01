@@ -9,6 +9,9 @@
    - `docs/references/activity-detail.html` — 活动详情页
    - `docs/references/round-2-tabs-and-charts.html` — 活动 Tab + 赛事 Tab + 图表方案 A/B（已选 A）
    - `docs/references/round-3-profile-ranking-tournament.html` — 我的页 + 排行榜 + 赛事详情（淘汰赛状态）
+   - `docs/references/share-posters-emerald.html` — 分享海报（emerald-heritage 风格：赛事战报 + 个人战绩卡）
+   - `docs/references/share-posters-sports.html` — 分享海报（运动风格：黑底 + 荧光绿）
+   - `docs/references/share-posters-grand-slam.html` — 分享海报（四大满贯主题：AO / RG / Wimbledon / USO）
 3. **本文件** — 工作流与硬约束。
 
 ## 已锁定的设计决策（v2 决策表）
@@ -21,6 +24,7 @@
 | 图标策略 | 1.5px stroke 线性 SVG，零 emoji | discovery-form |
 | 头像策略 | 首字母圆圈（`avatarUrl` 字段暂不补） | round-3 |
 | BUG-1 | 暂保持现状（match `bestOf∈[4,5,6]`，tournament `bestOf∈[1,3,5]`） | round-3 |
+| 分享海报 | 6 种画风（emerald / sports / AO / RG / Wimbledon / USO），Canvas 绘制，highlight 永远正面 | §11 |
 
 ## 设计哲学（一句话）
 
@@ -88,16 +92,39 @@ onLoad() {
 </view>
 ```
 
+### Topnav 与右上角胶囊的关系（⚠️ 关键）
+
+**微信胶囊永远在右上角，固定占用屏幕右侧约 190rpx 宽度**（胶囊宽 ~174rpx + 右边距 ~14rpx）。任何 topnav 上靠右的元素如果落在这个区域，会被胶囊**完全盖住或部分遮挡**。
+
+**强制规则**：
+
+| topnav 形态 | 右边界处理 |
+|---|---|
+| **B 型 absolute topnav 且右侧有按钮**（tournament-detail 这类） | wxml 必须 inline `right: {{capsuleGap}}rpx`；wxss **不能**写 `right: 0` |
+| **C 型 sticky topnav 带标题**（poster / user-detail / member-management） | wxml 必须 inline `padding-right: {{capsuleGap}}rpx`；wxss 默认 `padding-right` 写 32rpx 仅作兜底 |
+| 其它（只有左侧 back，右侧空着） | 不需要处理（如 activity-detail） |
+
+**`capsuleGap` 来自**：`getApp().globalData.nav.capsuleGapRpx`，由 `utils/nav.js` 在 onLaunch 时根据 `wx.getMenuButtonBoundingClientRect()` 真实测量计算（= screenWidth - capsule.left + 8px 安全间距）。
+
+**onLoad 写法**：
+```js
+const nav = getApp().globalData.nav;
+this.setData({
+  navTop: nav ? nav.navTopRpx : 0,
+  capsuleGap: nav ? nav.capsuleGapRpx : 190
+});
+```
+
 ### Topnav 双侧布局规则
 
-如果 topnav 同时承载左侧返回 + 右侧操作（分享/海报/编辑），用 `flex + justify-content: space-between`，**禁止把右侧按钮做得比左侧大**（必须同样 64×64）。
+如果 topnav 同时承载左侧返回 + 右侧操作（分享/海报/编辑），用 `flex + justify-content: space-between`，**禁止把右侧按钮做得比左侧大**（必须同样 64×64）。**右侧操作按钮的右边界必须 ≥ capsuleGap**（见上一节）。
 
 ### 新增子页面 checklist
 
 - [ ] `goBack()` 方法在 js 里
-- [ ] `onLoad` 里取 `getApp().globalData.nav.navTopRpx` → 写入 `data.navTop`
-- [ ] wxml 顶部按 A/B/C 写返回按钮，带 `style="top: {{navTop}}rpx;"`（C 是 padding-top）
-- [ ] 不要在页面 wxss 重新定义 `.page-back`，用全局的；不要在 wxss 写死 `top: Xrpx`
+- [ ] `onLoad` 里取 `getApp().globalData.nav.{navTopRpx, capsuleGapRpx}` → 写入 `data.navTop` / `data.capsuleGap`
+- [ ] wxml 顶部按 A/B/C 写返回按钮：A 用 `top`；B 用 `top + right`（如果右侧有按钮）；C 用 `padding-top + padding-right`
+- [ ] 不要在页面 wxss 重新定义 `.page-back`，用全局的；不要在 wxss 写死 `top: Xrpx` 或 `right: 0`
 - [ ] 子页面除非极特殊情况，**禁止**使用 `wx.switchTab` 替代 `wx.navigateBack`
 
 ## 迁移工作流（按顺序执行，单一阶段单一变更）
@@ -138,7 +165,10 @@ tennis-club/
 │   └── references/
 │       ├── activity-detail.html                    ← 活动详情页
 │       ├── round-2-tabs-and-charts.html            ← 活动 Tab + 赛事 Tab + 图表 A
-│       └── round-3-profile-ranking-tournament.html ← 我的 + 排行榜 + 赛事详情
+│       ├── round-3-profile-ranking-tournament.html ← 我的 + 排行榜 + 赛事详情
+│       ├── share-posters-emerald.html              ← 海报 · emerald-heritage
+│       ├── share-posters-sports.html               ← 海报 · 运动风
+│       └── share-posters-grand-slam.html           ← 海报 · 四大满贯
 ├── miniprogram/                                    ← 小程序前端代码
 ├── cloudfunctions/                                 ← 5 个云函数
 ├── project.config.json

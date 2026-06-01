@@ -38,13 +38,14 @@
 }
 
 /* Top navigation — 与全局 .page-back / activity-detail 保持一致：
-   top 由 wxml inline style 注入（与右上角胶囊垂直居中），
+   top + right 由 wxml inline style 注入：
+     top   = 与胶囊垂直居中（globalData.nav.navTopRpx）
+     right = 给胶囊预留禁入区（globalData.nav.capsuleGapRpx）
    圆形 64×64，1rpx 描边 */
 .topnav {
   position: absolute;
-  /* top 由 wxml inline style 注入 */
+  /* top + right 由 wxml inline style 注入 */
   left: 0;
-  right: 0;
   z-index: 30;
   display: flex;
   justify-content: space-between;

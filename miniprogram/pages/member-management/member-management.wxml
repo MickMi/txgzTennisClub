@@ -7,8 +7,8 @@ module.exports = {
 </wxs>
 
 <view class="container">
-  <!-- Top nav -->
-  <view class="topnav" style="padding-top: {{navTop}}rpx;">
+  <!-- Top nav — padding-right 让出胶囊禁入区 -->
+  <view class="topnav" style="padding-top: {{navTop}}rpx; padding-right: {{capsuleGap}}rpx;">
     <view class="icon-btn" bindtap="goBack">
       <image style="width:32rpx;height:32rpx;" src="/assets/icons/back.svg" />
     </view>
@@ -68,7 +68,10 @@ module.exports = {
           data-openid="{{item.openid}}"
           data-name="{{item.wecomName}}"
           bindtap="goUserDetail">
-      <view class="avatar {{item.gender === 'female' ? 'avatar--f' : ''}}">{{fmt.firstChar(item.wecomName)}}</view>
+      <view class="avatar {{item.gender === 'female' ? 'avatar--f' : ''}}">
+        <image wx:if="{{item.avatarUrl}}" class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+        <text wx:else>{{fmt.firstChar(item.wecomName)}}</text>
+      </view>
       <view class="who">
         <view class="name-row">
           <text class="name">{{item.wecomName}}</text>

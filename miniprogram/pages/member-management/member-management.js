@@ -21,9 +21,11 @@ Page({
       return;
     }
     const app = getApp();
+    const nav = app.globalData.nav;
     this.setData({
       myOpenid: me.openid,
-      navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0
+      navTop: nav ? nav.navTopRpx : 0,
+      capsuleGap: nav ? nav.capsuleGapRpx : 190
     });
     this.load();
   },
