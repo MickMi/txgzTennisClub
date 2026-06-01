@@ -7,12 +7,13 @@
 }
 
 /* ========== Hero ========== */
-/* 与 activity-detail .hero 对齐：min-height 600rpx + 200rpx 顶 padding 自然流，
-   标题位于顶部（不要再用 masthead absolute bottom 把内容压到底部） */
+/* 与 activity-detail 全局 .hero 对齐：相同尺寸、相同渐变（radial 高光 + linear 暗调）、
+   相同 padding、相同字号阶 */
 .tournament-hero {
   position: relative;
   min-height: 600rpx;
-  background: linear-gradient(168deg, #243a30 0%, #14201a 100%);
+  background: radial-gradient(120% 80% at 100% 0%, var(--color-emerald) 0%, transparent 55%),
+              linear-gradient(170deg, var(--color-emerald-deep) 0%, #14201a 100%);
   color: var(--color-bg);
   overflow: hidden;
   padding: 200rpx 48rpx 64rpx;
@@ -108,20 +109,20 @@
 
 .kicker {
   font-family: var(--font-mono);
-  font-size: 20rpx;
+  font-size: 21rpx;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--color-accent);
   display: inline-flex;
   align-items: center;
   gap: 20rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 28rpx;
 }
 
 .kicker::before {
   content: '';
   display: inline-block;
-  width: 32rpx;
+  width: 36rpx;
   height: 1rpx;
   background: var(--color-accent);
 }
@@ -129,8 +130,8 @@
 .hero-title {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: 60rpx;
-  line-height: 1.05;
+  font-size: var(--text-display-lg);
+  line-height: 1.06;
   letter-spacing: 0.005em;
   color: var(--color-bg);
 }
