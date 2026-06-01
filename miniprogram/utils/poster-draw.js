@@ -1,15 +1,16 @@
 // utils/poster-draw.js
-// Canvas 海报绘制主逻辑。750×1334 px (2x retina)。
+// Canvas 海报绘制主逻辑。750 × 1800 px (2x retina, 9:21.6 竖版加长)。
 //
 // 设计原则：所有间距走统一网格系统，参照 docs/references/share-posters-emerald.html
-// 参考稿是 375×667 (1x)，本文件是 2x，所有像素值 ×2。
+// 参考稿是 375×667 (1x)，本文件 2x。canvas 加长到 1800 px 容纳 8 人 roster +
+// 完整 highlight/match-history 不撞 footer。
 //
 // 入口：drawPoster(ctx, canvas, data)
 //   data: { type, tournament, me, userStats, highlight, style }
 //   type: 'report' | 'personal'
 
 const W = 750;
-const H = 1334;
+const H = 1800;
 
 // === 网格系统（canvas px，全部 2x 于参考稿）===
 const SIDE = 56;            // 28 × 2 — section 左右内边距
@@ -146,6 +147,29 @@ function wrapText(ctx, text, maxWidth) {
   }
   if (cur) out.push(cur);
   return out;
+}
+
+// 多行 wrap + 最后一行省略（用于 hero 标题等强样式文本）
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines, opts) {
+  const o = opts || {};
+  if (o.color) ctx.fillStyle = o.color;
+  ctx.textAlign = o.align || 'left';
+  ctx.textBaseline = o.baseline || 'top';
+  if (!text) return y;
+  const lines = wrapText(ctx, text, maxWidth);
+  const limit = Math.max(1, maxLines || 1);
+  const renderLines = lines.slice(0, limit);
+  if (lines.length > limit) {
+    let last = renderLines[limit - 1];
+    while (last.length > 0 && ctx.measureText(last + '…').width > maxWidth) {
+      last = last.slice(0, -1);
+    }
+    renderLines[limit - 1] = last + '…';
+  }
+  renderLines.forEach((line, i) => {
+    ctx.fillText(line, x, y + i * lineHeight);
+  });
+  return y + renderLines.length * lineHeight;
 }
 
 // ====== Hero（共享）======
@@ -388,9 +412,11 @@ function drawReportPoster(ctx, data) {
 
   drawHeroKicker(ctx, HERO_PAD_TOP + 90, s, 'TOURNAMENT REPORT · 赛事战报');
 
+  // 标题：允许 wrap 至 2 行（用户可能输入较长标题）
   setFont(ctx, T.title, '500', s.fontDisplay);
-  fillText(ctx, ellipsize(ctx, t.title || '', W - SIDE * 2),
-    SIDE, HERO_PAD_TOP + 130, { color: s.heroFg, baseline: 'top' });
+  drawWrappedText(ctx, t.title || '', SIDE, HERO_PAD_TOP + 130,
+    W - SIDE * 2, T.title * 1.06, 2,
+    { color: s.heroFg, baseline: 'top' });
 
   // meta 行
   const peopleCount = (t.players || []).length;
@@ -403,7 +429,7 @@ function drawReportPoster(ctx, data) {
   // === Section: Podium ===
   let y = HERO_H;
   y = drawSectionEyebrow(ctx, y, s, '名次 · PLACEMENT', s.accent);
-  y = drawPodium(ctx, y, s, t.placementAwards || []);
+  y = drawPodium(ctx, y, s, t.placementAwards || [], t.players || []);
   y += SECTION_PAD_Y;
   drawHairline(ctx, y, s);
   y += HAIRLINE;
@@ -423,11 +449,28 @@ function drawReportPoster(ctx, data) {
   drawFooter(ctx, s);
 }
 
-function drawPodium(ctx, y, style, awards) {
-  const top3 = (awards || [])
+function drawPodium(ctx, y, style, awards, fallbackPlayers) {
+  // 优先用 placementAwards（赛事完整结束后才有）
+  let top3 = (awards || [])
     .filter(a => a.placement && a.placement <= 3)
     .sort((a, b) => a.placement - b.placement);
-  const arr = [top3.find(a => a.placement === 2), top3.find(a => a.placement === 1), top3.find(a => a.placement === 3)];
+
+  // 兜底：placementAwards 缺失（如赛事仍在进行）时，
+  // 用 fallbackPlayers 的前 3（按报名/积分顺序），避免画一排空头像
+  if (top3.length === 0 && Array.isArray(fallbackPlayers) && fallbackPlayers.length > 0) {
+    top3 = fallbackPlayers.slice(0, 3).map((p, i) => ({
+      placement: i + 1,
+      wecomName: p.wecomName,
+      points: 0,
+      _fallback: true
+    }));
+  }
+
+  const arr = [
+    top3.find(a => a.placement === 2) || null,
+    top3.find(a => a.placement === 1) || null,
+    top3.find(a => a.placement === 3) || null
+  ];
   const labels = ['亚军', '冠军', '季军'];
 
   const cellW = (W - SIDE * 2) / 3;
@@ -435,13 +478,11 @@ function drawPodium(ctx, y, style, awards) {
     const cx = SIDE + i * cellW + cellW / 2;
     const a = arr[i];
     const isGold = i === 1;
-    // rank 标签
     setFont(ctx, T.rank, 'normal', style.fontMono);
     fillText(ctx, labels[i].toUpperCase(), cx, y, {
       color: isGold ? style.accent : style.muted,
       align: 'center', baseline: 'top'
     });
-    // avatar
     const avR = isGold ? 56 : 44;
     drawAvatar(ctx, cx, y + 60 + (isGold ? 0 : 12), avR, a ? a.wecomName : '·', {
       border: isGold ? style.accent : style.border,
@@ -450,17 +491,21 @@ function drawPodium(ctx, y, style, awards) {
       fg: style.fg,
       font: style.fontDisplay
     });
-    // name
     const nameY = y + 60 + (isGold ? 0 : 12) + avR + 14;
     setFont(ctx, T.podiumName, '500', style.fontDisplay);
     fillText(ctx, a ? ellipsize(ctx, a.wecomName || '—', cellW - 24) : '—', cx, nameY, {
       color: style.fg, align: 'center', baseline: 'top'
     });
-    // pts
-    if (a) {
+    if (a && !a._fallback) {
       setFont(ctx, T.podiumPts, 'normal', style.fontMono);
       fillText(ctx, `+${a.points || 0} 分`, cx, nameY + 36, {
         color: style.accent, align: 'center', baseline: 'top'
+      });
+    } else if (a && a._fallback) {
+      // 兜底状态：标注"赛中"，不写假积分
+      setFont(ctx, T.podiumPts, 'normal', style.fontMono);
+      fillText(ctx, '赛中', cx, nameY + 36, {
+        color: style.muted, align: 'center', baseline: 'top'
       });
     }
   }
