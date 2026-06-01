@@ -66,10 +66,13 @@ function drawCourtLines(ctx, style) {
   ctx.globalAlpha = 0.18;
   ctx.strokeStyle = style.heroFg;
   ctx.lineWidth = 2;
-  // 仿参考稿（375 系坐标 ×2）
+  // 外框（双打边线 + 底线）
   ctx.strokeRect(84, -80, 582, 520);
+  // 中线（贯穿整个球场）
   ctx.beginPath(); ctx.moveTo(376, -80); ctx.lineTo(376, 440); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(84, 280); ctx.lineTo(666, 280); ctx.stroke();
+  // 发球线 — 只在两条单打边线之间，不延伸到双打边线
+  ctx.beginPath(); ctx.moveTo(120, 280); ctx.lineTo(632, 280); ctx.stroke();
+  // 单打边线（左右各一）
   ctx.beginPath(); ctx.moveTo(120, -80); ctx.lineTo(120, 440); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(632, -80); ctx.lineTo(632, 440); ctx.stroke();
   ctx.restore();
