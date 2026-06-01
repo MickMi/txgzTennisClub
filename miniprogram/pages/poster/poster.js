@@ -223,6 +223,7 @@ Page({
       wx.showToast({ title: '海报未生成', icon: 'none' });
       return;
     }
+    console.log('[poster] onSave: starting export, canvas=', this.canvasNode);
     wx.showLoading({ title: '导出中', mask: true });
     // ⚠️ type=2d canvas 必须显式传 x/y/width/height/destWidth/destHeight，
     // 否则会拿 canvas 的 CSS 尺寸（可能是 0 或被拉伸）导出，输出空白
@@ -238,24 +239,34 @@ Page({
       quality: 1,
       success: res => {
         wx.hideLoading();
+        console.log('[poster] canvasToTempFilePath ok, path=', res.tempFilePath);
         this.saveToAlbum(res.tempFilePath);
       },
       fail: err => {
         wx.hideLoading();
-        console.error('[poster] canvasToTempFilePath failed', err);
-        wx.showToast({ title: '导出失败', icon: 'none' });
+        console.error('[poster] canvasToTempFilePath FAILED', err);
+        wx.showModal({
+          title: '导出失败',
+          content: `[canvasToTempFilePath]\n${(err && err.errMsg) || JSON.stringify(err)}`,
+          showCancel: false
+        });
       }
     });
   },
 
   // 保存到相册：处理授权流程
   saveToAlbum(tempFilePath) {
+    console.log('[poster] saveToAlbum, path=', tempFilePath);
     const doSave = () => {
+      console.log('[poster] calling wx.saveImageToPhotosAlbum');
       wx.saveImageToPhotosAlbum({
         filePath: tempFilePath,
-        success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
+        success: r => {
+          console.log('[poster] saveImageToPhotosAlbum SUCCESS', r);
+          wx.showToast({ title: '已保存到相册', icon: 'success' });
+        },
         fail: err => {
-          console.error('[poster] saveImageToPhotosAlbum failed', err);
+          console.error('[poster] saveImageToPhotosAlbum FAILED', err);
           const msg = (err && err.errMsg) || '';
           if (msg.indexOf('auth deny') > -1 || msg.indexOf('authorize') > -1) {
             // 用户曾经拒绝过授权，引导去设置开启
@@ -277,7 +288,12 @@ Page({
               }
             });
           } else {
-            wx.showToast({ title: '保存失败', icon: 'none' });
+            // 把真实错误显示给用户（modal 比 toast 看得清）
+            wx.showModal({
+              title: '保存失败',
+              content: `[saveImageToPhotosAlbum]\n${msg || JSON.stringify(err)}`,
+              showCancel: false
+            });
           }
         }
       });
@@ -286,6 +302,7 @@ Page({
     // 先查授权状态，没授权过就直接调（首次会自动弹权限框），授权过就直接走
     wx.getSetting({
       success: res => {
+        console.log('[poster] getSetting authSetting=', res.authSetting);
         if (res.authSetting['scope.writePhotosAlbum'] === false) {
           // 之前明确拒绝过
           wx.showModal({
