@@ -24,7 +24,8 @@ Page({
     loading: true,
     hasMore: false,
     nextCursor: null,
-    loadingMore: false
+    loadingMore: false,
+    isAdmin: false // 仅 admin 看到"创建赛事"入口
   },
 
   onShow() {
@@ -33,6 +34,7 @@ Page({
     }
     ensureRegistered().then(user => {
       if (!user) return;
+      this.setData({ isAdmin: user.role === 'admin' });
       this.loadTournaments();
     });
   },
@@ -83,6 +85,10 @@ Page({
   },
 
   goCreate() {
+    if (!this.data.isAdmin) {
+      wx.showToast({ title: '只有管理员可以创建赛事', icon: 'none' });
+      return;
+    }
     wx.navigateTo({ url: '/pages/tournament-create/tournament-create' });
   },
 

@@ -499,6 +499,8 @@ exports.main = async event => {
   if (action === 'create') {
     const me = await getUser(OPENID);
     if (!me || !me.wecomName) return { code: 1, msg: '请先完成登记' };
+    // 仅管理员可创建赛事（活动 create 不变）
+    if (me.role !== 'admin') return { code: 1, msg: '只有管理员可以创建赛事' };
     const p = event.payload || {};
     if (!p.title) return { code: 1, msg: '请填写赛事名称' };
 
