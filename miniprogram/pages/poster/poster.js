@@ -219,37 +219,95 @@ Page({
   },
 
   onSave() {
-    if (!this.canvasNode) return;
+    if (!this.canvasNode) {
+      wx.showToast({ title: '海报未生成', icon: 'none' });
+      return;
+    }
+    wx.showLoading({ title: '导出中', mask: true });
+    // ⚠️ type=2d canvas 必须显式传 x/y/width/height/destWidth/destHeight，
+    // 否则会拿 canvas 的 CSS 尺寸（可能是 0 或被拉伸）导出，输出空白
     wx.canvasToTempFilePath({
       canvas: this.canvasNode,
+      x: 0,
+      y: 0,
+      width: W,
+      height: H,
+      destWidth: W,
+      destHeight: H,
       fileType: 'png',
       quality: 1,
       success: res => {
-        wx.saveImageToPhotosAlbum({
-          filePath: res.tempFilePath,
-          success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
-          fail: err => {
-            console.error('[poster] save failed', err);
-            // 用户拒绝授权时引导设置
-            if (err && err.errMsg && err.errMsg.indexOf('auth deny') !== -1) {
-              wx.showModal({
-                title: '需要相册权限',
-                content: '请在设置中开启"保存到相册"权限',
-                confirmText: '去设置',
-                success: r => {
-                  if (r.confirm) wx.openSetting();
-                }
-              });
-            } else {
-              wx.showToast({ title: '保存失败', icon: 'none' });
-            }
-          }
-        });
+        wx.hideLoading();
+        this.saveToAlbum(res.tempFilePath);
       },
       fail: err => {
-        console.error('[poster] export failed', err);
+        wx.hideLoading();
+        console.error('[poster] canvasToTempFilePath failed', err);
         wx.showToast({ title: '导出失败', icon: 'none' });
       }
+    });
+  },
+
+  // 保存到相册：处理授权流程
+  saveToAlbum(tempFilePath) {
+    const doSave = () => {
+      wx.saveImageToPhotosAlbum({
+        filePath: tempFilePath,
+        success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
+        fail: err => {
+          console.error('[poster] saveImageToPhotosAlbum failed', err);
+          const msg = (err && err.errMsg) || '';
+          if (msg.indexOf('auth deny') > -1 || msg.indexOf('authorize') > -1) {
+            // 用户曾经拒绝过授权，引导去设置开启
+            wx.showModal({
+              title: '需要相册权限',
+              content: '保存海报需要授权"保存到相册"，请在设置中开启',
+              confirmText: '去设置',
+              success: r => {
+                if (r.confirm) {
+                  wx.openSetting({
+                    success: ss => {
+                      if (ss.authSetting['scope.writePhotosAlbum']) {
+                        // 开启后再试一次
+                        this.saveToAlbum(tempFilePath);
+                      }
+                    }
+                  });
+                }
+              }
+            });
+          } else {
+            wx.showToast({ title: '保存失败', icon: 'none' });
+          }
+        }
+      });
+    };
+
+    // 先查授权状态，没授权过就直接调（首次会自动弹权限框），授权过就直接走
+    wx.getSetting({
+      success: res => {
+        if (res.authSetting['scope.writePhotosAlbum'] === false) {
+          // 之前明确拒绝过
+          wx.showModal({
+            title: '需要相册权限',
+            content: '保存海报需要授权"保存到相册"，请在设置中开启',
+            confirmText: '去设置',
+            success: r => {
+              if (r.confirm) {
+                wx.openSetting({
+                  success: ss => {
+                    if (ss.authSetting['scope.writePhotosAlbum']) doSave();
+                  }
+                });
+              }
+            }
+          });
+        } else {
+          // 未授权或已授权 → 直接调用（未授权会自动弹权限框）
+          doSave();
+        }
+      },
+      fail: () => doSave()
     });
   },
 
@@ -268,6 +326,9 @@ Page({
     return new Promise(resolve => {
       wx.canvasToTempFilePath({
         canvas: this.canvasNode,
+        x: 0, y: 0,
+        width: W, height: H,
+        destWidth: W, destHeight: H,
         fileType: 'jpg',
         quality: 0.9,
         success: res => {
