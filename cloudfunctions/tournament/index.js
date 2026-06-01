@@ -505,7 +505,7 @@ exports.main = async event => {
     const type = p.type === 'doubles' ? 'doubles' : 'singles';
     const bestOf = [4, 6].includes(p.bestOf) ? p.bestOf : 6;
     const level = ['major', 'challenge', 'friendly'].includes(p.level) ? p.level : 'friendly';
-    const groupCount = Math.max(2, Math.min(8, p.groupCount || 2));
+    const groupCount = Math.max(1, Math.min(8, p.groupCount || 2));
     const advanceCount = Math.max(1, Math.min(4, p.advanceCount || 2));
     const seedCount = Math.max(0, Math.min(16, p.seedCount || groupCount));
 
@@ -584,13 +584,18 @@ exports.main = async event => {
     const players = t.players || [];
 
     // 抽签时由管理员决定分组参数
-    const groupCount = event.groupCount || t.config.groupCount || 2;
-    const advanceCount = event.advanceCount || t.config.advanceCount || 2;
+    const groupCount = Math.max(1, Math.min(8, event.groupCount || t.config.groupCount || 2));
+    let advanceCount = Math.max(1, Math.min(4, event.advanceCount || t.config.advanceCount || 2));
     const seedCount = event.seedCount !== undefined ? event.seedCount : (t.config.seedCount || 0);
 
-    if (players.length < groupCount * 2) {
-      return { code: 1, msg: `至少需要 ${groupCount * 2} 人才能分 ${groupCount} 组` };
+    // 至少需要 groupCount 个人才能分成 groupCount 组（1 组场景至少 2 人）
+    const minPlayers = Math.max(2, groupCount);
+    if (players.length < minPlayers) {
+      return { code: 1, msg: `至少需要 ${minPlayers} 人才能分 ${groupCount} 组` };
     }
+    // Q2: advance 自动夹紧到组内人数（避免"组内 4 人但 advance 5"这种非法配置）
+    const groupSize = Math.ceil(players.length / groupCount);
+    advanceCount = Math.min(advanceCount, groupSize);
 
     const groups = seedDraw(players, groupCount, seedCount);
     const config = { groupCount, advanceCount, seedCount };

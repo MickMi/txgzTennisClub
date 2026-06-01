@@ -5,6 +5,22 @@ const { formatDate } = require('../../utils/format.js');
 const LEVEL_MAP = { major: '半年赛', challenge: '月赛', friendly: '周赛' };
 const STATUS_MAP = { signup: '报名中', group: '小组赛', knockout: '淘汰赛', finished: '已结束' };
 
+// 抽签时根据报名人数推荐"组数 / 晋级人数"
+//   ≤6 人：1 组循环 + 取前 4（不足 4 时按实际人数）→ 全员或大半进 KO
+//   7-8 人：2 组 / 每组前 2
+//   9-12 人：3 组 / 每组前 2
+//   13-16 人：4 组 / 每组前 2
+//   17-24 人：6 组 / 每组前 2
+//   25+：8 组 / 每组前 2
+function suggestDrawConfig(playerCount) {
+  if (playerCount <= 6) return { groupCount: 1, advanceCount: Math.min(4, playerCount) };
+  if (playerCount <= 8) return { groupCount: 2, advanceCount: 2 };
+  if (playerCount <= 12) return { groupCount: 3, advanceCount: 2 };
+  if (playerCount <= 16) return { groupCount: 4, advanceCount: 2 };
+  if (playerCount <= 24) return { groupCount: 6, advanceCount: 2 };
+  return { groupCount: 8, advanceCount: 2 };
+}
+
 Page({
   data: {
     id: '',
@@ -17,7 +33,7 @@ Page({
     drawGroupCount: 2,
     drawAdvanceCount: 2,
     drawSeedCount: 0,
-    groupCountOptions: [2, 3, 4, 6, 8],
+    groupCountOptions: [1, 2, 3, 4, 6, 8],
     advanceOptions: [1, 2, 3, 4],
     // 小组赛录分
     editingGroup: null,
@@ -105,6 +121,14 @@ Page({
           }
         : null;
 
+      // 抽签默认值：signup 状态下用智能推荐覆盖 create 时设的值（按当前报名人数推荐）；
+      // 已 draw 后的状态保留实际配置
+      const playerCount = (t.players || []).length;
+      const suggested = suggestDrawConfig(playerCount);
+      const useDrawSuggest = t.status === 'signup';
+      const drawGroupCount = useDrawSuggest ? suggested.groupCount : (t.config.groupCount || 2);
+      const drawAdvanceCount = useDrawSuggest ? suggested.advanceCount : (t.config.advanceCount || 2);
+
       this.setData({
         t: {
           ...t,
@@ -116,8 +140,8 @@ Page({
         },
         isOwner,
         signed,
-        drawGroupCount: t.config.groupCount || 2,
-        drawAdvanceCount: t.config.advanceCount || 2,
+        drawGroupCount,
+        drawAdvanceCount,
         drawSeedCount: t.config.seedCount || 0
       });
     });

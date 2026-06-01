@@ -29,8 +29,8 @@ Page({
     bestOfOptions: [4, 6],
     levelIndex: 0,
     levelOptions: LEVEL_OPTIONS,
-    groupCountOptions: [2, 3, 4, 6, 8],
-    groupCountIndex: 0,
+    groupCountOptions: [1, 2, 3, 4, 6, 8],
+    groupCountIndex: 1, // 默认 2 组（兼容老习惯，admin 可改）
     advanceOptions: [1, 2, 3, 4],
     advanceIndex: 1,
     submitting: false
