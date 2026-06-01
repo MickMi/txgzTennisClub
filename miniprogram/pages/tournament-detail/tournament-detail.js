@@ -46,9 +46,19 @@ Page({
     wx.navigateBack();
   },
 
-  // TODO: 生成赛事战报海报（图片）。目前只是占位入口
+  // 跳转海报页：A2 决策 — 用 ActionSheet 让用户先选两种海报，再跳
   goPoster() {
-    wx.showToast({ title: '海报功能 即将上线', icon: 'none' });
+    const id = this.data.id;
+    if (!id) return;
+    wx.showActionSheet({
+      itemList: ['我的战绩卡', '赛事战报'],
+      success: res => {
+        const type = res.tapIndex === 0 ? 'personal' : 'report';
+        wx.navigateTo({
+          url: `/pages/poster/poster?tournamentId=${id}&type=${type}`
+        });
+      }
+    });
   },
 
   load() {

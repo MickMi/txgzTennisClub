@@ -11,8 +11,8 @@
         <image style="width:32rpx;height:32rpx;" src="/assets/icons/back-light.svg" />
       </view>
       <view class="actions">
-        <!-- TODO: 海报生成功能（占位入口，先用 toast 提示）-->
-        <view class="icon-btn" bindtap="goPoster">
+        <!-- 分享海报：仅 finished 状态显示。点击弹 ActionSheet 让用户选「我的战绩 / 赛事战报」 -->
+        <view class="icon-btn" wx:if="{{t.status === 'finished'}}" bindtap="goPoster">
           <image style="width:32rpx;height:32rpx;" src="/assets/icons/share-light.svg" />
         </view>
       </view>
