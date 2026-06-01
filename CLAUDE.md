@@ -41,41 +41,63 @@ emerald-heritage 风格：米白纸 + 深翠墨绿 + 单色黄铜金。**禁用 
 
 | 维度 | 标准 | 备注 |
 |---|---|---|
-| 定位 | `top: calc(env(safe-area-inset-top) + 16rpx)` | **永远走 safe-area，禁止硬编码 `94rpx` 之类的值** |
-| 尺寸 | `64rpx × 64rpx` | 圆形（`border-radius: 50%`） |
-| 描边 | `1rpx solid` | 浅底页用 `var(--color-border)`；深色 hero 上用 `rgba(248, 244, 232, 0.4)` |
-| 背景 | 浅底页 `var(--color-bg)`；深色 hero 上 `rgba(36, 58, 48, 0.4)` | 不用 `backdrop-filter`（性能 + 不一致风险） |
-| 图标 | `32rpx × 32rpx`，`back.svg` 或 `back-light.svg` | hero 上用 light 版本 |
-| z-index | `5`（hero 内） / `50`（浅底 absolute） | 高于卡片，低于 toast |
+| **垂直定位** | **`top: {{navTop}}rpx`（来自 `app.globalData.nav.navTopRpx`）** | ⚠️ **绝对禁止**用 `env(safe-area-inset-top) + Nrpx`、`94rpx` 这种硬编码或纯 CSS 方案 |
+| 水平定位 | 浅底页 `left: 32rpx`；hero topnav `left/right: 0` + padding | — |
+| 尺寸 | `64rpx × 64rpx` | 圆形（`border-radius: 50%`），与微信胶囊同高 |
+| 描边 | `1rpx solid` | 浅底页 `var(--color-border)`；深色 hero `rgba(248, 244, 232, 0.4)` |
+| 背景 | 浅底页 `var(--color-bg)`；深色 hero `rgba(36, 58, 48, 0.4)` | 不用 `backdrop-filter` |
+| 图标 | `32rpx × 32rpx`，`back.svg`（浅底）/ `back-light.svg`（深底） | — |
+| z-index | `5`（hero 内）/ `50`（浅底 absolute） | 高于卡片，低于 toast |
+
+### 为什么 `navTop` 必须走 JS 计算
+
+`env(safe-area-inset-top)` 在**无刘海设备**（旧 iPhone / 大多数安卓）上为 **0**，会导致按钮直接贴着状态栏。
+**正确做法**：`utils/nav.js` 在 `app.onLaunch` 调一次 `wx.getMenuButtonBoundingClientRect()` 拿到右上角胶囊真实位置，让返回按钮**与胶囊垂直居中对齐**。每个机型都精准。
 
 ### 用法二选一
 
 **A. 浅底页（activity-create / tournament-create / ranking 等）**：用全局 `.page-back` 类
+```js
+// js
+onLoad() {
+  const app = getApp();
+  this.setData({ navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0 });
+}
+```
 ```wxml
-<view class="page-back" bindtap="goBack">
+<view class="page-back" style="top: {{navTop}}rpx;" bindtap="goBack">
   <image src="/assets/icons/back.svg" />
 </view>
 ```
 
-**B. 深色 hero 页（activity-detail / tournament-detail）**：用页内 `.hero .topnav` 或 `.topnav`
+**B. 深色 hero 页（activity-detail / tournament-detail）**：页内 `.topnav`（absolute）
 ```wxml
-<view class="topnav">
+<view class="topnav" style="top: {{navTop}}rpx;">
   <view class="icon-btn" bindtap="goBack">
     <image src="/assets/icons/back-light.svg" />
   </view>
-  <!-- 右侧操作区可选（如海报按钮） -->
 </view>
 ```
 
-### Topnav 布局规则
+**C. 标题型 topnav（user-detail / member-management 等）**：sticky topnav，用 `padding-top` 注入
+```wxml
+<view class="topnav" style="padding-top: {{navTop}}rpx;">
+  <view class="icon-btn" bindtap="goBack">...</view>
+  <view class="topnav-title">标题</view>
+  <view class="topnav-spacer"></view>
+</view>
+```
+
+### Topnav 双侧布局规则
 
 如果 topnav 同时承载左侧返回 + 右侧操作（分享/海报/编辑），用 `flex + justify-content: space-between`，**禁止把右侧按钮做得比左侧大**（必须同样 64×64）。
 
 ### 新增子页面 checklist
 
 - [ ] `goBack()` 方法在 js 里
-- [ ] wxml 顶部按 A 或 B 写返回按钮
-- [ ] 不要在页面 wxss 重新定义 `.page-back`，用全局的
+- [ ] `onLoad` 里取 `getApp().globalData.nav.navTopRpx` → 写入 `data.navTop`
+- [ ] wxml 顶部按 A/B/C 写返回按钮，带 `style="top: {{navTop}}rpx;"`（C 是 padding-top）
+- [ ] 不要在页面 wxss 重新定义 `.page-back`，用全局的；不要在 wxss 写死 `top: Xrpx`
 - [ ] 子页面除非极特殊情况，**禁止**使用 `wx.switchTab` 替代 `wx.navigateBack`
 
 ## 迁移工作流（按顺序执行，单一阶段单一变更）

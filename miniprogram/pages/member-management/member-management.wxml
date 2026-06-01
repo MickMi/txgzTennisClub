@@ -8,7 +8,7 @@ module.exports = {
 
 <view class="container">
   <!-- Top nav -->
-  <view class="topnav">
+  <view class="topnav" style="padding-top: {{navTop}}rpx;">
     <view class="icon-btn" bindtap="goBack">
       <image style="width:32rpx;height:32rpx;" src="/assets/icons/back.svg" />
     </view>

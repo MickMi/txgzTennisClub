@@ -37,7 +37,11 @@ Page({
   },
 
   onLoad() {
-    this.setData({ 'form.matchDate': todayStr() });
+    const app = getApp();
+    this.setData({
+      'form.matchDate': todayStr(),
+      navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0
+    });
   },
 
   goBack() {

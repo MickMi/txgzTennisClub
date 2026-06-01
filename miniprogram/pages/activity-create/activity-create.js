@@ -17,16 +17,19 @@ Page({
   },
 
   onLoad(opts) {
+    const app = getApp();
+    const navTop = app.globalData.nav ? app.globalData.nav.navTopRpx : 0;
     if (opts.id) {
       // 编辑模式：加载已有活动数据
-      this.setData({ isEdit: true, activityId: opts.id });
+      this.setData({ isEdit: true, activityId: opts.id, navTop });
       wx.setNavigationBarTitle({ title: '编辑活动' });
       this.loadActivity(opts.id);
     } else {
       // 创建模式：设置默认日期时间
       this.setData({
         'form.date': todayStr(),
-        'form.time': nowTimeStr()
+        'form.time': nowTimeStr(),
+        navTop
       });
     }
   },

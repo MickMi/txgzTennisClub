@@ -11,7 +11,11 @@ Page({
 
   onLoad() {
     const user = getCachedUser();
-    this.setData({ myOpenid: user ? user.openid : '' });
+    const app = getApp();
+    this.setData({
+      myOpenid: user ? user.openid : '',
+      navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0
+    });
   },
 
   goBack() {

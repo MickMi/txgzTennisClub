@@ -38,10 +38,11 @@
 }
 
 /* Top navigation — 与全局 .page-back / activity-detail 保持一致：
-   safe-area-inset-top + 16rpx，圆形 64×64，1rpx 描边 */
+   top 由 wxml inline style 注入（与右上角胶囊垂直居中），
+   圆形 64×64，1rpx 描边 */
 .topnav {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 16rpx);
+  /* top 由 wxml inline style 注入 */
   left: 0;
   right: 0;
   z-index: 30;

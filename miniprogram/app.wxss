@@ -554,10 +554,11 @@ page {
 }
 
 /* 通用返回按钮（custom 导航子页用）— 浅底页面专用，深色描边
-   深底 hero 页面（activity-detail / tournament-detail）用各自页内的 topnav 实现 */
+   深底 hero 页面（activity-detail / tournament-detail）用各自页内的 topnav 实现
+   ⚠️ top 值由页面 wxml 的 inline style 注入（来自 app.globalData.nav.navTopRpx），
+   保证按钮与右上角胶囊垂直居中。CSS 不写死 top。 */
 .page-back {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 16rpx);
   left: 32rpx;
   width: 64rpx;
   height: 64rpx;

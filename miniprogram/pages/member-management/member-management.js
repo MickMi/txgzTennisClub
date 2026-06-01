@@ -20,7 +20,11 @@ Page({
       setTimeout(() => wx.navigateBack(), 600);
       return;
     }
-    this.setData({ myOpenid: me.openid });
+    const app = getApp();
+    this.setData({
+      myOpenid: me.openid,
+      navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0
+    });
     this.load();
   },
 

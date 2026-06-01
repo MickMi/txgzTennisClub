@@ -30,7 +30,12 @@ Page({
   },
 
   onLoad(opts) {
-    this.setData({ id: opts.id, user: getCachedUser() });
+    const app = getApp();
+    this.setData({
+      id: opts.id,
+      user: getCachedUser(),
+      navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0
+    });
   },
 
   onShow() {

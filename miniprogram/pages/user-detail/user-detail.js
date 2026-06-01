@@ -26,7 +26,11 @@ Page({
       setTimeout(() => wx.navigateBack(), 600);
       return;
     }
-    this.setData({ openid });
+    const app = getApp();
+    this.setData({
+      openid,
+      navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0
+    });
     this.loadProfile();
   },
 

@@ -22,7 +22,7 @@
 }
 .hero .topnav {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 16rpx);
+  /* top 由 wxml inline style 注入 */
   left: 32rpx;
   z-index: 5;
 }

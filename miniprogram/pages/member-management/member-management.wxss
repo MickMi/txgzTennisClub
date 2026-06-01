@@ -5,11 +5,11 @@
   padding-bottom: 80rpx;
 }
 
-/* Top nav */
+/* Top nav — padding-top 由 wxml inline style 注入 */
 .topnav {
   display: flex;
   align-items: center;
-  padding: calc(env(safe-area-inset-top) + 16rpx) 32rpx 16rpx;
+  padding: 0 32rpx 16rpx;
   background: var(--color-bg);
   position: sticky;
   top: 0;
