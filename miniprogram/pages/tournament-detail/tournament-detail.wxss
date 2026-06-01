@@ -8,7 +8,7 @@
 
 /* ========== Hero ========== */
 /* 与 activity-detail 全局 .hero 对齐：相同尺寸、相同渐变（radial 高光 + linear 暗调）、
-   相同 padding、相同字号阶 */
+   相同 padding、相同字号阶。flex 列向居中保证短标题不会留大块底部空白 */
 .tournament-hero {
   position: relative;
   min-height: 600rpx;
@@ -18,6 +18,9 @@
   overflow: hidden;
   padding: 200rpx 48rpx 64rpx;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .tournament-hero::before {
