@@ -41,6 +41,30 @@ emerald-heritage 风格：米白纸 + 深翠墨绿 + 单色黄铜金。**禁用 
 
 > 全局已设置 `navigationStyle: custom`，每个非 tabBar 子页都必须自己画返回按钮。**所有返回按钮统一规格如下，不要再发明第二种**。
 
+### 行内按钮（CTA / Default / Danger）— 高度规范
+
+全局类已固定三档高度，**对应使用场景不能混用同一行**：
+
+| 类 | min-height | 用途 |
+|---|---|---|
+| `.cta-primary` | **100rpx** | 主 CTA（页面唯一最重要操作，如"立即报名" / "完成登记"），独占一行或单按钮 |
+| `.btn-primary` / `.btn-default` / `.btn-danger` | **88rpx** | 次级操作（保存/取消/删除/导出/编辑），可两两并排 |
+
+**强制规则**：
+
+1. **同一行（cta-bar / 横排按钮组）禁止混用 `.cta-primary` 和 `.btn-*`** —— 高度差 12rpx 必出视觉错位。同一行的按钮必须**全部用 `.btn-*`**（次级），或者只有**一个独占的 `.cta-primary`**。
+
+2. **如果某行两个按钮都是"对等动作"**（如 poster 页"保存到相册 / 发送给朋友"），不要用全局类，**自己在 page wxss 定义一对成对变体**：
+   ```css
+   .my-action-btn { min-height: 96rpx; height: 96rpx; ... }
+   .my-action-btn.my-action-btn--primary { background: var(--color-accent); ... }
+   ```
+   并显式写 `min-height + height + box-sizing: border-box + display: flex + align-items: center` 全套，避免被全局规则乱入。
+
+3. **永远用 `min-height` 不用 `height`**（除非像底部 action-bar 这种强制等高场景）。文字多行时让按钮自然撑高，避免被裁。
+
+4. **必备防溢出三件套**：`line-height: 1.4` + `box-sizing: border-box` + `white-space: normal`。
+
 ### 返回按钮 — 统一规格
 
 | 维度 | 标准 | 备注 |

@@ -35,12 +35,12 @@
     </view>
   </scroll-view>
 
-  <!-- 底部操作栏 -->
+  <!-- 底部操作栏 — 不用全局 cta-primary/btn-default，用页内成对变体确保等高 -->
   <view class="action-bar">
-    <button class="btn-default action-btn" bindtap="onSave" disabled="{{loading || !posterReady}}">
+    <button class="action-btn" bindtap="onSave" disabled="{{loading || !posterReady}}">
       <text>保存到相册</text>
     </button>
-    <button class="cta-primary action-btn" bindtap="onShare" disabled="{{loading || !posterReady}}">
+    <button class="action-btn action-btn--primary" bindtap="onShare" disabled="{{loading || !posterReady}}">
       <text>发送给朋友</text>
     </button>
   </view>

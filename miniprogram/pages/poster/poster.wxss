@@ -118,9 +118,12 @@
   background: rgba(0, 0, 0, 0.6);
   border-top: 1rpx solid rgba(255, 255, 255, 0.1);
 }
+/* 底部操作栏 — 等高成对按钮，不混用全局 cta-primary / btn-default */
 .action-btn {
   flex: 1;
-  min-height: 84rpx;
+  /* 关键：双重 class 提高优先级，覆盖任何全局 button 默认 */
+  min-height: 96rpx;
+  height: 96rpx;
   line-height: 1.4;
   font-size: 28rpx;
   letter-spacing: 0.05em;
@@ -129,11 +132,17 @@
   color: #fff;
   border-radius: 0;
   padding: 0 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
 }
-.action-btn.cta-primary {
+.action-btn.action-btn--primary {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: var(--color-bg);
+  font-weight: 500;
 }
 .action-btn::after {
   border: none;
