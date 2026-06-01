@@ -46,5 +46,5 @@
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "__usePrivacyCheck__": true
+  "__usePrivacyCheck__": false
 }
