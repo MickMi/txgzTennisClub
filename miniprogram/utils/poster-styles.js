@@ -37,7 +37,7 @@ const POSTER_STYLES = [
     fontDisplay: 'PingFang SC, sans-serif',
     fontBody: 'PingFang SC, sans-serif',
     fontMono: 'SF Mono, Menlo, monospace',
-    showCourtLines: false
+    showCourtLines: true
   },
   {
     id: 'ao',
@@ -109,7 +109,7 @@ const POSTER_STYLES = [
     fontDisplay: 'PingFang SC, sans-serif',
     fontBody: 'PingFang SC, sans-serif',
     fontMono: 'SF Mono, Menlo, monospace',
-    showCourtLines: false
+    showCourtLines: true
   }
 ];
 

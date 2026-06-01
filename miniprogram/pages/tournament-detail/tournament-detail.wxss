@@ -7,12 +7,16 @@
 }
 
 /* ========== Hero ========== */
+/* 与 activity-detail .hero 对齐：min-height 600rpx + 200rpx 顶 padding 自然流，
+   标题位于顶部（不要再用 masthead absolute bottom 把内容压到底部） */
 .tournament-hero {
   position: relative;
-  height: 640rpx;
+  min-height: 600rpx;
   background: linear-gradient(168deg, #243a30 0%, #14201a 100%);
   color: var(--color-bg);
   overflow: hidden;
+  padding: 200rpx 48rpx 64rpx;
+  box-sizing: border-box;
 }
 
 .tournament-hero::before {
@@ -96,11 +100,10 @@
 }
 
 /* Masthead */
+/* Masthead — 与 activity-detail 对齐：自然 top-down 流，不再用 absolute bottom */
 .hero-masthead {
-  position: absolute;
-  bottom: 44rpx;
-  left: 48rpx;
-  right: 48rpx;
+  position: relative;
+  z-index: 2;
 }
 
 .kicker {
