@@ -97,6 +97,22 @@ Page({
     this.setData({ activeTab: parseInt(e.currentTarget.dataset.tab) });
   },
 
+  // 头像选择 — 用 <button open-type="chooseAvatar"> 触发的回调
+  // e.detail.avatarUrl 是微信内置头像选择器返回的 tempFilePath（拍照/微信头像/相册三种来源）
+  // 这条路径不需要走"用户隐私协议"授权流程
+  onChooseAvatar(e) {
+    const tempFilePath = e && e.detail && e.detail.avatarUrl;
+    if (!tempFilePath) return;
+    api.uploadAvatar(tempFilePath)
+      .then(fileID => api.updateUser({ avatarUrl: fileID }))
+      .then(user => {
+        setCachedUser(user);
+        this.setData({ user });
+        wx.showToast({ title: '头像已更新', icon: 'success' });
+      })
+      .catch(() => {});
+  },
+
   // 编辑企微名 + 性别
   onEdit() {
     this.setData({

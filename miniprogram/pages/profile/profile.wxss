@@ -7,18 +7,36 @@
   align-items: center;
 }
 
-.profile-hero .avatar {
+.profile-hero .avatar-wrap {
   width: 156rpx;
   height: 156rpx;
   border-radius: 50%;
   border: 3rpx solid var(--color-accent);
+  overflow: hidden;
   display: grid;
   place-items: center;
+  background: var(--color-surface);
+  /* 因为现在是 <button open-type="chooseAvatar">，需要 reset 默认按钮样式 */
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.profile-hero .avatar-wrap::after {
+  display: none;
+}
+
+.profile-hero .avatar-img {
+  width: 156rpx;
+  height: 156rpx;
+  border-radius: 50%;
+}
+
+.profile-hero .avatar-letter {
   font-family: var(--font-display);
   font-size: 64rpx;
   font-weight: 500;
   color: var(--color-fg);
-  background: var(--color-surface);
 }
 
 .profile-hero .who {

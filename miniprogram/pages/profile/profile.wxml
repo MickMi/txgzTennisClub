@@ -33,7 +33,10 @@ module.exports = {
 
   <!-- 1. Profile Hero -->
   <view class="profile-hero">
-    <view class="avatar">{{fmt.firstChar(user.wecomName)}}</view>
+    <button class="avatar-wrap" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <image wx:if="{{user.avatarUrl}}" class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="avatar-letter">{{fmt.firstChar(user.wecomName)}}</view>
+    </button>
     <view class="who">
       <view class="name">{{user.wecomName || '未登记'}}</view>
       <view class="role">
