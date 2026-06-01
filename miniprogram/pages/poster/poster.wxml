@@ -11,7 +11,7 @@
 
   <!-- 海报预览区 -->
   <view class="preview-wrap">
-    <view class="preview-frame" wx:if="{{!loading}}">
+    <view class="preview-frame" wx:if="{{!loading}}" style="aspect-ratio: {{previewRatio || (750/1600)}};">
       <canvas type="2d" id="posterCanvas" class="canvas-el"></canvas>
     </view>
     <view wx:else class="preview-loading muted">

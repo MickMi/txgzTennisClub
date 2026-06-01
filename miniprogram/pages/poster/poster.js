@@ -2,7 +2,7 @@
 const api = require('../../utils/api.js');
 const { getCachedUser } = require('../../utils/user.js');
 const { POSTER_STYLES } = require('../../utils/poster-styles.js');
-const { drawPoster, W, H } = require('../../utils/poster-draw.js');
+const { drawPoster, computeCanvasH, W } = require('../../utils/poster-draw.js');
 const { computeHighlight, collectUserMatches } = require('../../utils/highlight.js');
 
 function formatDateMono(ts) {
@@ -187,8 +187,9 @@ Page({
         }
         this.canvasNode = res[0].node;
         this.ctx = this.canvasNode.getContext('2d');
+        // canvas 高度由 drawPoster 内部按数据动态设置，这里只先给个占位值
         this.canvasNode.width = W;
-        this.canvasNode.height = H;
+        this.canvasNode.height = 1600;
         this.renderPoster();
       });
   },
@@ -203,8 +204,11 @@ Page({
       highlight: this.highlight,
       style: this.data.currentStyle
     };
+    // drawPoster 会先按内容计算 canvasH 并设置 canvas.width/height，再绘制
     drawPoster(this.ctx, this.canvasNode, data);
-    this.setData({ posterReady: true });
+    // 同步预览框宽高比（让 CSS aspect-ratio 跟着实际 canvas 变化）
+    const ratio = this.canvasNode.width / this.canvasNode.height;
+    this.setData({ posterReady: true, previewRatio: ratio });
   },
 
   switchStyle(e) {
@@ -223,7 +227,9 @@ Page({
       wx.showToast({ title: '海报未生成', icon: 'none' });
       return;
     }
-    console.log('[poster] onSave: starting export, canvas=', this.canvasNode);
+    const cw = this.canvasNode.width;
+    const ch = this.canvasNode.height;
+    console.log('[poster] onSave: starting export', { w: cw, h: ch });
     wx.showLoading({ title: '导出中', mask: true });
     // ⚠️ type=2d canvas 必须显式传 x/y/width/height/destWidth/destHeight，
     // 否则会拿 canvas 的 CSS 尺寸（可能是 0 或被拉伸）导出，输出空白
@@ -231,10 +237,10 @@ Page({
       canvas: this.canvasNode,
       x: 0,
       y: 0,
-      width: W,
-      height: H,
-      destWidth: W,
-      destHeight: H,
+      width: cw,
+      height: ch,
+      destWidth: cw,
+      destHeight: ch,
       fileType: 'png',
       quality: 1,
       success: res => {
@@ -341,11 +347,13 @@ Page({
     }
     const tournamentTitle = (this.tournament && this.tournament.title) || '腾讯广州网球社';
     return new Promise(resolve => {
+      const cw = this.canvasNode.width;
+      const ch = this.canvasNode.height;
       wx.canvasToTempFilePath({
         canvas: this.canvasNode,
         x: 0, y: 0,
-        width: W, height: H,
-        destWidth: W, destHeight: H,
+        width: cw, height: ch,
+        destWidth: cw, destHeight: ch,
         fileType: 'jpg',
         quality: 0.9,
         success: res => {

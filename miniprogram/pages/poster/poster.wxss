@@ -52,7 +52,7 @@
 .preview-frame {
   width: 100%;
   max-width: 600rpx;
-  aspect-ratio: 750 / 1800;
+  /* aspect-ratio 由 wxml inline style 注入（previewRatio 由 canvas 动态宽高比生成） */
   display: flex;
   align-items: center;
   justify-content: center;

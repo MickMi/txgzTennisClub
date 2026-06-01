@@ -1,16 +1,18 @@
 // utils/poster-draw.js
-// Canvas 海报绘制主逻辑。750 × 1800 px (2x retina, 9:21.6 竖版加长)。
+// Canvas 海报绘制主逻辑。宽固定 750 px (2x retina)，高度根据内容动态计算。
 //
 // 设计原则：所有间距走统一网格系统，参照 docs/references/share-posters-emerald.html
-// 参考稿是 375×667 (1x)，本文件 2x。canvas 加长到 1800 px 容纳 8 人 roster +
-// 完整 highlight/match-history 不撞 footer。
+// 参考稿是 375×667 (1x)，本文件 2x。
+// canvas 高度 = Hero(540) + 各 section 实际高度（依据数据）+ Footer(100)
+// → 短内容海报短，长内容海报长，永远不空也永远不撞
 //
 // 入口：drawPoster(ctx, canvas, data)
 //   data: { type, tournament, me, userStats, highlight, style }
 //   type: 'report' | 'personal'
 
 const W = 750;
-const H = 1800;
+// 默认高度（导出时实际 canvas.height 由 computeCanvasH 算出，可能更大或更小）
+const H_DEFAULT = 1600;
 
 // === 网格系统（canvas px，全部 2x 于参考稿）===
 const SIDE = 56;            // 28 × 2 — section 左右内边距
@@ -20,6 +22,7 @@ const HERO_PAD_TOP = 72;    // 36 × 2
 const HERO_PAD_BOT = 56;    // 28 × 2
 const SECTION_PAD_Y = 40;   // section 上下内边距
 const FOOT_H = 100;         // footer 高度
+const FOOT_GAP = 32;        // roster/history 末端到 footer 的间距
 
 // === Typography（canvas px）===
 const T = {
@@ -48,9 +51,9 @@ const T = {
 
 // ====== 基础工具 ======
 
-function clear(ctx, style) {
+function clear(ctx, style, h) {
   ctx.fillStyle = style.bg;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, W, h);
 }
 
 function drawHeroBg(ctx, style) {
@@ -215,14 +218,14 @@ function drawHeroKicker(ctx, y, style, text) {
 
 // ====== Personal Poster ======
 
-function drawPersonalPoster(ctx, data) {
+function drawPersonalPoster(ctx, data, canvasH) {
   const t = data.tournament || {};
   const me = data.me || {};
   const stats = data.userStats || {};
   const hl = data.highlight;
   const s = data.style;
 
-  clear(ctx, s);
+  clear(ctx, s, canvasH);
   drawHeroBg(ctx, s);
 
   // === Hero ===
@@ -281,8 +284,8 @@ function drawPersonalPoster(ctx, data) {
   y = drawSectionEyebrow(ctx, y, s, `MATCHES · ${(stats.matches || []).length} 场记录`);
   y = drawHistory(ctx, y, s, stats.matches || []);
 
-  // === Footer ===
-  drawFooter(ctx, s);
+  // === Footer === （位置由 canvasH 决定，紧贴底部）
+  drawFooter(ctx, s, canvasH - FOOT_H);
 }
 
 // 安全访问 style.accent 等（兜底）
@@ -399,12 +402,12 @@ function drawHistory(ctx, y, style, matches) {
 
 // ====== Report Poster ======
 
-function drawReportPoster(ctx, data) {
+function drawReportPoster(ctx, data, canvasH) {
   const t = data.tournament || {};
   const s = data.style;
   const rs = t._reportStats || {};
 
-  clear(ctx, s);
+  clear(ctx, s, canvasH);
   drawHeroBg(ctx, s);
 
   // === Hero ===
@@ -445,8 +448,8 @@ function drawReportPoster(ctx, data) {
   y = drawSectionEyebrow(ctx, y, s, `ROSTER · 全部 ${(t.players || []).length} 人`);
   y = drawRoster(ctx, y, s, t.players || []);
 
-  // === Footer ===
-  drawFooter(ctx, s);
+  // === Footer === （位置由 canvasH 决定，紧贴底部）
+  drawFooter(ctx, s, canvasH - FOOT_H);
 }
 
 function drawPodium(ctx, y, style, awards, fallbackPlayers) {
@@ -569,31 +572,90 @@ function drawRoster(ctx, y, style, players) {
 
 // ====== Footer（共享）======
 
-function drawFooter(ctx, style) {
-  const y = H - FOOT_H;
-  drawHairline(ctx, y, style);
+function drawFooter(ctx, style, footY) {
+  drawHairline(ctx, footY, style);
   setFont(ctx, T.footEy, 'normal', style.fontMono);
-  fillText(ctx, 'TENCENT GUANGZHOU TENNIS CLUB', SIDE, y + 32, {
+  fillText(ctx, 'TENCENT GUANGZHOU TENNIS CLUB', SIDE, footY + 32, {
     color: style.muted, baseline: 'top'
   });
   setFont(ctx, T.footEy, 'normal', style.fontMono);
-  fillText(ctx, 'EST. 2025', W - SIDE, y + 32, {
+  fillText(ctx, 'EST. 2025', W - SIDE, footY + 32, {
     color: style.muted, align: 'right', baseline: 'top'
   });
 }
 
 // ====== 主入口 ======
 
+// 根据 data 内容预计算 canvas 实际高度。
+// 与下面 drawReportPoster / drawPersonalPoster 的 Y 累加逻辑严格对应。
+// 改其中一处，另一处也要同步。
+function computeCanvasH(ctx, data) {
+  const s = data.style;
+  if (data.type === 'report') {
+    const t = data.tournament || {};
+    const players = t.players || [];
+    let y = HERO_H;
+    // Podium section
+    y += T.eyebrow + 28 + SECTION_PAD_Y; // eyebrow + gap (drawSectionEyebrow)
+    y += 220;                            // podium content
+    y += SECTION_PAD_Y + HAIRLINE;       // 下 padding + hairline
+    // Stats section（无 eyebrow，靠两 hairline 夹）
+    y += SECTION_PAD_Y;                  // 上 padding
+    y += T.statN + T.statL + 22;         // stats 数字 + 标签 + 内边距
+    y += SECTION_PAD_Y + HAIRLINE;       // 下 padding + hairline
+    // Roster section
+    y += T.eyebrow + 28 + SECTION_PAD_Y; // eyebrow
+    const rosterRows = Math.max(1, Math.ceil(Math.min(8, players.length) / 4));
+    y += rosterRows * 130;
+    if (players.length > 8) y += 40;
+    // Footer
+    y += FOOT_GAP + FOOT_H;
+    return y;
+  }
+
+  // personal
+  const stats = data.userStats || {};
+  const hl = data.highlight;
+  const matches = stats.matches || [];
+  let y = HERO_H;
+  // Big Four section
+  y += T.eyebrow + 28 + SECTION_PAD_Y;
+  y += 130 * 2 - 30;                     // drawBigFour 返回 y + cellH*2 - 30
+  y += SECTION_PAD_Y + HAIRLINE;
+  // Highlight section
+  y += T.eyebrow + 28 + SECTION_PAD_Y;
+  if (hl) {
+    setFont(ctx, T.hlContent, '500', s.fontDisplay);
+    const lines = Math.min(3, wrapText(ctx, hl.detail || hl.title || '', W - SIDE * 2).length);
+    y += lines * (T.hlContent + 8);
+    if (hl.score) y += T.hlDetail + 16;
+  }
+  y += SECTION_PAD_Y + HAIRLINE;
+  // Match History section
+  y += T.eyebrow + 28 + SECTION_PAD_Y;
+  const rowCount = Math.min(6, matches.length);
+  if (rowCount === 0) {
+    y += 40;                             // 占位行（保证不撞 footer）
+  } else {
+    y += rowCount * 60;
+    if (matches.length > rowCount) y += 40;
+  }
+  // Footer
+  y += FOOT_GAP + FOOT_H;
+  return y;
+}
+
 function drawPoster(ctx, canvas, data) {
+  const canvasH = computeCanvasH(ctx, data);
   if (canvas) {
     canvas.width = W;
-    canvas.height = H;
+    canvas.height = canvasH;
   }
   if (data.type === 'report') {
-    drawReportPoster(ctx, data);
+    drawReportPoster(ctx, data, canvasH);
   } else {
-    drawPersonalPoster(ctx, data);
+    drawPersonalPoster(ctx, data, canvasH);
   }
 }
 
-module.exports = { drawPoster, W, H };
+module.exports = { drawPoster, computeCanvasH, W, H_DEFAULT };
