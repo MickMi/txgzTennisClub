@@ -529,7 +529,7 @@ function drawFooter(ctx, style) {
     color: style.muted, baseline: 'top'
   });
   setFont(ctx, T.footEy, 'normal', style.fontMono);
-  fillText(ctx, 'EST. 2024', W - SIDE, y + 32, {
+  fillText(ctx, 'EST. 2025', W - SIDE, y + 32, {
     color: style.muted, align: 'right', baseline: 'top'
   });
 }
