@@ -87,9 +87,37 @@ Page({
   },
 
   onJoin() {
+    // 未登记用户先引导去 onboarding（和 tournament-detail.onSignup 保持一致）
+    const user = this.data.user;
+    if (!user || !user.wecomName) {
+      wx.showModal({
+        title: '尚未完成登记',
+        content: '参加活动前需要先登记身份信息，是否现在去登记？',
+        confirmText: '去登记',
+        success: res => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/onboarding/onboarding' });
+          }
+        }
+      });
+      return;
+    }
     api.joinActivity(this.data.id).then(() => {
       wx.showToast({ title: '已报名', icon: 'success' });
       this.load();
+    }).catch(err => {
+      // 兜底：云函数拦截未登记（避免在缓存里 user.wecomName 已存在但后端判断为空）
+      const msg = (err && err.msg) || '';
+      if (msg.includes('登记')) {
+        wx.showModal({
+          title: '尚未完成登记',
+          content: msg + '，是否现在去登记？',
+          confirmText: '去登记',
+          success: r => {
+            if (r.confirm) wx.navigateTo({ url: '/pages/onboarding/onboarding' });
+          }
+        });
+      }
     });
   },
 
@@ -109,6 +137,10 @@ Page({
   },
 
   onEdit() {
+    if (this.data.isClosed) {
+      wx.showToast({ title: '活动已结束，不能编辑', icon: 'none' });
+      return;
+    }
     wx.navigateTo({
       url: `/pages/activity-create/activity-create?id=${this.data.id}`
     });

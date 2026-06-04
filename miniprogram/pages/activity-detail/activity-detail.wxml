@@ -84,7 +84,10 @@
           class="player"
           data-gender="{{item.gender}}"
         >
-          <view class="avatar">{{item.wecomName[0]}}</view>
+          <view class="avatar">
+            <image wx:if="{{item.avatarUrl}}" class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <text wx:else>{{item.wecomName[0]}}</text>
+          </view>
           <view class="player-info">
             <text class="player-name">{{item.wecomName}}</text>
             <text class="player-rating {{item.rating ? '' : 'unrated'}}">
@@ -115,7 +118,7 @@
         <button class="btn-default admin-btn" bindtap="onExport">
           <icon name="list" size="32" /> 导出名单
         </button>
-        <button class="btn-default admin-btn" bindtap="onEdit">
+        <button class="btn-default admin-btn" bindtap="onEdit" disabled="{{isClosed}}">
           <icon name="pencil" size="32" /> 编辑
         </button>
         <button class="btn-danger admin-btn" bindtap="onDelete">
