@@ -89,22 +89,28 @@ exports.main = async event => {
     if (!res || !res.data) return { code: 1, msg: '活动不存在' };
     const activity = res.data;
 
-    // 为每个参与者附加评级信息
+    // 为每个参与者附加最新的 rating / gender / avatarUrl（永远显示最新头像，
+    // 不依赖 join 时快照写入的字段）
     const participants = activity.participants || [];
     if (participants.length > 0) {
       const openids = participants.map(p => p.openid);
       const usersRes = await db.collection(USERS)
         .where({ openid: _.in(openids) })
-        .field({ openid: true, rating: true, gender: true })
+        .field({ openid: true, rating: true, gender: true, avatarUrl: true })
         .get();
-      const ratingMap = {};
+      const userMap = {};
       for (const u of usersRes.data) {
-        ratingMap[u.openid] = { rating: u.rating || '', gender: u.gender || '' };
+        userMap[u.openid] = {
+          rating: u.rating || '',
+          gender: u.gender || '',
+          avatarUrl: u.avatarUrl || ''
+        };
       }
       activity.participants = participants.map(p => ({
         ...p,
-        rating: ratingMap[p.openid] ? ratingMap[p.openid].rating : '',
-        gender: ratingMap[p.openid] ? ratingMap[p.openid].gender : ''
+        rating: userMap[p.openid] ? userMap[p.openid].rating : '',
+        gender: userMap[p.openid] ? userMap[p.openid].gender : '',
+        avatarUrl: userMap[p.openid] ? userMap[p.openid].avatarUrl : ''
       }));
     }
 
@@ -117,6 +123,11 @@ exports.main = async event => {
     const p = event.payload || {};
     if (!p.title || !p.startTime || !p.location) {
       return { code: 1, msg: '参数不完整' };
+    }
+    // 不允许创建过去的活动（宽限 5 分钟）
+    const TOLERANCE_MS = 5 * 60 * 1000;
+    if (p.startTime < Date.now() - TOLERANCE_MS) {
+      return { code: 1, msg: '活动时间不能早于当前' };
     }
     const now = Date.now();
     const addRes = await db.collection(ACT).add({
@@ -204,7 +215,18 @@ exports.main = async event => {
     if (a.creator !== OPENID && (!me || me.role !== 'admin')) {
       return { code: 1, msg: '无权限编辑' };
     }
+    // 已关闭的活动不允许再编辑（避免改时间产生时间逻辑混乱）
+    if (a.status === 'closed') {
+      return { code: 1, msg: '活动已结束，不能再编辑' };
+    }
     const p = event.payload || {};
+    // 不允许把开始时间改到过去（宽限 5 分钟）
+    if (p.startTime !== undefined) {
+      const TOLERANCE_MS = 5 * 60 * 1000;
+      if (p.startTime < Date.now() - TOLERANCE_MS) {
+        return { code: 1, msg: '活动时间不能早于当前' };
+      }
+    }
     const updateData = { updatedAt: Date.now() };
     if (p.title) updateData.title = String(p.title).slice(0, 40);
     if (p.startTime) updateData.startTime = p.startTime;
