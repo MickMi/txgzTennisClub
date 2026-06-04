@@ -21,7 +21,7 @@ const HERO_H = 540;         // ~270 × 2 — hero 高度
 const HERO_PAD_TOP = 72;    // 36 × 2
 const HERO_PAD_BOT = 56;    // 28 × 2
 const SECTION_PAD_Y = 40;   // section 上下内边距
-const FOOT_H = 100;         // footer 高度
+const FOOT_H = 140;         // footer 高度（含二维码）
 const FOOT_GAP = 32;        // roster/history 末端到 footer 的间距
 
 // === Typography（canvas px）===
@@ -101,9 +101,33 @@ function drawHairline(ctx, y, style) {
   ctx.restore();
 }
 
-// 圆形 avatar（首字母）
+// 圆形 avatar
+// opts.image: 已加载完成的 canvas Image 对象（来自 preloadAvatars）
+//   - 有：clip 圆 + drawImage（cover），外加描边
+//   - 无：回退到首字母 + 背景填充（与原版一致）
 function drawAvatar(ctx, cx, cy, r, name, opts) {
   const o = opts || {};
+  if (o.image) {
+    // 1) clip 圆形区域 → drawImage cover 充满
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(o.image, cx - r, cy - r, r * 2, r * 2);
+    ctx.restore();
+    // 2) 描边（在 clip 之外画，否则会被裁掉一半）
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.lineWidth = o.borderWidth || 2;
+    ctx.strokeStyle = o.border || '#fff';
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  // 回退：首字母版本（原版）
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -121,6 +145,93 @@ function drawAvatar(ctx, cx, cy, r, name, opts) {
   setFont(ctx, Math.round(r * 0.95), o.fontWeight || '500', o.font || 'PingFang SC');
   ctx.fillText((name || '?').charAt(0), cx, cy + 2);
   ctx.restore();
+}
+
+// 批量预加载头像 → openid 索引的 canvas Image map
+//   canvas: type=2d 的 canvas 节点（用 canvas.createImage()）
+//   openidToUrl: { [openid]: 'cloud://...' | 'https://...' | '' }
+//   返回 Promise<{ [openid]: Image }>，失败的项不会出现在结果里（渲染时回退首字母）
+//
+// 健壮性：
+//   - 每张图最多 6 秒超时（避免单张挂死整个流程）
+//   - 单张失败不影响其它（个别人的头像挂掉不影响整张海报）
+//   - 详细日志，便于定位
+function preloadAvatars(canvas, openidToUrl) {
+  const result = {};
+  if (!canvas || !openidToUrl) return Promise.resolve(result);
+
+  const entries = Object.entries(openidToUrl).filter(([, url]) => !!url);
+  if (entries.length === 0) {
+    return Promise.resolve(result);
+  }
+
+  const PER_IMAGE_TIMEOUT = 6000;
+
+  return Promise.all(entries.map(([openid, url]) => {
+    return withTimeout(
+      resolveLocalPath(url).then(localPath => loadCanvasImage(canvas, localPath)),
+      PER_IMAGE_TIMEOUT,
+      `avatar ${openid}`
+    )
+      .then(img => {
+        result[openid] = img;
+      })
+      .catch(err => {
+        console.warn('[poster] avatar load failed', openid, url, err && (err.errMsg || err.message));
+      });
+  })).then(() => {
+    return result;
+  });
+}
+
+function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      reject(new Error(`timeout ${ms}ms: ${label}`));
+    }, ms);
+    promise.then(
+      val => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(val);
+      },
+      err => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+// cloud:// → 本地 wxfile://（以便给 canvas createImage().src）
+// https / wxfile / 本地路径 → 直接返回
+function resolveLocalPath(url) {
+  if (typeof url !== 'string') return Promise.reject(new Error('bad url'));
+  if (url.startsWith('cloud://')) {
+    return new Promise((resolve, reject) => {
+      wx.cloud.downloadFile({
+        fileID: url,
+        success: res => resolve(res.tempFilePath),
+        fail: reject
+      });
+    });
+  }
+  return Promise.resolve(url);
+}
+
+function loadCanvasImage(canvas, localPath) {
+  return new Promise((resolve, reject) => {
+    const img = canvas.createImage();
+    img.onload = () => resolve(img);
+    img.onerror = e => reject(e || new Error('image load error'));
+    img.src = localPath;
+  });
 }
 
 // 文本省略
@@ -224,6 +335,7 @@ function drawPersonalPoster(ctx, data, canvasH) {
   const stats = data.userStats || {};
   const hl = data.highlight;
   const s = data.style;
+  const avatarMap = data.avatarMap || {};
 
   clear(ctx, s, canvasH);
   drawHeroBg(ctx, s);
@@ -236,6 +348,7 @@ function drawPersonalPoster(ctx, data, canvasH) {
   const idY = HERO_PAD_TOP + 70;
   const avR = 50;
   drawAvatar(ctx, SIDE + avR, idY + avR, avR, me.wecomName, {
+    image: avatarMap[me.openid],
     bg: 'rgba(255, 255, 255, 0.06)',
     border: style0(s).accent,
     borderWidth: 3,
@@ -285,7 +398,7 @@ function drawPersonalPoster(ctx, data, canvasH) {
   y = drawHistory(ctx, y, s, stats.matches || []);
 
   // === Footer === （位置由 canvasH 决定，紧贴底部）
-  drawFooter(ctx, s, canvasH - FOOT_H);
+  drawFooter(ctx, s, canvasH - FOOT_H, data.qrImage);
 }
 
 // 安全访问 style.accent 等（兜底）
@@ -364,24 +477,24 @@ function drawHistory(ctx, y, style, matches) {
   const list = matches.slice(0, maxRows);
   let ry = y;
   list.forEach((m, i) => {
-    // 圆点
+    // 圆点 — 视觉中心 = row 中心 (ry + rowH/2 = ry + 30)
     ctx.beginPath();
-    ctx.arc(SIDE + 6, ry + 22, 6, 0, Math.PI * 2);
+    ctx.arc(SIDE + 6, ry + 30, 6, 0, Math.PI * 2);
     ctx.fillStyle = m.win ? style.positive : style.muted;
     ctx.fill();
-    // round (mono)
+    // round (mono) — middle baseline，y 对齐到 row 中心
     setFont(ctx, T.histRound, 'normal', style.fontMono);
-    fillText(ctx, (m.round || '').toUpperCase().slice(0, 5), SIDE + 28, ry + 12, {
-      color: style.muted, baseline: 'top'
+    fillText(ctx, (m.round || '').toUpperCase().slice(0, 5), SIDE + 92, ry + 30, {
+      color: style.muted, baseline: 'middle', align: 'right'
     });
-    // opponent
+    // opponent — middle baseline，y 对齐到 row 中心
     setFont(ctx, T.histOpp, 'normal', style.fontDisplay);
-    fillText(ctx, ellipsize(ctx, m.opponentName || '—', W - SIDE * 2 - 240),
-      SIDE + 96, ry + 18, { color: style.fg, baseline: 'top' });
-    // score
+    fillText(ctx, ellipsize(ctx, m.opponentName || '—', W - SIDE * 2 - 220),
+      SIDE + 108, ry + 30, { color: style.fg, baseline: 'middle' });
+    // score — middle baseline，y 对齐到 row 中心
     setFont(ctx, T.histScore, '500', style.fontMono);
-    fillText(ctx, m.scoreText || '—', W - SIDE, ry + 18, {
-      color: m.win ? style.fg : style.muted, align: 'right', baseline: 'top'
+    fillText(ctx, m.scoreText || '—', W - SIDE, ry + 30, {
+      color: m.win ? style.fg : style.muted, align: 'right', baseline: 'middle'
     });
     // 分隔线
     if (i < list.length - 1) {
@@ -406,6 +519,7 @@ function drawReportPoster(ctx, data, canvasH) {
   const t = data.tournament || {};
   const s = data.style;
   const rs = t._reportStats || {};
+  const avatarMap = data.avatarMap || {};
 
   clear(ctx, s, canvasH);
   drawHeroBg(ctx, s);
@@ -432,7 +546,7 @@ function drawReportPoster(ctx, data, canvasH) {
   // === Section: Podium ===
   let y = HERO_H;
   y = drawSectionEyebrow(ctx, y, s, '名次 · PLACEMENT', s.accent);
-  y = drawPodium(ctx, y, s, t.placementAwards || [], t.players || []);
+  y = drawPodium(ctx, y, s, t, avatarMap);
   y += SECTION_PAD_Y;
   drawHairline(ctx, y, s);
   y += HAIRLINE;
@@ -445,67 +559,276 @@ function drawReportPoster(ctx, data, canvasH) {
   y += HAIRLINE;
 
   // === Section: Roster ===
-  y = drawSectionEyebrow(ctx, y, s, `ROSTER · 全部 ${(t.players || []).length} 人`);
-  y = drawRoster(ctx, y, s, t.players || []);
+  const rosterLabel = t.type === 'doubles' && Array.isArray(t.teams) && t.teams.length > 0
+    ? `ROSTER · 全部 ${t.teams.length} 队`
+    : `ROSTER · 全部 ${(t.players || []).length} 人`;
+  y = drawSectionEyebrow(ctx, y, s, rosterLabel);
+  y = drawRoster(ctx, y, s, t.players || [], avatarMap, t);
 
   // === Footer === （位置由 canvasH 决定，紧贴底部）
-  drawFooter(ctx, s, canvasH - FOOT_H);
+  drawFooter(ctx, s, canvasH - FOOT_H, data.qrImage);
 }
 
-function drawPodium(ctx, y, style, awards, fallbackPlayers) {
-  // 优先用 placementAwards（赛事完整结束后才有）
-  let top3 = (awards || [])
-    .filter(a => a.placement && a.placement <= 3)
-    .sort((a, b) => a.placement - b.placement);
+// 把 placementAwards（每条对应一个真实成员）聚合成"领奖单位"列表
+// 单打：每条 award 一个 unit，members.length === 1
+// 双打：同 teamId 的多条 award 合并为一个 unit，members.length === 2
+function aggregatePodiumAwards(awards) {
+  const filtered = (awards || []).filter(a => a.placement && a.placement <= 3);
+  // 按 placement 升序，保持先冠后亚
+  filtered.sort((a, b) => a.placement - b.placement);
+  const groups = new Map();
+  for (const a of filtered) {
+    // teamId 存在 → 双打按队聚合；不存在 → 按 openid 单独成 unit
+    const key = a.teamId || `solo_${a.openid}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        placement: a.placement,
+        teamId: a.teamId || null,
+        members: [],
+        points: a.points || a.pts || 0,
+        _fallback: a._fallback
+      });
+    }
+    groups.get(key).members.push({
+      openid: a.openid,
+      wecomName: a.wecomName
+    });
+  }
+  return Array.from(groups.values());
+}
 
-  // 兜底：placementAwards 缺失（如赛事仍在进行）时，
+// 算 podium 区域高度（drawPodium 和 computeCanvasH 都用这个保持一致）
+// N=2 决赛计分牌：高度 266rpx；其它（1/3 格）：220rpx
+function computePodiumH(awards, fallbackPlayers) {
+  const top3 = aggregatePodiumAwards(awards || []);
+  const u1 = top3.find(u => u.placement === 1);
+  const u2 = top3.find(u => u.placement === 2);
+  const u3 = top3.find(u => u.placement === 3);
+  const isFinalDuel = !!u1 && !!u2 && !u3;
+  if (isFinalDuel) return 266;
+  // fallback 状态总用三格风格（N≤3）
+  return 220;
+}
+
+// 决赛计分牌（仅冠+亚两人/队场景）：上下两行 + 横线分隔
+// 取决赛比分需要 tournament.knockout.rounds 末轮的 matches[0]
+function drawFinalScoreboard(ctx, yStart, style, tournament, units, avatarMap) {
+  const aMap = avatarMap || {};
+  const ROW_H = 130;
+  const HL = 2;
+
+  // 取决赛比分（winner side = 冠军、loser side = 亚军）
+  let goldScore = '—', silverScore = '—';
+  const ko = tournament && tournament.knockout;
+  const rounds = (ko && ko.rounds) || [];
+  if (rounds.length > 0) {
+    const finalMatch = (rounds[rounds.length - 1].matches || [])[0];
+    if (finalMatch && finalMatch.winner && finalMatch.scoreA != null && finalMatch.scoreB != null) {
+      const sA = finalMatch.scoreA;
+      const sB = finalMatch.scoreB;
+      goldScore = String(finalMatch.winner === 'A' ? sA : sB);
+      silverScore = String(finalMatch.winner === 'A' ? sB : sA);
+    }
+  }
+
+  // 顶部 hairline
+  ctx.fillStyle = style.border;
+  ctx.fillRect(SIDE, yStart, W - SIDE * 2, HL);
+  // 冠军行
+  drawScoreboardRow(ctx, yStart + HL, ROW_H, style, {
+    isGold: true, label: '冠', unit: units[0],
+    points: units[0].points, score: goldScore, avatarMap: aMap
+  });
+  // 中间 hairline
+  ctx.fillStyle = style.border;
+  ctx.fillRect(SIDE, yStart + HL + ROW_H, W - SIDE * 2, HL);
+  // 亚军行
+  drawScoreboardRow(ctx, yStart + HL + ROW_H + HL, ROW_H, style, {
+    isGold: false, label: '亚', unit: units[1],
+    points: units[1].points, score: silverScore, avatarMap: aMap
+  });
+  // 底部 hairline
+  ctx.fillStyle = style.border;
+  ctx.fillRect(SIDE, yStart + HL + ROW_H + HL + ROW_H, W - SIDE * 2, HL);
+
+  return yStart + HL * 3 + ROW_H * 2; // = yStart + 266
+}
+
+// 计分牌单行（冠军 / 亚军共用）
+function drawScoreboardRow(ctx, y, rowH, style, opts) {
+  const { isGold, label, unit, points, score, avatarMap } = opts;
+  const cy = y + rowH / 2;
+  const goldCol = style.accent;
+  const mutedCol = style.muted;
+  const fgCol = style.fg;
+
+  // 1. 左侧 tag（冠/亚）大字
+  setFont(ctx, 32, '500', style.fontDisplay);
+  fillText(ctx, label, SIDE + 8, cy, {
+    color: isGold ? goldCol : mutedCol,
+    align: 'left', baseline: 'middle'
+  });
+
+  // 2. 头像区（双打两个并排，单打一个）
+  const avStartX = SIDE + 80;
+  const isTeam = unit.members.length > 1;
+  let nameX;
+  if (isTeam) {
+    const avR = 30;
+    drawAvatar(ctx, avStartX + avR, cy, avR, unit.members[0].wecomName, {
+      image: avatarMap[unit.members[0].openid],
+      border: isGold ? goldCol : style.border,
+      borderWidth: isGold ? 2.5 : 2,
+      bg: style.surface, fg: fgCol, font: style.fontDisplay
+    });
+    drawAvatar(ctx, avStartX + avR * 3 + 6, cy, avR, unit.members[1].wecomName, {
+      image: avatarMap[unit.members[1].openid],
+      border: isGold ? goldCol : style.border,
+      borderWidth: isGold ? 2.5 : 2,
+      bg: style.surface, fg: fgCol, font: style.fontDisplay
+    });
+    nameX = avStartX + avR * 4 + 6 + 16;
+  } else {
+    const avR = 38;
+    drawAvatar(ctx, avStartX + avR, cy, avR, unit.members[0].wecomName, {
+      image: avatarMap[unit.members[0].openid],
+      border: isGold ? goldCol : style.border,
+      borderWidth: isGold ? 2.5 : 2,
+      bg: style.surface, fg: fgCol, font: style.fontDisplay
+    });
+    nameX = avStartX + avR * 2 + 20;
+  }
+
+  // 3. 名字 + 4. 积分（积分在右侧但不靠最右，给比分留位置）
+  // 5. 大比分（最右）：先把比分宽度算出来，给名字 max width
+  const scoreFontPx = 72;
+  setFont(ctx, scoreFontPx, '500', style.fontDisplay);
+  const scoreW = ctx.measureText(score).width;
+  const scoreX = W - SIDE - 12;
+  fillText(ctx, score, scoreX, cy, {
+    color: isGold ? goldCol : fgCol,
+    align: 'right', baseline: 'middle'
+  });
+
+  // 4. 积分（紧贴比分左侧）
+  setFont(ctx, 22, 'normal', style.fontMono);
+  const ptsTxt = isTeam ? `+${points} 分·双` : `+${points} 分`;
+  const ptsW = ctx.measureText(ptsTxt).width;
+  const ptsX = scoreX - scoreW - 28;
+  fillText(ctx, ptsTxt, ptsX, cy, {
+    color: isGold ? goldCol : mutedCol,
+    align: 'right', baseline: 'middle'
+  });
+
+  // 3. 名字（剩下中间空间）
+  setFont(ctx, 30, '500', style.fontDisplay);
+  const nameMaxW = ptsX - ptsW - nameX - 16;
+  const nameText = unit.members.map(m => m.wecomName).join(' / ');
+  fillText(ctx, ellipsize(ctx, nameText, Math.max(80, nameMaxW)), nameX, cy, {
+    color: fgCol, align: 'left', baseline: 'middle'
+  });
+}
+
+function drawPodium(ctx, y, style, tournament, avatarMap) {
+  const aMap = avatarMap || {};
+  const awards = (tournament && tournament.placementAwards) || [];
+  const fallbackPlayers = (tournament && tournament.players) || [];
+
+  // 1) 聚合：单打→每条一个 unit；双打→同 teamId 合并
+  let top3 = aggregatePodiumAwards(awards);
+
+  // 2) 兜底：placementAwards 缺失（如赛事仍在进行）时，
   // 用 fallbackPlayers 的前 3（按报名/积分顺序），避免画一排空头像
   if (top3.length === 0 && Array.isArray(fallbackPlayers) && fallbackPlayers.length > 0) {
     top3 = fallbackPlayers.slice(0, 3).map((p, i) => ({
       placement: i + 1,
-      wecomName: p.wecomName,
+      teamId: null,
+      members: [{ openid: p.openid, wecomName: p.wecomName }],
       points: 0,
       _fallback: true
     }));
   }
 
-  const arr = [
-    top3.find(a => a.placement === 2) || null,
-    top3.find(a => a.placement === 1) || null,
-    top3.find(a => a.placement === 3) || null
-  ];
-  const labels = ['亚军', '冠军', '季军'];
+  // 3) 取出冠/亚/季 unit；严格前缀
+  const u1 = top3.find(u => u.placement === 1) || null;
+  const u2 = top3.find(u => u.placement === 2) || null;
+  const u3 = top3.find(u => u.placement === 3) || null;
 
+  // ➤ N=2 且非 fallback：走计分牌路径
+  const isFinalDuel = !!u1 && !!u2 && !u3 && !u1._fallback && !u2._fallback;
+  if (isFinalDuel) {
+    return drawFinalScoreboard(ctx, y, style, tournament, [u1, u2], aMap);
+  }
+
+  let arr;
+  if (u1 && u2 && u3) arr = [u2, u1, u3];
+  else if (u1 && u2) arr = [u2, u1];     // fallback 时仍走传统两格
+  else if (u1) arr = [u1];
+  else arr = [];
+
+  if (arr.length === 0) return y; // 完全无数据：不画
+
+  const labelOf = (u) => u && u.placement === 1 ? '冠军'
+    : u && u.placement === 2 ? '亚军'
+    : u && u.placement === 3 ? '季军'
+    : '';
+
+  // 4) 居中布局：每格宽度 W/3，N 个格子整体居中
   const cellW = (W - SIDE * 2) / 3;
-  for (let i = 0; i < 3; i++) {
-    const cx = SIDE + i * cellW + cellW / 2;
-    const a = arr[i];
-    const isGold = i === 1;
+  const offset = ((3 - arr.length) * cellW) / 2;
+
+  for (let i = 0; i < arr.length; i++) {
+    const cx = SIDE + offset + i * cellW + cellW / 2;
+    const u = arr[i];
+    const isGold = u && u.placement === 1;
+
     setFont(ctx, T.rank, 'normal', style.fontMono);
-    fillText(ctx, labels[i].toUpperCase(), cx, y, {
+    fillText(ctx, labelOf(u).toUpperCase(), cx, y, {
       color: isGold ? style.accent : style.muted,
       align: 'center', baseline: 'top'
     });
-    const avR = isGold ? 56 : 44;
-    drawAvatar(ctx, cx, y + 60 + (isGold ? 0 : 12), avR, a ? a.wecomName : '·', {
-      border: isGold ? style.accent : style.border,
-      borderWidth: isGold ? 3 : 2,
-      bg: style.surface,
-      fg: style.fg,
-      font: style.fontDisplay
-    });
-    const nameY = y + 60 + (isGold ? 0 : 12) + avR + 14;
+
+    const avRSingle = isGold ? 56 : 44;
+    const avYTop = y + 60 + (isGold ? 0 : 12);
+    const isTeam = u && u.members && u.members.length > 1;
+
+    if (isTeam) {
+      const avR = Math.round(avRSingle * 0.78);
+      const off = Math.round(avR * 0.95);
+      drawAvatar(ctx, cx - off, avYTop + avRSingle, avR, u.members[0].wecomName, {
+        image: aMap[u.members[0].openid],
+        border: isGold ? style.accent : style.border,
+        borderWidth: isGold ? 3 : 2,
+        bg: style.surface, fg: style.fg, font: style.fontDisplay
+      });
+      drawAvatar(ctx, cx + off, avYTop + avRSingle, avR, u.members[1].wecomName, {
+        image: aMap[u.members[1].openid],
+        border: isGold ? style.accent : style.border,
+        borderWidth: isGold ? 3 : 2,
+        bg: style.surface, fg: style.fg, font: style.fontDisplay
+      });
+    } else {
+      drawAvatar(ctx, cx, avYTop + avRSingle, avRSingle, u.members[0].wecomName, {
+        image: aMap[u.members[0].openid],
+        border: isGold ? style.accent : style.border,
+        borderWidth: isGold ? 3 : 2,
+        bg: style.surface, fg: style.fg, font: style.fontDisplay
+      });
+    }
+
+    const nameY = avYTop + avRSingle * 2 + 14;
     setFont(ctx, T.podiumName, '500', style.fontDisplay);
-    fillText(ctx, a ? ellipsize(ctx, a.wecomName || '—', cellW - 24) : '—', cx, nameY, {
+    const nameText = u.members.map(m => m.wecomName).join(' / ');
+    fillText(ctx, ellipsize(ctx, nameText, cellW - 16), cx, nameY, {
       color: style.fg, align: 'center', baseline: 'top'
     });
-    if (a && !a._fallback) {
+    if (!u._fallback) {
       setFont(ctx, T.podiumPts, 'normal', style.fontMono);
-      fillText(ctx, `+${a.points || 0} 分`, cx, nameY + 36, {
+      const ptsText = isTeam ? `+${u.points || 0} 分 · 双打` : `+${u.points || 0} 分`;
+      fillText(ctx, ptsText, cx, nameY + 36, {
         color: style.accent, align: 'center', baseline: 'top'
       });
-    } else if (a && a._fallback) {
-      // 兜底状态：标注"赛中"，不写假积分
+    } else {
       setFont(ctx, T.podiumPts, 'normal', style.fontMono);
       fillText(ctx, '赛中', cx, nameY + 36, {
         color: style.muted, align: 'center', baseline: 'top'
@@ -541,7 +864,56 @@ function drawStatsStrip(ctx, y, style, rs) {
   return y + T.statN + T.statL + 22;
 }
 
-function drawRoster(ctx, y, style, players) {
+function drawRoster(ctx, y, style, players, avatarMap, tournament) {
+  const aMap = avatarMap || {};
+  const t = tournament || {};
+  const isDoubles = t.type === 'doubles' && Array.isArray(t.teams) && t.teams.length > 0;
+
+  if (isDoubles) {
+    // 双打：按小队展示（每格两个头像 + 队名）
+    const teams = t.teams;
+    const cols = 3;
+    const cellW = (W - SIDE * 2) / cols;
+    const rowH = 140;
+    teams.forEach((team, i) => {
+      const cx = SIDE + (i % cols) * cellW + cellW / 2;
+      const cy = y + Math.floor(i / cols) * rowH + 44;
+      const members = team.members || [];
+      const avatarR = 28;
+      const gap = 8;
+      // 两个头像并排居中
+      if (members.length >= 2) {
+        const leftCx = cx - avatarR - gap / 2;
+        const rightCx = cx + avatarR + gap / 2;
+        drawAvatar(ctx, leftCx, cy, avatarR, members[0].wecomName, {
+          image: aMap[members[0].openid],
+          border: style.border, borderWidth: 1.5,
+          bg: style.surface, fg: style.fg, font: style.fontDisplay
+        });
+        drawAvatar(ctx, rightCx, cy, avatarR, members[1].wecomName, {
+          image: aMap[members[1].openid],
+          border: style.border, borderWidth: 1.5,
+          bg: style.surface, fg: style.fg, font: style.fontDisplay
+        });
+      } else if (members.length === 1) {
+        drawAvatar(ctx, cx, cy, avatarR, members[0].wecomName, {
+          image: aMap[members[0].openid],
+          border: style.border, borderWidth: 1.5,
+          bg: style.surface, fg: style.fg, font: style.fontDisplay
+        });
+      }
+      // 队名
+      setFont(ctx, T.rosterName, 'normal', style.fontDisplay);
+      const teamName = team.wecomName || members.map(m => m.wecomName).join(' / ');
+      fillText(ctx, ellipsize(ctx, teamName, cellW - 12), cx, cy + avatarR + 20, {
+        color: style.fg, align: 'center', baseline: 'top'
+      });
+    });
+    const rosterRows = Math.ceil(teams.length / cols);
+    return y + rosterRows * rowH;
+  }
+
+  // 单打：原逻辑
   const cols = 4;
   const cellW = (W - SIDE * 2) / cols;
   const rowH = 130;
@@ -551,6 +923,7 @@ function drawRoster(ctx, y, style, players) {
     const cx = SIDE + (i % cols) * cellW + cellW / 2;
     const cy = y + Math.floor(i / cols) * rowH + 40;
     drawAvatar(ctx, cx, cy, 36, p.wecomName, {
+      image: aMap[p.openid],
       border: style.border, borderWidth: 1.5,
       bg: style.surface, fg: style.fg, font: style.fontDisplay
     });
@@ -572,16 +945,24 @@ function drawRoster(ctx, y, style, players) {
 
 // ====== Footer（共享）======
 
-function drawFooter(ctx, style, footY) {
+function drawFooter(ctx, style, footY, qrImage) {
   drawHairline(ctx, footY, style);
+  // 左侧文字
   setFont(ctx, T.footEy, 'normal', style.fontMono);
-  fillText(ctx, 'TENCENT GUANGZHOU TENNIS CLUB', SIDE, footY + 32, {
+  fillText(ctx, 'TENCENT GUANGZHOU TENNIS CLUB', SIDE, footY + 36, {
     color: style.muted, baseline: 'top'
   });
   setFont(ctx, T.footEy, 'normal', style.fontMono);
-  fillText(ctx, 'EST. 2025', W - SIDE, footY + 32, {
-    color: style.muted, align: 'right', baseline: 'top'
+  fillText(ctx, 'EST. 2025', SIDE, footY + 64, {
+    color: style.muted, baseline: 'top'
   });
+  // 右侧二维码
+  if (qrImage) {
+    const qrSize = 96;
+    const qrX = W - SIDE - qrSize;
+    const qrY = footY + 20;
+    ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+  }
 }
 
 // ====== 主入口 ======
@@ -597,7 +978,7 @@ function computeCanvasH(ctx, data) {
     let y = HERO_H;
     // Podium section
     y += T.eyebrow + 28 + SECTION_PAD_Y; // eyebrow + gap (drawSectionEyebrow)
-    y += 220;                            // podium content
+    y += computePodiumH(t.placementAwards, t.players); // 220（1/3 格）/ 266（计分牌 N=2）
     y += SECTION_PAD_Y + HAIRLINE;       // 下 padding + hairline
     // Stats section（无 eyebrow，靠两 hairline 夹）
     y += SECTION_PAD_Y;                  // 上 padding
@@ -605,9 +986,15 @@ function computeCanvasH(ctx, data) {
     y += SECTION_PAD_Y + HAIRLINE;       // 下 padding + hairline
     // Roster section
     y += T.eyebrow + 28 + SECTION_PAD_Y; // eyebrow
-    const rosterRows = Math.max(1, Math.ceil(Math.min(8, players.length) / 4));
-    y += rosterRows * 130;
-    if (players.length > 8) y += 40;
+    const isDoubles = t.type === 'doubles' && Array.isArray(t.teams) && t.teams.length > 0;
+    if (isDoubles) {
+      const rosterRows = Math.max(1, Math.ceil(t.teams.length / 3));
+      y += rosterRows * 140;
+    } else {
+      const rosterRows = Math.max(1, Math.ceil(Math.min(8, players.length) / 4));
+      y += rosterRows * 130;
+      if (players.length > 8) y += 40;
+    }
     // Footer
     y += FOOT_GAP + FOOT_H;
     return y;
@@ -658,4 +1045,4 @@ function drawPoster(ctx, canvas, data) {
   }
 }
 
-module.exports = { drawPoster, computeCanvasH, W, H_DEFAULT };
+module.exports = { drawPoster, computeCanvasH, preloadAvatars, W, H_DEFAULT };

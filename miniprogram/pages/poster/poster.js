@@ -2,7 +2,7 @@
 const api = require('../../utils/api.js');
 const { getCachedUser } = require('../../utils/user.js');
 const { POSTER_STYLES } = require('../../utils/poster-styles.js');
-const { drawPoster, computeCanvasH, W } = require('../../utils/poster-draw.js');
+const { drawPoster, computeCanvasH, preloadAvatars, W } = require('../../utils/poster-draw.js');
 const { computeHighlight, collectUserMatches } = require('../../utils/highlight.js');
 
 function formatDateMono(ts) {
@@ -28,7 +28,8 @@ Page({
     currentStyleIndex: 0,
     currentStyle: POSTER_STYLES[0],
     loading: true,
-    posterReady: false
+    posterReady: false,
+    avatarMode: 'photo' // 'photo' | 'initial'
   },
 
   // 缓存数据（不进 setData，节省渲染开销）
@@ -39,6 +40,7 @@ Page({
   highlight: null,
   canvasNode: null,
   ctx: null,
+  avatarMap: null, // openid → 已加载的 canvas Image（preloadAvatars 异步填充）
 
   onLoad(opts) {
     const app = getApp();
@@ -71,8 +73,21 @@ Page({
       .then(t => {
         this.tournament = this.enrichTournament(t);
         if (this.data.posterType === 'personal') {
+          // 拦截：未参赛用户不能生成个人战绩卡
+          const myOpenid = (this.me && this.me.openid) || '';
+          const players = t.players || [];
+          const joined = !!myOpenid && players.some(p => p.openid === myOpenid);
+          if (!joined) {
+            wx.showModal({
+              title: '无法生成个人战绩卡',
+              content: '你没有参加这场赛事，无法生成自己的战绩。可以查看「赛事战报」。',
+              showCancel: false,
+              success: () => wx.navigateBack()
+            });
+            return;
+          }
           this.userStats = this.computeUserStats(t);
-          this.highlight = computeHighlight(t, (this.me && this.me.openid) || '');
+          this.highlight = computeHighlight(t, myOpenid);
         } else {
           this.reportStats = this.computeReportStats(t);
           this.tournament._reportStats = this.reportStats;
@@ -103,15 +118,24 @@ Page({
     const losses = matches.filter(m => m.scored && !m.won).length;
 
     const award = (tournament.placementAwards || []).find(a => a.openid === openid);
-    const placementIdx = (tournament.placementAwards || []).findIndex(a => a.openid === openid);
 
     // ELO 变化：从用户在赛事内的所有对战累加（match.pointsAwarded.winnerEloDelta / loserEloDelta）
+    // 双打：pa.winnerOpenid 是合成 team ID，需用 winnerMembers/loserMembers 数组判定身份
     let eloChange = 0;
     matches.forEach(m => {
       const pa = m.match && m.match.pointsAwarded;
       if (!pa) return;
-      if (pa.winnerOpenid === openid) eloChange += pa.winnerEloDelta || 0;
-      else if (pa.loserOpenid === openid) eloChange += pa.loserEloDelta || 0;
+      const isInList = (list) => Array.isArray(list) && list.some(x => x.openid === openid);
+      if (isInList(pa.winnerMembers)) {
+        eloChange += pa.winnerEloDelta || 0;
+      } else if (isInList(pa.loserMembers)) {
+        eloChange += pa.loserEloDelta || 0;
+      } else if (pa.winnerOpenid === openid) {
+        // 兼容旧数据（无 members 字段时按单打 openid 判定）
+        eloChange += pa.winnerEloDelta || 0;
+      } else if (pa.loserOpenid === openid) {
+        eloChange += pa.loserEloDelta || 0;
+      }
     });
 
     // 比分文本 + 对手 + 胜负
@@ -125,7 +149,7 @@ Page({
       }));
 
     return {
-      placementText: award ? placementText(award.placement) : (placementIdx >= 0 ? `第${placementIdx + 1}` : '—'),
+      placementText: award ? placementText(award.placement) : '—',
       pointsEarned: award ? (award.points || 0) : 0,
       eloChange,
       wins,
@@ -190,19 +214,78 @@ Page({
         // canvas 高度由 drawPoster 内部按数据动态设置，这里只先给个占位值
         this.canvasNode.width = W;
         this.canvasNode.height = 1600;
+        // 预加载二维码图片
+        this.loadQrCode();
+        // 先用首字母占位渲染一次（避免空白）
         this.renderPoster();
+        // 异步加载头像，加载完后再绘一次替换
+        this.loadAvatarsThenRerender();
       });
+  },
+
+  // 加载二维码图片到 canvas Image 对象
+  loadQrCode() {
+    if (!this.canvasNode) return;
+    const img = this.canvasNode.createImage();
+    img.src = '/assets/qrcode.png';
+    img.onload = () => {
+      this.qrImage = img;
+      this.renderPoster();
+    };
+  },
+
+  // 收集所有需要画头像的 openid → avatarUrl，调用 ranking 拿全员头像，
+  // 然后预加载到 canvas Image 对象，最后重绘一次
+  loadAvatarsThenRerender() {
+    if (!this.canvasNode) return;
+    const t = this.tournament || {};
+    const me = this.me || {};
+    // 先把 me.avatarUrl 放进去（getCachedUser 已带）
+    const map = {};
+    if (me.openid && me.avatarUrl) map[me.openid] = me.avatarUrl;
+
+    // 通过 ranking 拿全员 openid → avatarUrl（一次调用搞定）
+    // silent: 海报页已有"正在生成海报…"的视觉提示，不要再叠一个 wx.showLoading
+    api.getRanking({ silent: true }).then(res => {
+      const list = (res && res.list) || [];
+      list.forEach(u => {
+        if (u.avatarUrl && !map[u.openid]) map[u.openid] = u.avatarUrl;
+      });
+    }).catch(err => {
+      console.warn('[poster] ranking fetch failed, only self avatar loaded', err);
+    }).then(() => {
+      // 只加载实际会用到的 openid（自己 + 报名玩家 + 领奖人），减少下载量
+      const need = new Set();
+      if (me.openid) need.add(me.openid);
+      (t.players || []).forEach(p => p.openid && need.add(p.openid));
+      (t.placementAwards || []).forEach(a => a.openid && need.add(a.openid));
+      const filtered = {};
+      need.forEach(oid => {
+        if (map[oid]) filtered[oid] = map[oid];
+      });
+      return preloadAvatars(this.canvasNode, filtered);
+    }).then(avatarMap => {
+      this.avatarMap = avatarMap || {};
+      const loaded = Object.keys(this.avatarMap).length;
+      if (loaded > 0) this.renderPoster();
+    }).catch(err => {
+      console.warn('[poster] preload avatars failed', err);
+    });
   },
 
   renderPoster() {
     if (!this.ctx || !this.canvasNode) return;
+    // 根据用户选择决定是否使用真实头像
+    const usePhotos = this.data.avatarMode === 'photo';
     const data = {
       type: this.data.posterType,
       tournament: this.tournament,
       me: this.me || {},
       userStats: this.userStats || {},
       highlight: this.highlight,
-      style: this.data.currentStyle
+      style: this.data.currentStyle,
+      avatarMap: usePhotos ? (this.avatarMap || {}) : {},
+      qrImage: this.qrImage || null
     };
     // drawPoster 会先按内容计算 canvasH 并设置 canvas.width/height，再绘制
     drawPoster(this.ctx, this.canvasNode, data);
@@ -222,6 +305,14 @@ Page({
     });
   },
 
+  switchAvatarMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    if (mode === this.data.avatarMode) return;
+    this.setData({ avatarMode: mode }, () => {
+      this.renderPoster();
+    });
+  },
+
   onSave() {
     if (!this.canvasNode) {
       wx.showToast({ title: '海报未生成', icon: 'none' });
@@ -229,7 +320,6 @@ Page({
     }
     const cw = this.canvasNode.width;
     const ch = this.canvasNode.height;
-    console.log('[poster] onSave: starting export', { w: cw, h: ch });
     wx.showLoading({ title: '导出中', mask: true });
     // ⚠️ type=2d canvas 必须显式传 x/y/width/height/destWidth/destHeight，
     // 否则会拿 canvas 的 CSS 尺寸（可能是 0 或被拉伸）导出，输出空白
@@ -245,7 +335,6 @@ Page({
       quality: 1,
       success: res => {
         wx.hideLoading();
-        console.log('[poster] canvasToTempFilePath ok, path=', res.tempFilePath);
         this.saveToAlbum(res.tempFilePath);
       },
       fail: err => {
@@ -262,13 +351,10 @@ Page({
 
   // 保存到相册：处理授权流程
   saveToAlbum(tempFilePath) {
-    console.log('[poster] saveToAlbum, path=', tempFilePath);
     const doSave = () => {
-      console.log('[poster] calling wx.saveImageToPhotosAlbum');
       wx.saveImageToPhotosAlbum({
         filePath: tempFilePath,
-        success: r => {
-          console.log('[poster] saveImageToPhotosAlbum SUCCESS', r);
+        success: () => {
           wx.showToast({ title: '已保存到相册', icon: 'success' });
         },
         fail: err => {
@@ -308,7 +394,6 @@ Page({
     // 先查授权状态，没授权过就直接调（首次会自动弹权限框），授权过就直接走
     wx.getSetting({
       success: res => {
-        console.log('[poster] getSetting authSetting=', res.authSetting);
         if (res.authSetting['scope.writePhotosAlbum'] === false) {
           // 之前明确拒绝过
           wx.showModal({

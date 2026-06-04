@@ -1,6 +1,7 @@
 <view class="page" style="background: {{currentStyle.bg}};">
-  <!-- 顶部导航
-       padding-right 用 capsuleGap 让出胶囊禁入区，避免 title/右侧元素被胶囊盖住 -->
+  <!-- 隐私授权弹窗（保存海报到相册需要） -->
+  <privacy-popup />
+  <!-- 顶部导航：padding-right 用 capsuleGap 让出胶囊禁入区，避免 title/右侧元素被胶囊盖住 -->
   <view class="topnav" style="padding-top: {{navTop}}rpx; padding-right: {{capsuleGap}}rpx;">
     <view class="icon-btn" bindtap="goBack">
       <image src="/assets/icons/back.svg" />
@@ -34,6 +35,14 @@
       </view>
     </view>
   </scroll-view>
+
+  <!-- 头像模式切换 — 与 .style-chip 完全同款：纯文字 pill -->
+  <view class="avatar-mode-bar">
+    <view class="avatar-mode-tabs">
+      <view class="avatar-mode-tab {{avatarMode === 'photo' ? 'is-active' : ''}}" data-mode="photo" bindtap="switchAvatarMode">照片</view>
+      <view class="avatar-mode-tab {{avatarMode === 'initial' ? 'is-active' : ''}}" data-mode="initial" bindtap="switchAvatarMode">首字母</view>
+    </view>
+  </view>
 
   <!-- 底部操作栏 — 不用全局 cta-primary/btn-default，用页内成对变体确保等高 -->
   <view class="action-bar">

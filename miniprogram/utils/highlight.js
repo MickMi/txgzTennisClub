@@ -16,16 +16,41 @@ function parseRating(rating) {
   return isNaN(n) ? 2.5 : n;
 }
 
+// 判断 openid 是否参与了某场比赛的某一边
+// 单打：直接比较 player.openid
+// 双打：player.openid 是合成 team ID，要看 player.members 里有没有 openid
+// teams: 可选，tournament.teams 数组，members 缺失时回查
+function isPlayerInUnit(unit, openid, teams) {
+  if (!unit) return false;
+  if (unit.openid === openid) return true; // 单打
+  if (Array.isArray(unit.members) && unit.members.length > 0) {
+    return unit.members.some(m => m.openid === openid);
+  }
+  // 双打 fallback：合成 ID 且 members 缺失
+  if (unit.openid && unit.openid.startsWith('team_')) {
+    if (Array.isArray(teams)) {
+      const team = teams.find(t => t.openid === unit.openid);
+      if (team && Array.isArray(team.members)) {
+        return team.members.some(m => m.openid === openid);
+      }
+    }
+    // 最终 fallback：检查合成 ID 是否包含目标 openid
+    return unit.openid.slice(5).includes(openid);
+  }
+  return false;
+}
+
 // 收集用户参与的所有 match（小组+淘汰），附上 round 标签
 function collectUserMatches(tournament, openid) {
   const list = [];
+  const teams = tournament.teams || [];
 
   // 小组赛
   (tournament.groups || []).forEach((g, gIdx) => {
     (g.matches || []).forEach(m => {
       if (!m.playerA || !m.playerB) return;
-      const inA = m.playerA.openid === openid;
-      const inB = m.playerB.openid === openid;
+      const inA = isPlayerInUnit(m.playerA, openid, teams);
+      const inB = isPlayerInUnit(m.playerB, openid, teams);
       if (!inA && !inB) return;
       list.push({
         round: `小组赛`,
@@ -52,8 +77,8 @@ function collectUserMatches(tournament, openid) {
       : `第 ${rIdx + 1} 轮`;
     (rd.matches || []).forEach(m => {
       if (!m.playerA || !m.playerB) return;
-      const inA = m.playerA.openid === openid;
-      const inB = m.playerB.openid === openid;
+      const inA = isPlayerInUnit(m.playerA, openid, teams);
+      const inB = isPlayerInUnit(m.playerB, openid, teams);
       if (!inA && !inB) return;
       list.push({
         round: roundName,
@@ -186,7 +211,10 @@ function computeHighlight(tournament, openid) {
   // 由于无法在前端可靠判定历史，先归入兜底。
 
   // ⑧ rank_maintained — 兜底
-  const placement = (tournament.placementAwards || []).findIndex(a => a.openid === openid) + 1;
+  // 之前用 findIndex+1 当排名是错的（双打数组里同一队两人都 placement=1，
+  // 第二个被找到的人 idx=1 会被当成"亚军"）。直接读 award.placement。
+  const myAward = (tournament.placementAwards || []).find(a => a.openid === openid);
+  const placement = myAward && myAward.placement && myAward.placement <= 8 ? myAward.placement : 0;
   return {
     type: 'rank_maintained',
     title: '稳健发挥',
