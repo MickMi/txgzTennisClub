@@ -21,13 +21,14 @@ exports.main = async (event, context) => {
 
   // 不存在 → 创建空记录（等用户去 onboarding 填企微名）
   if (!user) {
-    const role = await isFirstUser() ? 'admin' : 'member';
+    const role = await shouldBeAdmin(OPENID) ? 'admin' : 'member';
     const now = Date.now();
     const addRes = await db.collection(USERS).add({
       data: {
         openid: OPENID,
         wecomName: '',
         gender: '',
+        avatarUrl: '',
         rating: '',
         totalPoints: 0,
         eloRating: 1500,
@@ -43,6 +44,7 @@ exports.main = async (event, context) => {
       openid: OPENID,
       wecomName: '',
       gender: '',
+      avatarUrl: '',
       rating: '',
       totalPoints: 0,
       eloRating: 1500,
@@ -59,8 +61,8 @@ exports.main = async (event, context) => {
     const update = { updatedAt: Date.now() };
     if (typeof payload.wecomName === 'string') {
       const name = payload.wecomName.trim();
-      if (!name) return { code: 1, msg: '企微名不能为空' };
-      if (name.length > 20) return { code: 1, msg: '企微名过长' };
+      if (!name) return { code: 1, msg: '昵称不能为空' };
+      if (name.length > 20) return { code: 1, msg: '昵称过长' };
       update.wecomName = name;
     }
     if (typeof payload.rating === 'string') {
@@ -69,12 +71,16 @@ exports.main = async (event, context) => {
     if (typeof payload.gender === 'string' && (payload.gender === 'male' || payload.gender === 'female')) {
       update.gender = payload.gender;
     }
+    if (typeof payload.avatarUrl === 'string') {
+      // 允许设置为空（清除头像）或云文件ID
+      update.avatarUrl = payload.avatarUrl;
+    }
     await db.collection(USERS).doc(user._id).update({ data: update });
     user = { ...user, ...update };
 
-    // 同步更新已报名活动 / 比赛中的展示名（保证显示一致）
-    if (update.wecomName) {
-      await syncWecomName(OPENID, update.wecomName);
+    // 同步更新已报名活动 / 比赛中的展示名和头像（保证显示一致）
+    if (update.wecomName || update.avatarUrl !== undefined) {
+      await syncUserDisplay(OPENID, update.wecomName || user.wecomName, update.avatarUrl !== undefined ? update.avatarUrl : (user.avatarUrl || ''));
     }
   }
 
@@ -84,13 +90,14 @@ exports.main = async (event, context) => {
       .where({ wecomName: _.neq('') })
       .orderBy('totalPoints', 'desc')
       .limit(100)
-      .field({ openid: true, wecomName: true, gender: true, rating: true, totalPoints: true, eloRating: true })
+      .field({ openid: true, wecomName: true, gender: true, avatarUrl: true, rating: true, totalPoints: true, eloRating: true })
       .get();
     const list = (res.data || []).map((u, idx) => ({
       rank: idx + 1,
       openid: u.openid,
       wecomName: u.wecomName,
       gender: u.gender || '',
+      avatarUrl: u.avatarUrl || '',
       rating: u.rating || '',
       totalPoints: u.totalPoints || 0,
       eloRating: u.eloRating || 1500
@@ -120,7 +127,7 @@ exports.main = async (event, context) => {
       .orderBy('role', 'desc')      // admin 排前面
       .orderBy('createdAt', 'asc')   // 同角色按加入时间
       .field({
-        openid: true, wecomName: true, gender: true, rating: true,
+        openid: true, wecomName: true, gender: true, avatarUrl: true, rating: true,
         role: true, totalPoints: true, eloRating: true, createdAt: true
       })
       .limit(200)
@@ -185,7 +192,8 @@ async function buildProfile(openid, user) {
       type: true,
       matchDate: true,
       groups: true,
-      knockout: true
+      knockout: true,
+      teams: true
     })
     .orderBy('createdAt', 'desc')
     .limit(30)
@@ -195,20 +203,51 @@ async function buildProfile(openid, user) {
   let wins = 0;
   let losses = 0;
   let pending = 0;
+  let singlesWins = 0, singlesLosses = 0, singlesPending = 0;
+  let doublesWins = 0, doublesLosses = 0, doublesPending = 0;
   const matchHistory = [];
 
+  // 判断某个 player unit 是否包含指定 openid（兼容单打和双打 compound player）
+  // teams: tournament.teams 数组，作为 members 缺失时的回查来源
+  function unitContainsPlayer(unit, oid, teams) {
+    if (!unit) return false;
+    // 单打：直接匹配
+    if (unit.openid === oid) return true;
+    // 双打：优先查 members 数组
+    if (Array.isArray(unit.members) && unit.members.length > 0) {
+      return unit.members.some(m => m.openid === oid);
+    }
+    // 双打 fallback：openid 是合成 ID（team_oidA_oidB），members 缺失时回查 teams
+    if (unit.openid && unit.openid.startsWith('team_')) {
+      if (Array.isArray(teams)) {
+        const team = teams.find(t => t.openid === unit.openid);
+        if (team && Array.isArray(team.members)) {
+          return team.members.some(m => m.openid === oid);
+        }
+      }
+      // 最终 fallback：从合成 ID 解析（微信 openid 不含下划线，可安全 split）
+      const inner = unit.openid.slice(5); // 去掉 "team_"
+      // 找第一个 openid 边界：微信 openid 以 'o' 开头，约 28 字符
+      // 但更稳妥的做法：检查 inner 是否包含 oid
+      return inner.includes(oid);
+    }
+    return false;
+  }
+
   for (const t of tournaments) {
+    const isDoubles = t.type === 'doubles';
+    const teams = t.teams || [];
     // 遍历小组赛
     for (const g of (t.groups || [])) {
       for (const m of (g.matches || [])) {
-        const isPlayerA = m.playerA && m.playerA.openid === openid;
-        const isPlayerB = m.playerB && m.playerB.openid === openid;
+        const isPlayerA = unitContainsPlayer(m.playerA, openid, teams);
+        const isPlayerB = unitContainsPlayer(m.playerB, openid, teams);
         if (!isPlayerA && !isPlayerB) continue;
 
         if (m.winner) {
           const iWon = (m.winner === 'A' && isPlayerA) || (m.winner === 'B' && isPlayerB);
-          if (iWon) wins++;
-          else losses++;
+          if (iWon) { wins++; if (isDoubles) doublesWins++; else singlesWins++; }
+          else { losses++; if (isDoubles) doublesLosses++; else singlesLosses++; }
           matchHistory.push({
             _id: t._id + '_' + m.id,
             tournamentId: t._id,
@@ -221,6 +260,7 @@ async function buildProfile(openid, user) {
           });
         } else {
           pending++;
+          if (isDoubles) doublesPending++; else singlesPending++;
         }
       }
     }
@@ -229,14 +269,14 @@ async function buildProfile(openid, user) {
     if (t.knockout && t.knockout.rounds) {
       for (const round of t.knockout.rounds) {
         for (const m of (round.matches || [])) {
-          const isPlayerA = m.playerA && m.playerA.openid === openid;
-          const isPlayerB = m.playerB && m.playerB.openid === openid;
+          const isPlayerA = unitContainsPlayer(m.playerA, openid, teams);
+          const isPlayerB = unitContainsPlayer(m.playerB, openid, teams);
           if (!isPlayerA && !isPlayerB) continue;
 
           if (m.winner) {
             const iWon = (m.winner === 'A' && isPlayerA) || (m.winner === 'B' && isPlayerB);
-            if (iWon) wins++;
-            else losses++;
+            if (iWon) { wins++; if (isDoubles) doublesWins++; else singlesWins++; }
+            else { losses++; if (isDoubles) doublesLosses++; else singlesLosses++; }
             matchHistory.push({
               _id: t._id + '_' + m.id,
               tournamentId: t._id,
@@ -249,6 +289,7 @@ async function buildProfile(openid, user) {
             });
           } else if (m.playerA && m.playerB && !m.bye) {
             pending++;
+            if (isDoubles) doublesPending++; else singlesPending++;
           }
         }
       }
@@ -291,11 +332,25 @@ async function buildProfile(openid, user) {
     const total = soFar.reduce((s, e) => s + e.earned, 0);
     pointsHistory.push({ date: earnings[i].date, value: total, title: earnings[i].title });
   }
+  // 如果只有 1 个数据点，前补起点 0 让图表能画出趋势线
+  if (pointsHistory.length === 1) {
+    pointsHistory.unshift({ date: pointsHistory[0].date - 86400000, value: 0, title: '起点' });
+  }
+
+  // Delta 计算（最近一场赛事带来的变化量）
+  const eloDelta = eloHistory.length >= 2
+    ? eloHistory[eloHistory.length - 1].value - eloHistory[eloHistory.length - 2].value
+    : eloHistory.length === 1 ? eloHistory[0].value - 1500 : 0;
+  const pointsDelta = earnings.length > 0 ? earnings[earnings.length - 1].earned : 0;
 
   return {
     user,
     rating: user.rating || '',
     stats: { wins, losses, pending, total: wins + losses + pending },
+    singlesStats: { wins: singlesWins, losses: singlesLosses, pending: singlesPending, total: singlesWins + singlesLosses + singlesPending },
+    doublesStats: { wins: doublesWins, losses: doublesLosses, pending: doublesPending, total: doublesWins + doublesLosses + doublesPending },
+    eloDelta,
+    pointsDelta,
     matchHistory: matchHistory.slice(0, 20),
     activities,
     eloHistory,
@@ -303,26 +358,42 @@ async function buildProfile(openid, user) {
   };
 }
 
-// 第一个进入的用户自动成为 admin
-async function isFirstUser() {
-  const { total } = await db.collection(USERS).count();
+// 判断是否为预设管理员（不再用"第一个进入的人"逻辑，避免审核员误获 admin）
+// 只有 openid 在白名单中的用户才能成为 admin
+const ADMIN_OPENIDS = [
+  'oLGNX3Ql53l7XD4RbCwXHorEu5u4'  // mickmi
+  // 如需新增管理员，在小程序内使用成员管理功能提升即可
+];
+
+async function shouldBeAdmin(openid) {
+  // 如果白名单非空，按白名单判断
+  if (ADMIN_OPENIDS.length > 0) {
+    return ADMIN_OPENIDS.includes(openid);
+  }
+  // 白名单为空时的兜底：如果数据库已有 admin 则新用户不给 admin
+  const { total } = await db.collection(USERS).where({ role: 'admin' }).count();
   return total === 0;
 }
 
-// 用户改名后同步活动/赛事中保存的冗余名称
+// 用户改名/换头像后同步活动/赛事中保存的冗余名称和头像
 // 注：match 集合已废弃（独立比赛功能于 2026-05-24 删除），不再同步
-async function syncWecomName(openid, newName) {
+async function syncUserDisplay(openid, newName, newAvatarUrl) {
   // 并行拉取需要更新的活动 + 赛事
   const [actsRes, tourRes] = await Promise.all([
     db.collection('activities').where({ 'participants.openid': openid }).get(),
     db.collection('tournaments').where({ 'players.openid': openid }).get()
   ]);
 
+  const patchPlayer = (p) => {
+    if (p.openid !== openid) return p;
+    const patched = { ...p, wecomName: newName };
+    if (newAvatarUrl !== undefined) patched.avatarUrl = newAvatarUrl;
+    return patched;
+  };
+
   // 活动 participants（并行更新）
   const actUpdates = (actsRes.data || []).map(a => {
-    const ps = (a.participants || []).map(p =>
-      p.openid === openid ? { ...p, wecomName: newName } : p
-    );
+    const ps = (a.participants || []).map(patchPlayer);
     return db.collection('activities').doc(a._id).update({ data: { participants: ps } });
   });
 
@@ -332,24 +403,20 @@ async function syncWecomName(openid, newName) {
 
     // players 列表
     if (t.players && t.players.length > 0) {
-      updateData.players = t.players.map(p =>
-        p.openid === openid ? { ...p, wecomName: newName } : p
-      );
+      updateData.players = t.players.map(patchPlayer);
     }
 
     // groups 中的 players / matches / standings
     if (t.groups && t.groups.length > 0) {
       updateData.groups = t.groups.map(g => ({
         ...g,
-        players: (g.players || []).map(p =>
-          p.openid === openid ? { ...p, wecomName: newName } : p
-        ),
+        players: (g.players || []).map(patchPlayer),
         matches: (g.matches || []).map(m => ({
           ...m,
           playerA: m.playerA && m.playerA.openid === openid
-            ? { ...m.playerA, wecomName: newName } : m.playerA,
+            ? patchPlayer(m.playerA) : m.playerA,
           playerB: m.playerB && m.playerB.openid === openid
-            ? { ...m.playerB, wecomName: newName } : m.playerB
+            ? patchPlayer(m.playerB) : m.playerB
         })),
         standings: (g.standings || []).map(s =>
           s.openid === openid ? { ...s, wecomName: newName } : s
@@ -366,9 +433,9 @@ async function syncWecomName(openid, newName) {
           matches: (round.matches || []).map(m => ({
             ...m,
             playerA: m.playerA && m.playerA.openid === openid
-              ? { ...m.playerA, wecomName: newName } : m.playerA,
+              ? patchPlayer(m.playerA) : m.playerA,
             playerB: m.playerB && m.playerB.openid === openid
-              ? { ...m.playerB, wecomName: newName } : m.playerB
+              ? patchPlayer(m.playerB) : m.playerB
           }))
         }))
       };
