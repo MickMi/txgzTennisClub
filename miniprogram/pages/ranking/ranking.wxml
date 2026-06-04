@@ -30,7 +30,10 @@
     bindtap="goUserDetail"
   >
     <view class="ranking-rank {{item.rank <= 3 ? 'top3' : ''}}">{{item.rank}}</view>
-    <view class="avatar" style="{{item.gender === 'female' ? 'border-color: var(--color-accent); color: var(--color-accent);' : ''}}">{{item.wecomName[0]}}</view>
+    <view class="avatar" style="{{item.gender === 'female' ? 'border-color: var(--color-accent); color: var(--color-accent);' : ''}}">
+      <image wx:if="{{item.avatarUrl}}" class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+      <text wx:else>{{item.wecomName[0]}}</text>
+    </view>
     <view class="ranking-info">
       <text class="player-name">{{item.wecomName}}</text>
       <text class="player-rating {{item.rating ? '' : 'unrated'}}">{{item.rating ? 'NTRP ' + item.rating : ''}}</text>

@@ -5,6 +5,9 @@ Page({
   data: {
     isEdit: false,
     activityId: '',
+    // 编辑模式下加载到的原活动（用于判断是否已 closed / 是否能改时间）
+    originalActivity: null,
+    isClosed: false,
     form: {
       title: '',
       date: '',
@@ -36,6 +39,16 @@ Page({
 
   loadActivity(id) {
     api.getActivity(id).then(detail => {
+      // 已结束的活动禁止编辑（含时间）—— 立即提示并返回
+      if (detail.status === 'closed') {
+        wx.showModal({
+          title: '无法编辑',
+          content: '活动已结束，名单已归档，不能再修改。',
+          showCancel: false,
+          success: () => wx.navigateBack()
+        });
+        return;
+      }
       const dt = new Date(detail.startTime);
       const y = dt.getFullYear();
       const m = String(dt.getMonth() + 1).padStart(2, '0');
@@ -43,6 +56,8 @@ Page({
       const hh = String(dt.getHours()).padStart(2, '0');
       const mm = String(dt.getMinutes()).padStart(2, '0');
       this.setData({
+        originalActivity: detail,
+        isClosed: false,
         form: {
           title: detail.title || '',
           date: `${y}-${m}-${d}`,
@@ -79,6 +94,17 @@ Page({
     if (!location.trim()) return wx.showToast({ title: '请填写地点', icon: 'none' });
 
     const startTime = new Date(`${date}T${time}:00`).getTime();
+    const now = Date.now();
+
+    // 时间合法性校验
+    // - 创建模式：必须晚于当前
+    // - 编辑模式：必须晚于当前（不允许把活动改到过去；如果原本就是过去，也不能保留为过去）
+    //   宽限 5 分钟，避免用户刚选完时间秒级超时
+    const TOLERANCE_MS = 5 * 60 * 1000;
+    if (startTime < now - TOLERANCE_MS) {
+      return wx.showToast({ title: '活动时间不能早于当前', icon: 'none' });
+    }
+
     const max = parseInt(maxPeople, 10);
     const payload = {
       title: title.trim(),

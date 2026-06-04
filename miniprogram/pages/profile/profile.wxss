@@ -83,6 +83,26 @@
   text-transform: uppercase;
 }
 
+/* ============ Register Prompt ============ */
+.register-prompt {
+  margin: 0 48rpx 32rpx;
+  padding: 28rpx 32rpx;
+  background: #faf8f2;
+  border: 1rpx dashed #ddd6c4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.register-prompt-text {
+  font-size: 24rpx;
+  color: #8a7e6a;
+}
+.register-prompt-btn {
+  font-size: 24rpx;
+  color: #b87a36;
+  font-weight: 600;
+}
+
 /* ============ Identity Grid ============ */
 .identity-grid {
   margin: 8rpx 48rpx 0;
@@ -128,12 +148,49 @@
 .identity-grid .delta {
   display: block; margin-top: 12rpx;
   font-family: var(--font-mono); font-size: 20rpx;
-  color: var(--color-accent); font-feature-settings: 'tnum';
+  color: var(--color-muted); font-feature-settings: 'tnum';
   letter-spacing: 0.06em;
 }
+.identity-grid .delta.up { color: var(--color-accent); }
+.identity-grid .delta.down { color: #c0392b; }
 .identity-grid .delta.flat { color: var(--color-muted); }
 
 /* ============ Stats Strip ============ */
+.stats-strip-header {
+  margin: 0 48rpx;
+  padding-top: 12rpx;
+}
+
+.stats-mode-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+
+.stats-mode-tab {
+  font-family: var(--font-mono);
+  font-size: 21rpx;
+  letter-spacing: 0.12em;
+  color: var(--color-muted);
+  padding: 16rpx 24rpx 16rpx 0;
+  margin-inline-end: 28rpx;
+  position: relative;
+}
+
+.stats-mode-tab.is-active {
+  color: var(--color-fg);
+}
+
+.stats-mode-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 24rpx;
+  bottom: -1rpx;
+  height: 3rpx;
+  background: var(--color-fg);
+}
+
 .stats-strip {
   margin: 0 48rpx;
   display: grid;
@@ -494,4 +551,47 @@
 
 .edit-btn.save {
   color: var(--color-accent);
+}
+
+/* ============ QR Invite Section ============ */
+.qr-section {
+  margin: 48rpx 48rpx 80rpx;
+  padding: 32rpx 36rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qr-text { flex: 1; }
+
+.qr-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.18em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  margin-bottom: 4rpx;
+}
+
+.qr-title {
+  font-family: var(--font-display);
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--color-fg);
+}
+
+.qr-desc {
+  margin-top: 6rpx;
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  color: var(--color-muted);
+  letter-spacing: 0.06em;
+}
+
+.qr-img {
+  width: 120rpx;
+  height: 120rpx;
+  flex-shrink: 0;
 }

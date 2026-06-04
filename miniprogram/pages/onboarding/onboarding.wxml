@@ -1,16 +1,34 @@
 <view class="container">
+  <!-- 全局隐私授权弹窗 -->
+  <privacy-popup />
   <view class="hero">
     <view class="emoji"><icon name="tennis" size="112" /></view>
     <view class="welcome">欢迎加入腾讯广州网球社</view>
-    <view class="muted">首次进入需要登记一下基本信息</view>
+    <view class="muted">完成登记后可参与赛事比分记录</view>
   </view>
 
   <view class="card">
+    <!-- 头像选择 -->
+    <view class="field avatar-field">
+      <view class="label">头像 <text class="optional">（选填）</text></view>
+      <view class="avatar-picker">
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <view class="avatar-preview" wx:if="{{avatarTempUrl}}">
+            <image class="avatar-img" src="{{avatarTempUrl}}" mode="aspectFill" />
+          </view>
+          <view class="avatar-placeholder" wx:else>
+            <icon name="plus" size="40" />
+          </view>
+        </button>
+        <view class="avatar-tip muted">点击选择微信头像或从相册上传</view>
+      </view>
+    </view>
+
     <view class="field">
-      <view class="label">企业微信名</view>
+      <view class="label">昵称</view>
       <input
         class="input"
-        placeholder="请填写你在企业微信中的姓名"
+        placeholder="请填写你的昵称"
         value="{{wecomName}}"
         bindinput="onInput"
         maxlength="20"
@@ -30,14 +48,27 @@
         </label>
       </radio-group>
     </view>
+  </view>
 
-    <view class="muted tip">用于在活动报名/比赛中标识你</view>
+  <!-- 隐私协议声明 -->
+  <view class="privacy-section">
+    <view class="privacy-check" bindtap="onTogglePrivacy">
+      <view class="checkbox {{privacyAgreed ? 'checked' : ''}}">
+        <text wx:if="{{privacyAgreed}}">✓</text>
+      </view>
+      <view class="privacy-text">
+        我已阅读并同意<text class="privacy-link" catchtap="onShowPrivacy">《用户隐私保护指引》</text>
+      </view>
+    </view>
+    <view class="privacy-summary">
+      本小程序将收集你填写的昵称和性别信息，仅用于在比赛记录中标识参赛者身份。信息存储在腾讯云，不会用于商业推广或向第三方共享。
+    </view>
   </view>
 
   <button
     class="btn-primary submit"
     bindtap="onSubmit"
-    disabled="{{submitting || !wecomName || !gender}}"
+    disabled="{{submitting || !wecomName || !gender || !privacyAgreed}}"
   >
     完成登记
   </button>

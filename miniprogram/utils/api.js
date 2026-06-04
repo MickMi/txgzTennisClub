@@ -41,6 +41,25 @@ module.exports = {
   // login
   login: () => call('login'),
 
+  // avatar upload (returns cloud fileID)
+  uploadAvatar: (tempFilePath) => {
+    const ext = tempFilePath.split('.').pop() || 'png';
+    const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    wx.showLoading({ title: '上传中', mask: true });
+    return wx.cloud.uploadFile({
+      cloudPath,
+      filePath: tempFilePath
+    }).then(res => {
+      wx.hideLoading();
+      return res.fileID;
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('[uploadAvatar]', err);
+      wx.showToast({ title: '头像上传失败', icon: 'none' });
+      return Promise.reject(err);
+    });
+  },
+
   // activity
   listActivities: (opts = {}) => {
     const fn = opts.silent ? callSilent : call;
@@ -59,7 +78,7 @@ module.exports = {
   updateUser: payload => call('login', { action: 'update', payload }),
   getProfile: () => call('login', { action: 'getProfile' }),
   getProfileByOpenid: openid => call('login', { action: 'getProfile', openid }),
-  getRanking: () => call('login', { action: 'getRanking' }),
+  getRanking: (opts = {}) => (opts.silent ? callSilent : call)('login', { action: 'getRanking' }),
   // 成员管理（admin 限定）
   listMembers: () => call('login', { action: 'listMembers' }),
   setRole: (targetOpenid, role) => call('login', { action: 'setRole', targetOpenid, role }),
@@ -72,6 +91,8 @@ module.exports = {
   cancelSignupTournament: id => call('tournament', { action: 'cancelSignup', id }),
   deleteTournament: id => call('tournament', { action: 'delete', id }),
   drawTournament: (id, opts) => call('tournament', { action: 'draw', id, ...opts }),
+  // opts 形如 { groupCount, advanceCount, seedCount, pairs?: [[oid1,oid2],...] }
+  // 双打必须传 pairs；单打传不传都行
   scoreGroup: (id, groupIndex, matchId, scoreA, scoreB) =>
     call('tournament', { action: 'scoreGroup', id, groupIndex, matchId, scoreA, scoreB }),
   startKnockout: id => call('tournament', { action: 'startKnockout', id }),

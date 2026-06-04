@@ -42,7 +42,13 @@ Page({
     // 淘汰赛录分
     editingKO: null,
     koScoreA: '',
-    koScoreB: ''
+    koScoreB: '',
+    // 双打配对（仅 type=doubles + signup 状态下使用）
+    // pairs 形如 [[openid1, openid2], ...]
+    // 已选待配对的 openid（点第二人时自动成 pair）
+    pairs: [],
+    pairSelectedOpenid: '',
+    pairsComplete: false  // 派生：报名玩家是否全部已配对
   },
 
   onLoad(opts) {
@@ -65,13 +71,21 @@ Page({
   },
 
   // 跳转海报页：A2 决策 — 用 ActionSheet 让用户先选两种海报，再跳
+  // 未参赛用户只能看「赛事战报」（个人战绩卡需要参赛数据）
   goPoster() {
     const id = this.data.id;
     if (!id) return;
+    const signed = this.data.signed;
+    const itemList = signed ? ['我的战绩卡', '赛事战报'] : ['赛事战报'];
     wx.showActionSheet({
-      itemList: ['我的战绩卡', '赛事战报'],
+      itemList,
       success: res => {
-        const type = res.tapIndex === 0 ? 'personal' : 'report';
+        let type;
+        if (signed) {
+          type = res.tapIndex === 0 ? 'personal' : 'report';
+        } else {
+          type = 'report';
+        }
         wx.navigateTo({
           url: `/pages/poster/poster?tournamentId=${id}&type=${type}`
         });
@@ -129,6 +143,30 @@ Page({
       const drawGroupCount = useDrawSuggest ? suggested.groupCount : (t.config.groupCount || 2);
       const drawAdvanceCount = useDrawSuggest ? suggested.advanceCount : (t.config.advanceCount || 2);
 
+      // 双打配对状态推导（保持当前已配对，过滤掉已退出/不存在的玩家）
+      const isDoubles = t.type === 'doubles';
+      const validOids = new Set((t.players || []).map(p => p.openid));
+      const cleanedPairs = (this.data.pairs || []).filter(([a, b]) =>
+        validOids.has(a) && validOids.has(b)
+      );
+      const pairedOids = new Set();
+      cleanedPairs.forEach(([a, b]) => { pairedOids.add(a); pairedOids.add(b); });
+      const pairsComplete = isDoubles
+        ? (playerCount > 0 && playerCount % 2 === 0 && pairedOids.size === playerCount)
+        : true;
+      // 派生：未配对玩家列表（wxml 直接 wx:for，避免 wxml 内做集合判断）
+      const unpairedPlayers = isDoubles
+        ? (t.players || []).filter(p => !pairedOids.has(p.openid))
+        : [];
+      // 派生：已配对详情（含 wecomName 显示，wxml 直接渲染）
+      const oidToName = {};
+      (t.players || []).forEach(p => { oidToName[p.openid] = p.wecomName; });
+      const pairsDetail = cleanedPairs.map(([a, b], idx) => ({
+        idx,
+        a: { openid: a, wecomName: oidToName[a] || '?' },
+        b: { openid: b, wecomName: oidToName[b] || '?' }
+      }));
+
       this.setData({
         t: {
           ...t,
@@ -142,7 +180,11 @@ Page({
         signed,
         drawGroupCount,
         drawAdvanceCount,
-        drawSeedCount: t.config.seedCount || 0
+        drawSeedCount: t.config.seedCount || 0,
+        pairs: cleanedPairs,
+        pairsComplete,
+        unpairedPlayers,
+        pairsDetail
       });
     });
   },
@@ -153,9 +195,36 @@ Page({
 
   // 报名
   onSignup() {
+    const user = getCachedUser();
+    if (!user || !user.wecomName) {
+      wx.showModal({
+        title: '尚未完成登记',
+        content: '参加比赛前需要先登记身份信息，是否现在去登记？',
+        confirmText: '去登记',
+        success: res => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/onboarding/onboarding' });
+          }
+        }
+      });
+      return;
+    }
     api.signupTournament(this.data.id).then(() => {
       wx.showToast({ title: '已报名', icon: 'success' });
       this.load();
+    }).catch(err => {
+      // api.call 已弹 toast；仅对"未登记"额外提供跳转引导
+      const msg = (err && err.msg) || '';
+      if (msg.includes('登记')) {
+        wx.showModal({
+          title: '尚未完成登记',
+          content: msg + '，是否现在去登记？',
+          confirmText: '去登记',
+          success: res => {
+            if (res.confirm) wx.navigateTo({ url: '/pages/onboarding/onboarding' });
+          }
+        });
+      }
     });
   },
 
@@ -190,23 +259,128 @@ Page({
 
   // 抽签
   onDraw() {
-    const { drawGroupCount, drawAdvanceCount, drawSeedCount } = this.data;
-    const playerCount = this.data.t.players.length;
+    const { drawGroupCount, drawAdvanceCount, drawSeedCount, pairs, t } = this.data;
+    const playerCount = t.players.length;
+    const isDoubles = t.type === 'doubles';
+
+    // 双打必须先完成配对
+    if (isDoubles) {
+      if (playerCount % 2 !== 0) {
+        return wx.showToast({ title: '双打需要偶数报名（请先关闭报名补人/退人）', icon: 'none', duration: 2500 });
+      }
+      const paired = new Set();
+      pairs.forEach(([a, b]) => { paired.add(a); paired.add(b); });
+      if (paired.size !== playerCount) {
+        return wx.showToast({ title: `还有 ${playerCount - paired.size} 人未配对`, icon: 'none' });
+      }
+    }
+
+    const unitName = isDoubles ? '对' : '人';
+    const unitCount = isDoubles ? pairs.length : playerCount;
+    const seedTxt = drawSeedCount > 0 ? ' · ' + drawSeedCount + '种子' : ' · 随机';
     wx.showModal({
       title: '确认抽签分组',
-      content: `${playerCount}人 → 分${drawGroupCount}组 → 每组前${drawAdvanceCount}名晋级${drawSeedCount > 0 ? ' · ' + drawSeedCount + '种子' : ' · 随机'}`,
+      content: `${unitCount}${unitName} → 分${drawGroupCount}组 → 每组前${drawAdvanceCount}名晋级${seedTxt}`,
       success: res => {
         if (res.confirm) {
-          api.drawTournament(this.data.id, {
+          const opts = {
             groupCount: drawGroupCount,
             advanceCount: drawAdvanceCount,
             seedCount: drawSeedCount
-          }).then(() => {
+          };
+          if (isDoubles) opts.pairs = pairs;
+          api.drawTournament(this.data.id, opts).then(() => {
             wx.showToast({ title: '抽签完成', icon: 'success' });
             this.load();
           });
         }
       }
+    });
+  },
+
+  // 派生：把当前 pairs 重新算一遍 unpairedPlayers / pairsDetail / pairsComplete
+  // 配对状态变化的 4 处入口都用这个统一更新
+  recomputePairing(newPairs) {
+    const players = (this.data.t && this.data.t.players) || [];
+    const playerCount = players.length;
+    const pairedOids = new Set();
+    newPairs.forEach(([a, b]) => { pairedOids.add(a); pairedOids.add(b); });
+    const oidToName = {};
+    players.forEach(p => { oidToName[p.openid] = p.wecomName; });
+    return {
+      pairs: newPairs,
+      pairsComplete: playerCount > 0 && playerCount % 2 === 0 && pairedOids.size === playerCount,
+      unpairedPlayers: players.filter(p => !pairedOids.has(p.openid)),
+      pairsDetail: newPairs.map(([a, b], idx) => ({
+        idx,
+        a: { openid: a, wecomName: oidToName[a] || '?' },
+        b: { openid: b, wecomName: oidToName[b] || '?' }
+      }))
+    };
+  },
+
+  // 双打：点击玩家头像切换"待配对"高亮；如果已选过另一人则形成 pair
+  onTogglePair(e) {
+    const oid = e.currentTarget.dataset.openid;
+    if (!oid) return;
+    const { pairs, pairSelectedOpenid } = this.data;
+    // 已经在某个 pair 里：忽略（要拆配对请用 onUnpair）
+    const inSomePair = pairs.some(([a, b]) => a === oid || b === oid);
+    if (inSomePair) return;
+    // 第一次点：选中
+    if (!pairSelectedOpenid) {
+      this.setData({ pairSelectedOpenid: oid });
+      return;
+    }
+    // 同一个人再点：取消选择
+    if (pairSelectedOpenid === oid) {
+      this.setData({ pairSelectedOpenid: '' });
+      return;
+    }
+    // 与已选的人组成 pair
+    const newPairs = pairs.concat([[pairSelectedOpenid, oid]]);
+    this.setData({
+      ...this.recomputePairing(newPairs),
+      pairSelectedOpenid: ''
+    });
+  },
+
+  // 双打：拆掉一个已成的 pair
+  onUnpair(e) {
+    const idx = +e.currentTarget.dataset.idx;
+    if (isNaN(idx)) return;
+    const newPairs = this.data.pairs.slice();
+    newPairs.splice(idx, 1);
+    this.setData(this.recomputePairing(newPairs));
+  },
+
+  // 双打：一键清空所有配对
+  onResetPairs() {
+    this.setData({
+      ...this.recomputePairing([]),
+      pairSelectedOpenid: ''
+    });
+  },
+
+  // 双打：随机配对（懒人版，admin 不想手动选时用）
+  onRandomPair() {
+    const players = (this.data.t && this.data.t.players) || [];
+    if (players.length === 0) return;
+    if (players.length % 2 !== 0) {
+      return wx.showToast({ title: '需要偶数报名才能配对', icon: 'none' });
+    }
+    const shuffled = players.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const pairs = [];
+    for (let i = 0; i < shuffled.length; i += 2) {
+      pairs.push([shuffled[i].openid, shuffled[i + 1].openid]);
+    }
+    this.setData({
+      ...this.recomputePairing(pairs),
+      pairSelectedOpenid: ''
     });
   },
 

@@ -7,7 +7,10 @@ App({
     // 在微信开发者工具左上角"云开发"中查看，形如 cloud1-xxxxxxxx
     cloudEnv: 'cloud1-d7gpl79fte0c52c74',
     userInfo: null,
-    nav: null // 自定义导航栏度量，onLaunch 时计算
+    nav: null, // 自定义导航栏度量，onLaunch 时计算
+    // 隐私授权状态（privacy-popup 组件消费）
+    privacyResolve: null,
+    privacyReason: ''
   },
 
   onLaunch() {
@@ -22,24 +25,17 @@ App({
     // 自定义导航栏度量（返回按钮与胶囊垂直居中对齐）
     this.globalData.nav = computeNav();
 
-    // 隐私授权全局监听（app.json __usePrivacyCheck__:true 必须配套）
-    // 不注册的话，saveImageToPhotosAlbum 等隐私 API 会静默失败
+    // 隐私授权全局监听（仅注册一次）
+    // 触发时存 resolve 到 globalData，通知当前页面的 privacy-popup 组件展示弹窗
     if (typeof wx.onNeedPrivacyAuthorization === 'function') {
       wx.onNeedPrivacyAuthorization((resolve, eventInfo) => {
-        const referrer = (eventInfo && eventInfo.referrer) || '相册/位置等';
-        wx.showModal({
-          title: '隐私授权',
-          content: `小程序将使用「${referrer}」来完成你的请求，是否同意？`,
-          confirmText: '同意',
-          cancelText: '拒绝',
-          success: (r) => {
-            if (r.confirm) {
-              resolve({ event: 'agree', buttonId: '' });
-            } else {
-              resolve({ event: 'disagree' });
-            }
-          }
-        });
+        const referrer = (eventInfo && eventInfo.referrer) || '头像/相册';
+        this.globalData.privacyResolve = resolve;
+        this.globalData.privacyReason = `小程序需要使用「${referrer}」来完成你的操作，是否同意？`;
+        // 通知当前挂载的 privacy-popup 组件
+        if (this._privacyPopup) {
+          this._privacyPopup.showPopup(this.globalData.privacyReason);
+        }
       });
     }
   }

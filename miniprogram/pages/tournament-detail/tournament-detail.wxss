@@ -796,43 +796,14 @@
 }
 
 /* ========== CTA Buttons ==========
-   修复：之前 height + line-height: 100rpx 导致两行文字（如"小组赛
-   结束，进入淘汰赛"）被裁切。改用 min-height + line-height: 1.4 +
-   上下 padding 自然撑高，box-sizing 防止微信 button 默认 padding 溢出。 */
+   全局 .cta-primary 已包含 min-height: 100rpx + line-height: 1.4 +
+   box-sizing + white-space: normal + word-break，能正确处理两行文字
+   （如"小组赛结束，进入淘汰赛"）。这里只覆盖本页特有的视觉差异：
+   稍小的字号 + 更紧的图标间距 + 字距。 */
 .cta-primary {
-  appearance: none;
-  -webkit-appearance: none;
-  background: var(--color-emerald-deep);
-  color: var(--color-bg);
-  border: 1rpx solid var(--color-emerald-deep);
-  padding: 22rpx 36rpx;
-  font-family: var(--font-body);
-  font-weight: 500;
   font-size: 30rpx;
-  line-height: 1.4;
   letter-spacing: 0.06em;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
   gap: 12rpx;
-  border-radius: 0;
-  min-height: 100rpx;
-  box-sizing: border-box;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.cta-primary::after {
-  content: '';
-  position: absolute;
-  left: 28rpx;
-  right: 28rpx;
-  bottom: 10rpx;
-  height: 1rpx;
-  background: var(--color-accent);
-  opacity: 0.85;
 }
 
 .cta-cancel {
@@ -849,6 +820,130 @@
 .draw-btn {
   margin-top: 32rpx;
   width: 100%;
+}
+
+/* === 双打配对面板 === */
+.pair-panel {
+  margin-top: 24rpx;
+  padding: 20rpx 24rpx;
+  border: 1rpx solid var(--color-border);
+  background: var(--color-surface);
+}
+.pair-eyebrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.16em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.pair-actions-eyebrow {
+  display: flex;
+  gap: 18rpx;
+}
+.pair-link {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  color: var(--color-emerald-deep);
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+.pair-link--danger {
+  color: var(--color-accent);
+}
+.pair-list {
+  margin-top: 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.pair-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 14rpx 12rpx;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.pair-row:last-child {
+  border-bottom: none;
+}
+.pair-num {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  color: var(--color-muted);
+  letter-spacing: 0.06em;
+  min-width: 50rpx;
+}
+.pair-names {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+.pair-name {
+  font-family: var(--font-display);
+  font-size: 26rpx;
+  color: var(--color-fg);
+}
+.pair-sep {
+  color: var(--color-muted);
+  font-size: 22rpx;
+}
+.pair-unbtn {
+  font-family: var(--font-mono);
+  font-size: 20rpx;
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
+  padding: 4rpx 12rpx;
+  border: 1rpx solid var(--color-accent);
+}
+.pair-pool-title {
+  margin-top: 20rpx;
+  font-family: var(--font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.12em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  margin-bottom: 12rpx;
+}
+.pair-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.pair-chip {
+  padding: 12rpx 20rpx;
+  border: 1rpx solid var(--color-border);
+  background: var(--color-bg);
+  font-family: var(--font-display);
+  font-size: 24rpx;
+  color: var(--color-fg);
+}
+.pair-chip.is-selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+.pair-status-ok {
+  margin-top: 20rpx;
+  padding: 12rpx 16rpx;
+  font-family: var(--font-mono);
+  font-size: 22rpx;
+  color: var(--color-emerald-deep);
+  letter-spacing: 0.04em;
+}
+.pair-status-warn {
+  margin-top: 20rpx;
+  padding: 12rpx 16rpx;
+  font-family: var(--font-mono);
+  font-size: 22rpx;
+  color: var(--color-accent);
+  letter-spacing: 0.04em;
 }
 
 /* Danger zone — emerald-heritage 风格的危险操作 */

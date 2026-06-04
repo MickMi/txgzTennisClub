@@ -1,0 +1,12 @@
+<view class="mask" wx:if="{{show}}" catchtap="onMaskTap">
+  <view class="popup" catchtap="stopPropagation">
+    <view class="title">隐私授权</view>
+    <view class="content">
+      <text>{{reason}}</text>
+    </view>
+    <view class="actions">
+      <button class="btn cancel" bindtap="onDisagree">拒绝</button>
+      <button class="btn confirm" id="agree-btn" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="onAgree">同意</button>
+    </view>
+  </view>
+</view>

@@ -99,10 +99,67 @@
               <input class="draw-input" type="number" value="{{drawSeedCount}}" bindinput="onDrawSeedInput" placeholder="0" />
             </view>
             <view class="draw-hint">
-              {{t.players.length}} 人报名，分 {{drawGroupCount}} 组
+              <block wx:if="{{t.type === 'doubles'}}">
+                {{t.players.length}} 人报名 · 已配 {{pairs.length}} 对 · 分 {{drawGroupCount}} 组
+              </block>
+              <block wx:else>
+                {{t.players.length}} 人报名，分 {{drawGroupCount}} 组
+              </block>
             </view>
           </view>
-          <button class="cta-primary draw-btn" bindtap="onDraw">
+
+          <!-- 双打配对面板 -->
+          <view class="pair-panel" wx:if="{{t.type === 'doubles'}}">
+            <view class="pair-eyebrow">
+              <text>DOUBLES PAIRING · 双打配对</text>
+              <view class="pair-actions-eyebrow">
+                <text class="pair-link" bindtap="onRandomPair">随机配对</text>
+                <text class="pair-link pair-link--danger" bindtap="onResetPairs" wx:if="{{pairs.length > 0}}">清空</text>
+              </view>
+            </view>
+
+            <!-- 已配对列表 -->
+            <view wx:if="{{pairsDetail.length > 0}}" class="pair-list">
+              <view wx:for="{{pairsDetail}}" wx:key="idx" wx:for-item="pd" class="pair-row">
+                <view class="pair-num">#{{pd.idx + 1}}</view>
+                <view class="pair-names">
+                  <text class="pair-name">{{pd.a.wecomName}}</text>
+                  <text class="pair-sep">·</text>
+                  <text class="pair-name">{{pd.b.wecomName}}</text>
+                </view>
+                <view class="pair-unbtn" data-idx="{{pd.idx}}" bindtap="onUnpair">拆</view>
+              </view>
+            </view>
+
+            <!-- 待配对玩家（点两人形成 pair） -->
+            <view class="pair-pool-title" wx:if="{{!pairsComplete && unpairedPlayers.length > 0}}">
+              <text>待配对（点两人组对）</text>
+            </view>
+            <view class="pair-pool" wx:if="{{!pairsComplete && unpairedPlayers.length > 0}}">
+              <view
+                wx:for="{{unpairedPlayers}}"
+                wx:key="openid"
+                class="pair-chip {{pairSelectedOpenid === item.openid ? 'is-selected' : ''}}"
+                data-openid="{{item.openid}}"
+                bindtap="onTogglePair"
+              >
+                <text>{{item.wecomName}}</text>
+              </view>
+            </view>
+
+            <view class="pair-status-ok" wx:if="{{pairsComplete}}">
+              <text>✓ 配对完成（{{pairs.length}} 对）</text>
+            </view>
+            <view class="pair-status-warn" wx:elif="{{t.players.length % 2 !== 0}}">
+              <text>⚠ 双打需要偶数人，当前 {{t.players.length}} 人</text>
+            </view>
+          </view>
+
+          <button
+            class="cta-primary draw-btn"
+            bindtap="onDraw"
+            disabled="{{t.type === 'doubles' && !pairsComplete}}"
+          >
             <text>{{drawSeedCount > 0 ? '种子抽签' : '随机抽签'}}</text>
           </button>
         </view>

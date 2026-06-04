@@ -7,6 +7,12 @@
   color: var(--color-fg);
 }
 
+.profile-hero .avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
 /* Top navigation (custom navigation style，因为 navigationStyle: custom)
    padding-top 由 wxml inline style 注入（=胶囊 top - 8rpx，让按钮与胶囊垂直居中）*/
 .topnav {

@@ -3,12 +3,14 @@
     <image class="tab-icon" src="{{selected === 0 ? activeIcons[0] : inactiveIcons[0]}}" />
     <text>赛事</text>
   </view>
+  <!-- [HIDDEN] 活动模块因个人主体无社交类目暂时隐藏，恢复时取消注释
   <view class="tab {{selected === 1 ? 'is-active' : ''}}" data-index="1" bindtap="switchTab">
     <image class="tab-icon" src="{{selected === 1 ? activeIcons[1] : inactiveIcons[1]}}" />
     <text>活动</text>
   </view>
-  <view class="tab {{selected === 2 ? 'is-active' : ''}}" data-index="2" bindtap="switchTab">
-    <image class="tab-icon" src="{{selected === 2 ? activeIcons[2] : inactiveIcons[2]}}" />
+  -->
+  <view class="tab {{selected === 1 ? 'is-active' : ''}}" data-index="1" bindtap="switchTab">
+    <image class="tab-icon" src="{{selected === 1 ? activeIcons[1] : inactiveIcons[1]}}" />
     <text>我的</text>
   </view>
 </view>

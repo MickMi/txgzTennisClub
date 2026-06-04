@@ -2,15 +2,18 @@
   <!-- Masthead -->
   <view class="masthead">
     <view class="masthead-left">
-      <view class="wordmark">赛事</view>
+      <view class="wordmark" bindtap="onTitleTap">赛事</view>
       <view class="wordmark-caption">TOURNAMENTS</view>
     </view>
     <view class="masthead-actions">
-      <view wx:if="{{isAdmin}}" class="icon-pill" bindtap="goCreate">
+      <view wx:if="{{showCreate}}" class="icon-pill" bindtap="goCreate">
         <icon name="plus" size="28" />
       </view>
     </view>
   </view>
+
+  <!-- 使用范围声明 -->
+  <view class="scope-notice">本小程序仅限腾讯广州网球社内部成员使用</view>
 
   <!-- 排行榜特征卡 -->
   <view class="ranking-feature" bindtap="goRanking">
@@ -22,7 +25,7 @@
       <view class="title">积分排行榜</view>
     </view>
     <view class="my-rank">
-      <text class="strong">—/—</text>
+      <text class="strong">{{myRank > 0 ? myRank : '—'}}/{{totalMembers > 0 ? totalMembers : '—'}}</text>
       <text class="lbl">MY RANK</text>
     </view>
   </view>
@@ -38,9 +41,9 @@
   <block wx:if="{{!loading && tournaments.length === 0}}">
     <view class="empty-state">
       <view class="empty-icon"><icon name="trophy" size="112" /></view>
-      <view class="empty-title">还没有赛事</view>
-      <view class="empty-desc">{{isAdmin ? '组织一场赛事，抽签分组自动化管理' : '等待管理员创建赛事'}}</view>
-      <button wx:if="{{isAdmin}}" class="cta-primary" style="width: 320rpx;" bindtap="goCreate">创建赛事</button>
+      <view class="empty-title">暂无赛事记录</view>
+      <view class="empty-desc">比赛开始后，这里将展示赛事比分与对阵数据</view>
+      <button wx:if="{{showCreate}}" class="cta-primary" style="width: 320rpx;" bindtap="goCreate">创建赛事</button>
     </view>
   </block>
 

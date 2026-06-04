@@ -17,11 +17,17 @@ Page({
     editingRating: false,
     // 战绩统计
     stats: { wins: 0, losses: 0, pending: 0, total: 0 },
+    singlesStats: { wins: 0, losses: 0, pending: 0, total: 0 },
+    doublesStats: { wins: 0, losses: 0, pending: 0, total: 0 },
+    currentStats: { wins: 0, losses: 0, pending: 0, total: 0 },
+    statsMode: 'all', // 'all' | 'singles' | 'doubles'
     winRate: '-',
     // 累计积分
     totalPoints: 0,
+    pointsDelta: 0,
     // ELO等级分
     eloRating: 1500,
+    eloDelta: 0,
     // 图表
     chartTab: 0, // 0: ELO曲线, 1: 积分曲线
     eloHistory: [],
@@ -36,7 +42,7 @@ Page({
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 });
+      this.getTabBar().setData({ selected: 1 }); // 原为 2，隐藏活动 tab 后"我的"变为 index 1
     }
     this.loadProfile();
   },
@@ -61,6 +67,8 @@ Page({
           startTimeStr: formatDateTime(a.startTime)
         }));
         const stats = profile.stats || { wins: 0, losses: 0, pending: 0, total: 0 };
+        const singlesStats = profile.singlesStats || { wins: 0, losses: 0, pending: 0, total: 0 };
+        const doublesStats = profile.doublesStats || { wins: 0, losses: 0, pending: 0, total: 0 };
         const played = stats.wins + stats.losses;
         const winRate = played > 0 ? Math.round(stats.wins * 100 / played) + '%' : '-';
         this.setData({
@@ -69,9 +77,14 @@ Page({
           rating: profile.rating || '未设置',
           ratingIndex,
           stats,
+          singlesStats,
+          doublesStats,
+          currentStats: stats,
           winRate,
           totalPoints: user.totalPoints || 0,
+          pointsDelta: profile.pointsDelta || 0,
           eloRating: user.eloRating || 1500,
+          eloDelta: profile.eloDelta || 0,
           eloHistory: profile.eloHistory || [],
           pointsHistory: profile.pointsHistory || [],
           matchHistory,
@@ -95,6 +108,16 @@ Page({
   // Tab 切换
   onTabChange(e) {
     this.setData({ activeTab: parseInt(e.currentTarget.dataset.tab) });
+  },
+
+  // 战绩模式切换（全部/单打/双打）
+  onStatsModeChange(e) {
+    const mode = e.currentTarget.dataset.mode;
+    let currentStats;
+    if (mode === 'singles') currentStats = this.data.singlesStats;
+    else if (mode === 'doubles') currentStats = this.data.doublesStats;
+    else currentStats = this.data.stats;
+    this.setData({ statsMode: mode, currentStats });
   },
 
   // 头像选择 — 用 <button open-type="chooseAvatar"> 触发的回调
@@ -129,6 +152,11 @@ Page({
     });
   },
 
+  // 编辑面板内部点击不应冒泡到 overlay 触发关闭
+  onPanelTap() {
+    // 空函数：仅借助 catchtap 阻止事件冒泡
+  },
+
   onInput(e) {
     this.setData({ wecomNameInput: e.detail.value });
   },
@@ -140,7 +168,7 @@ Page({
   onSave() {
     const name = (this.data.wecomNameInput || '').trim();
     if (!name) {
-      wx.showToast({ title: '请填写企微名', icon: 'none' });
+      wx.showToast({ title: '请填写昵称', icon: 'none' });
       return;
     }
     const payload = { wecomName: name };
@@ -199,6 +227,11 @@ Page({
   // 跳转成员管理（admin only，wxml 已用 user.role === 'admin' 包裹）
   goMemberManagement() {
     wx.navigateTo({ url: '/pages/member-management/member-management' });
+  },
+
+  // 未登记用户主动去 onboarding
+  goOnboarding() {
+    wx.navigateTo({ url: '/pages/onboarding/onboarding' });
   },
 
   // 图表 Tab 切换

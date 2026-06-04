@@ -1,5 +1,5 @@
 const api = require('../../utils/api.js');
-const { ensureRegistered } = require('../../utils/user.js');
+const { getCachedUser, setCachedUser } = require('../../utils/user.js');
 const { formatDate } = require('../../utils/format.js');
 
 const LEVEL_LABELS = { major: '半年赛', challenge: '月赛', friendly: '周赛' };
@@ -25,16 +25,27 @@ Page({
     hasMore: false,
     nextCursor: null,
     loadingMore: false,
-    isAdmin: false // 仅 admin 看到"创建赛事"入口
+    isAdmin: false,
+    showCreate: false, // 隐藏创建入口，连续点击标题 5 次后显示（仅 admin 生效）
+    myRank: 0,
+    totalMembers: 0
   },
+
+  _titleTapCount: 0,
+  _titleTapTimer: null,
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
-    ensureRegistered().then(user => {
-      if (!user) return;
-      this.setData({ isAdmin: user.role === 'admin' });
+    // 不再强制跳 onboarding，允许未注册用户只读浏览
+    api.login().then(user => {
+      setCachedUser(user);
+      this.setData({ isAdmin: user && user.role === 'admin' });
+      this.loadTournaments();
+      this.loadMyRank();
+    }).catch(() => {
+      // 即使 login 失败也加载列表（只读模式）
       this.loadTournaments();
     });
   },
@@ -84,12 +95,33 @@ Page({
       .catch(() => this.setData({ loadingMore: false }));
   },
 
+  // 连续点击标题 5 次激活创建入口（仅 admin 有效）
+  onTitleTap() {
+    if (!this.data.isAdmin) return;
+    this._titleTapCount++;
+    clearTimeout(this._titleTapTimer);
+    this._titleTapTimer = setTimeout(() => { this._titleTapCount = 0; }, 2000);
+    if (this._titleTapCount >= 5) {
+      this._titleTapCount = 0;
+      this.setData({ showCreate: true });
+      wx.showToast({ title: '管理模式已激活', icon: 'none', duration: 1500 });
+    }
+  },
+
   goCreate() {
     if (!this.data.isAdmin) {
       wx.showToast({ title: '只有管理员可以创建赛事', icon: 'none' });
       return;
     }
     wx.navigateTo({ url: '/pages/tournament-create/tournament-create' });
+  },
+
+  loadMyRank() {
+    api.getRanking({ silent: true }).then(res => {
+      const list = (res && res.list) || [];
+      const myRank = res && res.myRank ? res.myRank : 0;
+      this.setData({ myRank, totalMembers: list.length });
+    }).catch(() => {});
   },
 
   goRanking() {

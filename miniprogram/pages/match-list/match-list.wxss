@@ -1,5 +1,17 @@
 /* match-list 赛事列表页 — emerald-heritage */
 
+/* ─── Scope Notice ─── */
+.scope-notice {
+  margin: 16rpx 48rpx 0;
+  padding: 16rpx 24rpx;
+  font-size: 22rpx;
+  color: #8a7e6a;
+  text-align: center;
+  letter-spacing: 0.04em;
+  border: 1rpx dashed #ddd6c4;
+  background: #faf8f2;
+}
+
 /* ─── Ranking Feature Card ─── */
 .ranking-feature {
   margin: 28rpx 48rpx 0;
@@ -230,34 +242,6 @@
 /* ─── Finished state ─── */
 .tournament-row.is-finished .title {
   color: var(--color-muted);
-}
-
-/* ─── FAB ─── */
-.fab {
-  position: fixed;
-  right: 40rpx;
-  bottom: 184rpx;
-  width: 104rpx;
-  height: 104rpx;
-  background: var(--color-emerald-deep);
-  color: var(--color-bg);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 8rpx 24rpx rgba(36, 58, 48, 0.3);
-  z-index: 35;
-}
-
-.fab::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -8rpx;
-  transform: translateX(-50%);
-  width: 52rpx;
-  height: 2rpx;
-  background: var(--color-accent);
-  opacity: 0.5;
 }
 
 /* ─── Empty State ─── */

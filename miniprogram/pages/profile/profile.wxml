@@ -18,6 +18,8 @@ module.exports = {
 </wxs>
 
 <view class="container">
+  <!-- 全局隐私授权弹窗 -->
+  <privacy-popup />
   <!-- Masthead -->
   <view class="masthead">
     <view class="masthead-left">
@@ -33,20 +35,32 @@ module.exports = {
 
   <!-- 1. Profile Hero -->
   <view class="profile-hero">
-    <button class="avatar-wrap" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+    <button class="avatar-wrap" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" wx:if="{{user && user.wecomName}}">
       <image wx:if="{{user.avatarUrl}}" class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill" />
       <view wx:else class="avatar-letter">{{fmt.firstChar(user.wecomName)}}</view>
     </button>
+    <view class="avatar-wrap" wx:else>
+      <view class="avatar-letter">?</view>
+    </view>
     <view class="who">
       <view class="name">{{user.wecomName || '未登记'}}</view>
       <view class="role">
-        <block wx:if="{{user.role === 'admin'}}">
-          <text class="role-badge accent">ADMIN</text>
-          <text class="role-muted"> · 管理员</text>
+        <block wx:if="{{user && user.wecomName}}">
+          <block wx:if="{{user.role === 'admin'}}">
+            <text class="role-badge accent">ADMIN</text>
+            <text class="role-muted"> · 管理员</text>
+          </block>
+          <text class="role-badge muted" wx:else>MEMBER</text>
         </block>
-        <text class="role-badge muted" wx:else>MEMBER</text>
+        <text wx:else class="role-muted">尚未完成身份登记</text>
       </view>
     </view>
+  </view>
+
+  <!-- 未登记引导 -->
+  <view wx:if="{{user && !user.wecomName}}" class="register-prompt" bindtap="goOnboarding">
+    <view class="register-prompt-text">完成身份登记后可参与赛事录分</view>
+    <text class="register-prompt-btn">去登记 →</text>
   </view>
 
   <!-- 2. Identity Grid -->
@@ -59,31 +73,38 @@ module.exports = {
     <view class="cell">
       <text class="lbl">积分</text>
       <text class="val">{{totalPoints}}</text>
-      <view class="delta">+0</view>
+      <view class="delta {{pointsDelta > 0 ? 'up' : pointsDelta < 0 ? 'down' : ''}}">{{pointsDelta > 0 ? '+' : ''}}{{pointsDelta}}</view>
     </view>
     <view class="cell">
       <text class="lbl">ELO</text>
       <text class="val">{{eloRating}}</text>
-      <view class="delta">+0</view>
+      <view class="delta {{eloDelta > 0 ? 'up' : eloDelta < 0 ? 'down' : ''}}">{{eloDelta > 0 ? '+' : ''}}{{eloDelta}}</view>
     </view>
   </view>
 
   <!-- 3. Stats Strip -->
+  <view class="stats-strip-header">
+    <view class="stats-mode-tabs">
+      <view class="stats-mode-tab {{statsMode === 'all' ? 'is-active' : ''}}" data-mode="all" bindtap="onStatsModeChange">全部</view>
+      <view class="stats-mode-tab {{statsMode === 'singles' ? 'is-active' : ''}}" data-mode="singles" bindtap="onStatsModeChange">单打</view>
+      <view class="stats-mode-tab {{statsMode === 'doubles' ? 'is-active' : ''}}" data-mode="doubles" bindtap="onStatsModeChange">双打</view>
+    </view>
+  </view>
   <view class="stats-strip">
     <view class="stat win">
-      <text class="n">{{stats.wins}}</text>
+      <text class="n">{{currentStats.wins}}</text>
       <text class="l">胜</text>
     </view>
     <view class="stat">
-      <text class="n">{{stats.losses}}</text>
+      <text class="n">{{currentStats.losses}}</text>
       <text class="l">负</text>
     </view>
     <view class="stat">
-      <text class="n">{{stats.pending}}</text>
+      <text class="n">{{currentStats.pending}}</text>
       <text class="l">待录</text>
     </view>
     <view class="stat">
-      <text class="n">{{stats.total}}</text>
+      <text class="n">{{currentStats.total}}</text>
       <text class="l">总计</text>
     </view>
   </view>
@@ -143,15 +164,26 @@ module.exports = {
     <view wx:else class="no-data">NO DATA</view>
   </view>
 
+  <!-- 邀请入口 -->
+  <view class="qr-section">
+    <view class="qr-text">
+      <view class="qr-eyebrow">INVITE</view>
+      <view class="qr-title">邀请队友加入</view>
+      <view class="qr-desc">长按识别小程序码</view>
+    </view>
+    <image class="qr-img" src="/assets/qrcode.png" mode="aspectFit" show-menu-by-longpress="{{true}}" />
+  </view>
+
   <!-- Edit Overlay (keeps existing JS logic working) -->
   <view wx:if="{{editing}}" class="edit-overlay" bindtap="onCancel">
-    <view class="edit-panel" catchtap="">
+    <view class="edit-panel" catchtap="onPanelTap">
       <view class="edit-heading">修改信息</view>
       <input
         class="edit-input"
-        placeholder="企业微信名"
+        placeholder="昵称"
         value="{{wecomNameInput}}"
         bindinput="onInput"
+        catchtap="onPanelTap"
         maxlength="20"
       />
       <view class="edit-gender">

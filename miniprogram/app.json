@@ -14,7 +14,8 @@
     "pages/poster/poster"
   ],
   "usingComponents": {
-    "icon": "/components/icon/icon"
+    "icon": "/components/icon/icon",
+    "privacy-popup": "/components/privacy-popup/privacy-popup"
   },
   "window": {
     "navigationStyle": "custom",
@@ -35,10 +36,6 @@
         "text": "赛事"
       },
       {
-        "pagePath": "pages/index/index",
-        "text": "活动"
-      },
-      {
         "pagePath": "pages/profile/profile",
         "text": "我的"
       }
@@ -46,5 +43,5 @@
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "__usePrivacyCheck__": false
+  "__usePrivacyCheck__": true
 }

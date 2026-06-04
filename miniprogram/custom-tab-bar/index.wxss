@@ -1,7 +1,7 @@
 .tabbar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
   background: #f8f4e8; border-top: 1rpx solid #ddd6c4;
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  display: grid; grid-template-columns: 1fr 1fr; /* 原 3 列，隐藏活动后改为 2 列 */
   padding: 12rpx 0 52rpx;
 }
 .tab {
