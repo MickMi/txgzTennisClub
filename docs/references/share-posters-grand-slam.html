@@ -1,0 +1,818 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tennis Club · Grand Slam Poster Styles (4 Majors)</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #1a1a1e;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', system-ui, sans-serif;
+    color: #e8e8ec;
+    min-height: 100vh; padding: 48px 32px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sheet { max-width: 1680px; margin: 0 auto; }
+  .studio-header {
+    display: grid; grid-template-columns: auto 1fr auto; column-gap: 24px; align-items: baseline;
+    color: #6b6b7a; font-family: ui-monospace, 'SF Mono', monospace; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-bottom: 1px solid #333; padding-bottom: 18px; margin-bottom: 12px;
+  }
+  .studio-header strong { font-family: -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: #f0f0f2; text-transform: none; }
+  .studio-header em { font-style: normal; color: #6b6b7a; }
+
+  .intro {
+    margin: 20px 0 40px;
+    padding: 20px 24px;
+    background: #222228;
+    border: 1px solid #333;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #aaa;
+  }
+  .intro strong { color: #e8e8ec; }
+  .intro .concept {
+    margin-top: 12px; padding: 12px 16px; background: #2a2a32; border-radius: 6px;
+    font-size: 12px; color: #ccc; line-height: 1.7;
+  }
+  .intro .concept em { font-style: normal; color: #e8a838; }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    justify-items: center;
+  }
+
+  .style-card {
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .style-card .style-label {
+    width: 375px; margin-bottom: 16px;
+    display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center;
+  }
+  .style-card .style-label .num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700;
+  }
+  .style-card .style-label .info {}
+  .style-card .style-label .info .name { font-size: 15px; font-weight: 600; color: #f0f0f2; margin-bottom: 3px; }
+  .style-card .style-label .info .desc { font-size: 11px; color: #888; font-family: ui-monospace, monospace; letter-spacing: 0.04em; }
+
+  /* Number badge colors per Grand Slam */
+  .style-card:nth-child(1) .style-label .num { background: #0091D5; color: #fff; }
+  .style-card:nth-child(2) .style-label .num { background: #C84B31; color: #fff; }
+  .style-card:nth-child(3) .style-label .num { background: #00441B; color: #fff; }
+  .style-card:nth-child(4) .style-label .num { background: #003DA5; color: #fff; }
+
+  /* ====== STYLE 1: AUSTRALIAN OPEN ====== */
+  .s-ao {
+    --s-bg: #e8f4fa;
+    --s-surface: #f0f8fc;
+    --s-paper: #ffffff;
+    --s-border: #c8e3f0;
+    --s-hairline: #d6ecf5;
+    --s-muted: #4a7a94;
+    --s-fg: #0a2e42;
+    --s-accent: #0091D5;
+    --s-positive: #00a86b;
+    --s-hero-bg: linear-gradient(168deg, #005fa3 0%, #003b6b 100%);
+    --s-hero-fg: #ffffff;
+    --s-font-display: 'SF Pro Display', -apple-system, system-ui, sans-serif;
+    --s-font-body: -apple-system, 'PingFang SC', system-ui, sans-serif;
+    --s-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+
+  /* ====== STYLE 2: ROLAND GARROS ====== */
+  .s-rg {
+    --s-bg: #faf3ec;
+    --s-surface: #fdf8f3;
+    --s-paper: #fffcf8;
+    --s-border: #e8d5c0;
+    --s-hairline: #f0dfcc;
+    --s-muted: #7a5c3f;
+    --s-fg: #2d1a08;
+    --s-accent: #C84B31;
+    --s-positive: #3d7a3a;
+    --s-hero-bg: linear-gradient(168deg, #8B3A1F 0%, #5a2210 100%);
+    --s-hero-fg: #fef6ee;
+    --s-font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+    --s-font-body: -apple-system, 'PingFang SC', system-ui, sans-serif;
+    --s-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+
+  /* ====== STYLE 3: WIMBLEDON ====== */
+  .s-wim {
+    --s-bg: #f5f8f2;
+    --s-surface: #fafcf8;
+    --s-paper: #ffffff;
+    --s-border: #c5d8b8;
+    --s-hairline: #d8e8cc;
+    --s-muted: #4a6640;
+    --s-fg: #1a2e14;
+    --s-accent: #c9a63c;
+    --s-positive: #2d6b2f;
+    --s-hero-bg: linear-gradient(168deg, #1a3d1a 0%, #0d2610 100%);
+    --s-hero-fg: #f8faf5;
+    --s-font-display: 'Iowan Old Style', 'Charter', Georgia, serif;
+    --s-font-body: -apple-system, 'PingFang SC', system-ui, sans-serif;
+    --s-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+
+  /* ====== STYLE 4: US OPEN ====== */
+  .s-uso {
+    --s-bg: #0c1a33;
+    --s-surface: #112240;
+    --s-paper: #152a4d;
+    --s-border: #2a4470;
+    --s-hairline: #1e3558;
+    --s-muted: #7a9cc0;
+    --s-fg: #f0f4fa;
+    --s-accent: #FF6B35;
+    --s-positive: #FFD23F;
+    --s-hero-bg: linear-gradient(168deg, #001a4d 0%, #000d26 100%);
+    --s-hero-fg: #ffffff;
+    --s-font-display: 'SF Pro Display', -apple-system, system-ui, sans-serif;
+    --s-font-body: -apple-system, 'PingFang SC', system-ui, sans-serif;
+    --s-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+
+  /* ====== SHARED POSTER STRUCTURE ====== */
+  .poster {
+    width: 375px; min-height: 667px; position: relative; overflow: hidden;
+    box-shadow: 0 24px 60px -16px rgba(0,0,0,0.5), 0 8px 20px -6px rgba(0,0,0,0.3);
+  }
+
+  /* --- Hero --- */
+  .poster .hero {
+    position: relative; padding: 32px 28px 22px; overflow: hidden;
+  }
+  .poster .hero { background: var(--s-hero-bg); color: var(--s-hero-fg); }
+
+  /* hero textures per Grand Slam */
+  .s-ao .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 85% 30%, rgba(0,200,255,0.12) 0%, transparent 50%),
+      radial-gradient(circle at 15% 80%, rgba(0,145,213,0.08) 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .s-ao .hero::after {
+    content: ''; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 24px);
+    pointer-events: none;
+  }
+
+  .s-rg .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,200,150,0.06) 1.5px, transparent 1.5px);
+    background-size: 4px 4px;
+    pointer-events: none; opacity: 0.8;
+  }
+  .s-rg .hero::after {
+    content: ''; position: absolute; bottom: -40px; right: -40px; width: 200px; height: 200px;
+    border: 30px solid rgba(255,200,150,0.06); border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .s-wim .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 8px);
+    pointer-events: none;
+  }
+
+  .s-uso .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 250px 180px at 80% 20%, rgba(255,107,53,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 200px 250px at 10% 90%, rgba(255,210,63,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .s-uso .hero::after {
+    content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px;
+    background: conic-gradient(from 45deg, transparent 0%, rgba(255,107,53,0.04) 25%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* court-lines SVG */
+  .s-ao .hero .court-lines, .s-uso .hero .court-lines { display: none; }
+  .s-rg .hero .court-lines { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.12; pointer-events: none; }
+  .s-wim .hero .court-lines { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.15; pointer-events: none; }
+
+  /* brand row */
+  .poster .hero .brand { position: relative; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .poster .hero .brand .wordmark { font-family: var(--s-font-mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.7; }
+  .s-rg .hero .brand .wordmark { font-family: var(--s-font-display); font-size: 13px; letter-spacing: 0.005em; opacity: 0.85; }
+  .s-wim .hero .brand .wordmark { font-family: var(--s-font-display); font-size: 13px; letter-spacing: 0.005em; opacity: 0.85; }
+  .poster .hero .brand .crest {
+    width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    font-family: var(--s-font-display); font-size: 12px;
+  }
+  .s-ao .hero .brand .crest { border: 1.5px solid rgba(255,255,255,0.5); color: rgba(255,255,255,0.9); font-weight: 700; }
+  .s-rg .hero .brand .crest { border: 1px solid var(--s-accent); color: #ffd4a8; }
+  .s-wim .hero .brand .crest { border: 1px solid var(--s-accent); color: var(--s-accent); }
+  .s-uso .hero .brand .crest { border: 1.5px solid var(--s-accent); color: var(--s-accent); font-weight: 700; border-radius: 4px; }
+
+  /* identity block */
+  .poster .hero .identity { position: relative; display: grid; grid-template-columns: 52px 1fr; column-gap: 14px; align-items: center; }
+  .poster .hero .identity .avatar {
+    width: 52px; height: 52px; display: grid; place-items: center;
+    font-family: var(--s-font-display); font-size: 22px;
+  }
+  .s-ao .hero .identity .avatar { border-radius: 8px; border: 2px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); color: #fff; font-weight: 700; }
+  .s-rg .hero .identity .avatar { border-radius: 50%; border: 1.5px solid rgba(255,200,150,0.5); background: rgba(255,200,150,0.08); color: var(--s-hero-fg); }
+  .s-wim .hero .identity .avatar { border-radius: 50%; border: 1.5px solid var(--s-accent); background: rgba(201,166,60,0.08); color: var(--s-hero-fg); }
+  .s-uso .hero .identity .avatar { border-radius: 6px; border: 2px solid var(--s-accent); background: rgba(255,107,53,0.08); color: var(--s-accent); font-weight: 900; }
+
+  .poster .hero .identity .who .name {
+    font-family: var(--s-font-display); font-size: 24px; font-weight: 500; line-height: 1.05;
+  }
+  .s-ao .hero .identity .who .name { font-weight: 700; }
+  .s-rg .hero .identity .who .name { font-weight: 500; }
+  .s-wim .hero .identity .who .name { font-weight: 500; }
+  .s-uso .hero .identity .who .name { font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; }
+
+  .poster .hero .identity .who .role {
+    margin-top: 5px; font-family: var(--s-font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.6;
+  }
+
+  /* tournament ref */
+  .poster .hero .tournament-ref {
+    position: relative; margin-top: 16px; font-family: var(--s-font-mono); font-size: 10px;
+    letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.55;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .poster .hero .tournament-ref .pip { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+  .s-ao .hero .tournament-ref .pip { border-radius: 1px; width: 6px; height: 2px; }
+  .s-uso .hero .tournament-ref .pip { border-radius: 0; width: 1px; height: 10px; opacity: 0.3; }
+
+  /* --- Big Four --- */
+  .poster .big-four { padding: 18px 28px; display: grid; grid-template-columns: 1fr 1fr; row-gap: 16px; column-gap: 16px; background: var(--s-bg); border-bottom: 1px solid var(--s-hairline); }
+
+  .s-ao .big-four { padding: 20px 24px; row-gap: 2px; column-gap: 2px; background: var(--s-border); border-bottom: 0; }
+  .s-ao .big-four .cell { padding: 14px 12px; background: var(--s-surface); border-radius: 4px; }
+
+  .s-rg .big-four { padding: 20px 28px; }
+
+  .s-wim .big-four { padding: 20px 28px; border-bottom: 1px solid var(--s-border); }
+
+  .s-uso .big-four { padding: 18px 24px; row-gap: 2px; column-gap: 2px; background: var(--s-border); border-bottom: 0; }
+  .s-uso .big-four .cell { padding: 14px 12px; background: var(--s-surface); }
+
+  .poster .big-four .cell .lbl {
+    font-family: var(--s-font-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--s-muted); margin-bottom: 5px;
+  }
+  .poster .big-four .cell .val {
+    font-family: var(--s-font-display); font-size: 28px; font-weight: 500; color: var(--s-fg);
+    font-feature-settings: 'tnum','lnum'; line-height: 1; letter-spacing: -0.005em;
+  }
+  .s-ao .big-four .cell .val { font-weight: 700; }
+  .s-rg .big-four .cell .val { font-weight: 500; }
+  .s-wim .big-four .cell .val { font-weight: 500; }
+  .s-uso .big-four .cell .val { font-weight: 900; letter-spacing: -0.02em; }
+  .poster .big-four .cell .val em { font-style: normal; font-size: 14px; color: var(--s-muted); margin-inline-start: 2px; }
+  .poster .big-four .cell .val .up { color: var(--s-positive); }
+  .poster .big-four .cell .val .accent { color: var(--s-accent); }
+  .poster .big-four .cell .sub { margin-top: 5px; font-family: var(--s-font-mono); font-size: 9.5px; letter-spacing: 0.04em; color: var(--s-muted); font-feature-settings: 'tnum'; }
+  .poster .big-four .cell .sub .up { color: var(--s-positive); }
+
+  /* --- Highlight --- */
+  .poster .highlight { padding: 18px 28px; background: var(--s-bg); border-bottom: 1px solid var(--s-hairline); position: relative; }
+
+  .s-ao .highlight { padding: 18px 24px; border-bottom-color: var(--s-border); }
+  .s-ao .highlight::before { content: ''; position: absolute; left: 0; top: 18px; bottom: 18px; width: 3px; background: var(--s-accent); border-radius: 0 2px 2px 0; }
+  .s-ao .highlight .eyebrow, .s-ao .highlight .content, .s-ao .highlight .detail { padding-left: 16px; }
+
+  .s-rg .highlight { padding: 20px 28px; }
+
+  .s-wim .highlight { padding: 20px 28px; }
+  .s-wim .highlight::before { content: ''; position: absolute; left: 28px; right: 28px; top: 0; height: 1px; background: linear-gradient(90deg, var(--s-accent) 0%, transparent 100%); opacity: 0.4; }
+
+  .s-uso .highlight { padding: 18px 24px; background: var(--s-surface); border-bottom-color: var(--s-border); }
+  .s-uso .highlight::before { content: ''; position: absolute; left: 0; top: 18px; bottom: 18px; width: 3px; background: var(--s-accent); }
+  .s-uso .highlight .eyebrow, .s-uso .highlight .content, .s-uso .highlight .detail { padding-left: 16px; }
+
+  .poster .highlight .eyebrow {
+    font-family: var(--s-font-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--s-accent); margin-bottom: 8px;
+    display: flex; justify-content: space-between;
+  }
+  .poster .highlight .eyebrow .type { color: var(--s-muted); }
+  .poster .highlight .content { font-family: var(--s-font-display); font-size: 16px; font-weight: 500; color: var(--s-fg); line-height: 1.35; }
+  .s-ao .highlight .content { font-weight: 600; }
+  .s-uso .highlight .content { font-weight: 700; }
+  .poster .highlight .content .accent { color: var(--s-accent); }
+  .poster .highlight .detail { margin-top: 8px; font-family: var(--s-font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--s-muted); font-feature-settings: 'tnum'; }
+
+  /* --- History --- */
+  .poster .history { padding: 16px 28px; background: var(--s-bg); border-bottom: 1px solid var(--s-hairline); }
+  .s-ao .history { padding: 16px 24px; border-bottom-color: var(--s-border); }
+  .s-uso .history { padding: 16px 24px; background: var(--s-surface); border-bottom-color: var(--s-border); }
+  .poster .history .eyebrow { font-family: var(--s-font-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--s-muted); margin-bottom: 10px; }
+  .poster .history .match-line {
+    display: grid; grid-template-columns: 8px 22px 1fr auto; column-gap: 10px; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--s-hairline);
+  }
+  .s-ao .history .match-line { border-bottom-color: var(--s-border); }
+  .s-uso .history .match-line { border-bottom-color: var(--s-border); }
+  .poster .history .match-line:last-child { border-bottom: 0; }
+  .poster .history .match-line .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .s-ao .history .match-line .dot { border-radius: 2px; width: 4px; height: 12px; }
+  .s-uso .history .match-line .dot { border-radius: 1px; width: 3px; height: 14px; }
+  .s-rg .history .match-line .dot { width: 7px; height: 7px; }
+  .poster .history .match-line .dot.win { background: var(--s-positive); }
+  .poster .history .match-line .dot.loss { background: var(--s-hairline); }
+  .s-ao .history .match-line .dot.loss { background: var(--s-border); }
+  .s-uso .history .match-line .dot.loss { background: var(--s-border); }
+  .poster .history .match-line .round { font-family: var(--s-font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--s-muted); text-transform: uppercase; }
+  .poster .history .match-line .opponent { font-size: 13px; color: var(--s-fg); }
+  .s-ao .history .match-line .opponent { font-weight: 600; }
+  .s-uso .history .match-line .opponent { font-weight: 600; }
+  .poster .history .match-line .score { font-family: var(--s-font-display); font-size: 14px; font-weight: 500; color: var(--s-fg); font-feature-settings: 'tnum','lnum'; text-align: end; }
+  .s-ao .history .match-line .score { font-weight: 700; }
+  .s-uso .history .match-line .score { font-weight: 900; }
+  .s-rg .history .match-line .score { font-weight: 500; }
+  .poster .history .match-line.is-loss .opponent { opacity: 0.5; }
+  .poster .history .match-line.is-loss .score { color: var(--s-muted); }
+
+  /* --- Footer --- */
+  .poster .foot {
+    padding: 16px 28px 22px; display: grid; grid-template-columns: 1fr 52px; column-gap: 14px; align-items: end;
+    background: var(--s-bg);
+  }
+  .s-ao .foot { padding: 16px 24px 20px; }
+  .s-uso .foot { background: var(--s-surface); padding: 16px 24px 20px; }
+  .poster .foot .next .ey { font-family: var(--s-font-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--s-accent); margin-bottom: 4px; }
+  .poster .foot .next .h { font-family: var(--s-font-display); font-size: 13px; font-weight: 500; color: var(--s-fg); }
+  .s-ao .foot .next .h { font-weight: 600; }
+  .s-uso .foot .next .h { font-weight: 700; }
+  .poster .foot .next .when { font-family: var(--s-font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--s-muted); margin-top: 3px; font-feature-settings: 'tnum'; }
+  .poster .foot .qr {
+    width: 52px; height: 52px; border: 1px solid var(--s-border); display: grid; place-items: center;
+    font-family: var(--s-font-mono); font-size: 8px; color: var(--s-muted); letter-spacing: 0.1em; text-transform: uppercase; text-align: center; line-height: 1.3;
+  }
+  .s-ao .foot .qr { border-color: var(--s-accent); color: var(--s-accent); border-radius: 4px; }
+  .s-rg .foot .qr { border-color: var(--s-accent); color: var(--s-accent); border-radius: 50%; width: 50px; height: 50px; }
+  .s-wim .foot .qr { border-color: var(--s-accent); color: var(--s-accent); }
+  .s-uso .foot .qr { border-color: var(--s-accent); color: var(--s-accent); border-radius: 4px; }
+
+  /* --- Style-specific poster frame borders --- */
+  .s-ao.poster { border: 1px solid #a0d4ed; }
+  .s-rg.poster { border: 1px solid #d4a882; }
+  .s-wim.poster { border: 1px solid #8fb882; }
+  .s-uso.poster { border: 1px solid #2a4470; box-shadow: 0 24px 60px -16px rgba(0,20,60,0.5), 0 0 1px rgba(255,107,53,0.2); }
+
+  /* --- Color swatches under each poster --- */
+  .swatches {
+    margin-top: 16px; width: 375px;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .swatches .swatch {
+    width: 24px; height: 24px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);
+  }
+  .swatches .swatch-label { margin-left: 8px; font-family: ui-monospace, monospace; font-size: 9.5px; color: #888; letter-spacing: 0.06em; }
+
+  .tags { margin-top: 10px; width: 375px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .tags .tag { padding: 3px 8px; border-radius: 3px; background: #2a2a32; font-family: ui-monospace, monospace; font-size: 9px; color: #999; letter-spacing: 0.04em; }
+
+  .page-foot {
+    margin-top: 56px; padding-top: 24px; border-top: 1px solid #333;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    color: #6b6b7a; font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .page-foot .center { text-align: center; }
+  .page-foot .end { text-align: end; }
+  .page-foot strong { color: #e8e8ec; font-weight: 600; font-size: 12px; letter-spacing: 0; text-transform: none; }
+
+  @media (max-width: 900px) { .grid-4 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="studio-header">
+    <span>Open Design / Tennis Club</span>
+    <strong>Grand Slam Poster Styles</strong>
+    <em>4 majors · personal achievement card</em>
+  </header>
+
+  <div class="intro">
+    <strong>四大满贯主题配色</strong> — 每种风格对应一项网球大满贯赛事的经典视觉体系。用户赛后生成战绩卡时选择自己喜爱的赛事主题。
+    <div class="concept">
+      <em>Australian Open</em> — 墨尔本硬地蓝 + 活力现代<br>
+      <em>Roland Garros</em> — 红土陶赭 + 法式优雅衬线<br>
+      <em>Wimbledon</em> — 经典草地绿 + 薰衣草紫 + 金饰<br>
+      <em>US Open</em> — 深夜海军蓝 + 烈焰橙 + 聚光灯
+    </div>
+  </div>
+
+  <div class="grid-4">
+
+    <!-- ====== STYLE 1: AUSTRALIAN OPEN ====== -->
+    <div class="style-card">
+      <div class="style-label">
+        <div class="num">1</div>
+        <div class="info">
+          <div class="name">澳大利亚网球公开赛 · Australian Open</div>
+          <div class="desc">azure-blue / bold-sans / hard-court / modern</div>
+        </div>
+      </div>
+      <div class="poster s-ao">
+        <header class="hero">
+          <div class="brand">
+            <span class="wordmark">TGZ Tennis Club</span>
+            <div class="crest">T</div>
+          </div>
+          <div class="identity">
+            <div class="avatar">张</div>
+            <div class="who">
+              <div class="name">张文涛</div>
+              <div class="role">NTRP 4.5 · ELO 1583</div>
+            </div>
+          </div>
+          <div class="tournament-ref">
+            <span>春日邀请赛</span>
+            <span class="pip"></span>
+            <span>04.12 SUN</span>
+            <span class="pip"></span>
+            <span>#4 of 16</span>
+          </div>
+        </header>
+
+        <section class="big-four">
+          <div class="cell">
+            <div class="lbl">Placement</div>
+            <div class="val">4<em>th</em></div>
+            <div class="sub">16 人参赛</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">Points</div>
+            <div class="val"><span class="accent">+50</span></div>
+            <div class="sub">本季累计 480</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">ELO</div>
+            <div class="val"><span class="up">+28</span></div>
+            <div class="sub"><span class="up">Season best</span></div>
+          </div>
+          <div class="cell">
+            <div class="lbl">Ranking</div>
+            <div class="val">14<em>→ 9</em></div>
+            <div class="sub">超越 5 位球友</div>
+          </div>
+        </section>
+
+        <section class="highlight">
+          <div class="eyebrow"><span>Your Highlight</span><span class="type">Upset Win</span></div>
+          <div class="content">八强赛中击败 <span class="accent">NTRP 5.0</span> 的林志远</div>
+          <div class="detail">3:1 · Set 2 tiebreak 11:8 · ELO +57</div>
+        </section>
+
+        <section class="history">
+          <div class="eyebrow">Match Record · 3W 1L</div>
+          <div class="matches">
+            <div class="match-line"><span class="dot win"></span><span class="round">R1</span><span class="opponent">vs 周岚</span><span class="score">3:0</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">R2</span><span class="opponent">vs 赵宇航</span><span class="score">3:1</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">QF</span><span class="opponent">vs 林志远</span><span class="score">3:1</span></div>
+            <div class="match-line is-loss"><span class="dot loss"></span><span class="round">SF</span><span class="opponent">vs 黄子轩</span><span class="score">1:3</span></div>
+          </div>
+        </section>
+
+        <footer class="foot">
+          <div class="next">
+            <div class="ey">Next Up</div>
+            <div class="h">夏季单打挑战赛</div>
+            <div class="when">06.14 SAT · 报名中</div>
+          </div>
+          <div class="qr">小程序<br>码</div>
+        </footer>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background: #0091D5;"></div>
+        <div class="swatch" style="background: #e8f4fa;"></div>
+        <div class="swatch" style="background: #005fa3;"></div>
+        <div class="swatch" style="background: #00a86b;"></div>
+        <span class="swatch-label">azure + ice-blue + deep-blue + green</span>
+      </div>
+      <div class="tags">
+        <span class="tag">bold sans</span>
+        <span class="tag">hard court</span>
+        <span class="tag">grid cells</span>
+        <span class="tag">Melbourne</span>
+      </div>
+    </div>
+
+    <!-- ====== STYLE 2: ROLAND GARROS ====== -->
+    <div class="style-card">
+      <div class="style-label">
+        <div class="num">2</div>
+        <div class="info">
+          <div class="name">法国网球公开赛 · Roland Garros</div>
+          <div class="desc">terre-battue / serif / cream-sand / paris</div>
+        </div>
+      </div>
+      <div class="poster s-rg">
+        <header class="hero">
+          <svg class="court-lines" viewBox="0 0 375 190" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <g stroke="rgba(255,200,150,0.4)" stroke-width="1" fill="none">
+              <rect x="42" y="-30" width="291" height="220"/>
+              <line x1="188" y1="-30" x2="188" y2="190"/>
+              <line x1="42" y1="120" x2="333" y2="120"/>
+              <line x1="60" y1="-30" x2="60" y2="190"/>
+              <line x1="315" y1="-30" x2="315" y2="190"/>
+            </g>
+          </svg>
+          <div class="brand">
+            <span class="wordmark">腾讯广州网球社</span>
+            <div class="crest">T</div>
+          </div>
+          <div class="identity">
+            <div class="avatar">张</div>
+            <div class="who">
+              <div class="name">张文涛</div>
+              <div class="role">NTRP 4.5 · ELO 1583</div>
+            </div>
+          </div>
+          <div class="tournament-ref">
+            <span>春日邀请赛</span>
+            <span class="pip"></span>
+            <span>04 / 12 DIM</span>
+            <span class="pip"></span>
+            <span>第 4 名</span>
+          </div>
+        </header>
+
+        <section class="big-four">
+          <div class="cell">
+            <div class="lbl">本次名次</div>
+            <div class="val">4<em>th</em></div>
+            <div class="sub">16 人中第 4</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">获得积分</div>
+            <div class="val"><span class="accent">+50</span></div>
+            <div class="sub">本季累计 480 分</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">ELO 变化</div>
+            <div class="val"><span class="up">+28</span></div>
+            <div class="sub"><span class="up">本季最大涨幅</span></div>
+          </div>
+          <div class="cell">
+            <div class="lbl">排名变化</div>
+            <div class="val">14<em>→ 9</em></div>
+            <div class="sub">超越 5 位球友</div>
+          </div>
+        </section>
+
+        <section class="highlight">
+          <div class="eyebrow"><span>你的高光时刻</span><span class="type">以弱胜强</span></div>
+          <div class="content">八强赛中击败 <span class="accent">NTRP 5.0</span> 的林志远</div>
+          <div class="detail">比分 3:1 · 第二盘抢十 11:8 · ELO +57</div>
+        </section>
+
+        <section class="history">
+          <div class="eyebrow">本次赛事 · 3 胜 1 负</div>
+          <div class="matches">
+            <div class="match-line"><span class="dot win"></span><span class="round">R1</span><span class="opponent">vs 周岚</span><span class="score">3 : 0</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">R2</span><span class="opponent">vs 赵宇航</span><span class="score">3 : 1</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">QF</span><span class="opponent">vs 林志远</span><span class="score">3 : 1</span></div>
+            <div class="match-line is-loss"><span class="dot loss"></span><span class="round">SF</span><span class="opponent">vs 黄子轩</span><span class="score">1 : 3</span></div>
+          </div>
+        </section>
+
+        <footer class="foot">
+          <div class="next">
+            <div class="ey">下一场</div>
+            <div class="h">夏季单打挑战赛</div>
+            <div class="when">06.14 SAT · 正在报名</div>
+          </div>
+          <div class="qr">小程序<br>码</div>
+        </footer>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background: #C84B31;"></div>
+        <div class="swatch" style="background: #faf3ec;"></div>
+        <div class="swatch" style="background: #8B3A1F;"></div>
+        <div class="swatch" style="background: #3d7a3a;"></div>
+        <span class="swatch-label">terre-battue + sand + clay-dark + green</span>
+      </div>
+      <div class="tags">
+        <span class="tag">serif</span>
+        <span class="tag">clay texture</span>
+        <span class="tag">warm cream</span>
+        <span class="tag">Paris</span>
+      </div>
+    </div>
+
+    <!-- ====== STYLE 3: WIMBLEDON ====== -->
+    <div class="style-card">
+      <div class="style-label">
+        <div class="num">3</div>
+        <div class="info">
+          <div class="name">温布尔登网球锦标赛 · Wimbledon</div>
+          <div class="desc">forest-green / gold / grass-lines / tradition</div>
+        </div>
+      </div>
+      <div class="poster s-wim">
+        <header class="hero">
+          <svg class="court-lines" viewBox="0 0 375 190" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <g stroke="rgba(200,220,180,0.3)" stroke-width="1" fill="none">
+              <line x1="0" y1="95" x2="375" y2="95"/>
+              <line x1="188" y1="0" x2="188" y2="190"/>
+              <rect x="62" y="15" width="251" height="160" rx="0"/>
+              <line x1="62" y1="95" x2="313" y2="95"/>
+            </g>
+          </svg>
+          <div class="brand">
+            <span class="wordmark">腾讯广州网球社</span>
+            <div class="crest">T</div>
+          </div>
+          <div class="identity">
+            <div class="avatar">张</div>
+            <div class="who">
+              <div class="name">张文涛</div>
+              <div class="role">NTRP 4.5 · ELO 1583</div>
+            </div>
+          </div>
+          <div class="tournament-ref">
+            <span>春日邀请赛</span>
+            <span class="pip"></span>
+            <span>04 / 12 SUN</span>
+            <span class="pip"></span>
+            <span>第 4 名</span>
+          </div>
+        </header>
+
+        <section class="big-four">
+          <div class="cell">
+            <div class="lbl">本次名次</div>
+            <div class="val">4<em>th</em></div>
+            <div class="sub">16 人中第 4</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">获得积分</div>
+            <div class="val"><span class="accent">+50</span></div>
+            <div class="sub">本季累计 480 分</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">ELO 变化</div>
+            <div class="val"><span class="up">+28</span></div>
+            <div class="sub"><span class="up">本季最大涨幅</span></div>
+          </div>
+          <div class="cell">
+            <div class="lbl">排名变化</div>
+            <div class="val">14<em>→ 9</em></div>
+            <div class="sub">超越 5 位球友</div>
+          </div>
+        </section>
+
+        <section class="highlight">
+          <div class="eyebrow"><span>你的高光时刻</span><span class="type">以弱胜强</span></div>
+          <div class="content">八强赛中击败 <span class="accent">NTRP 5.0</span> 的林志远</div>
+          <div class="detail">比分 3:1 · 第二盘抢十 11:8 · ELO +57</div>
+        </section>
+
+        <section class="history">
+          <div class="eyebrow">本次赛事 · 3 胜 1 负</div>
+          <div class="matches">
+            <div class="match-line"><span class="dot win"></span><span class="round">R1</span><span class="opponent">vs 周岚</span><span class="score">3 : 0</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">R2</span><span class="opponent">vs 赵宇航</span><span class="score">3 : 1</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">QF</span><span class="opponent">vs 林志远</span><span class="score">3 : 1</span></div>
+            <div class="match-line is-loss"><span class="dot loss"></span><span class="round">SF</span><span class="opponent">vs 黄子轩</span><span class="score">1 : 3</span></div>
+          </div>
+        </section>
+
+        <footer class="foot">
+          <div class="next">
+            <div class="ey">下一场</div>
+            <div class="h">夏季单打挑战赛</div>
+            <div class="when">06.14 SAT · 正在报名</div>
+          </div>
+          <div class="qr">小程序<br>码</div>
+        </footer>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background: #1a3d1a; border-color: #555;"></div>
+        <div class="swatch" style="background: #f5f8f2;"></div>
+        <div class="swatch" style="background: #c9a63c;"></div>
+        <div class="swatch" style="background: #2d6b2f;"></div>
+        <span class="swatch-label">forest-green + cream + gold + lawn</span>
+      </div>
+      <div class="tags">
+        <span class="tag">serif</span>
+        <span class="tag">grass lines</span>
+        <span class="tag">gold accent</span>
+        <span class="tag">tradition</span>
+      </div>
+    </div>
+
+    <!-- ====== STYLE 4: US OPEN ====== -->
+    <div class="style-card">
+      <div class="style-label">
+        <div class="num">4</div>
+        <div class="info">
+          <div class="name">美国网球公开赛 · US Open</div>
+          <div class="desc">navy-blue / fire-orange / night-court / bold</div>
+        </div>
+      </div>
+      <div class="poster s-uso">
+        <header class="hero">
+          <div class="brand">
+            <span class="wordmark">TGZ Tennis Club</span>
+            <div class="crest">T</div>
+          </div>
+          <div class="identity">
+            <div class="avatar">张</div>
+            <div class="who">
+              <div class="name">张文涛</div>
+              <div class="role">NTRP 4.5 / ELO 1583</div>
+            </div>
+          </div>
+          <div class="tournament-ref">
+            <span>春日邀请赛</span>
+            <span class="pip"></span>
+            <span>04.12</span>
+            <span class="pip"></span>
+            <span>#4</span>
+          </div>
+        </header>
+
+        <section class="big-four">
+          <div class="cell">
+            <div class="lbl">Placement</div>
+            <div class="val">4<em>th</em></div>
+            <div class="sub">of 16 players</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">Points</div>
+            <div class="val"><span class="accent">+50</span></div>
+            <div class="sub">Season total: 480</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">ELO</div>
+            <div class="val"><span class="up">+28</span></div>
+            <div class="sub"><span class="up">Season best gain</span></div>
+          </div>
+          <div class="cell">
+            <div class="lbl">Ranking</div>
+            <div class="val">14<em>→9</em></div>
+            <div class="sub">Passed 5 players</div>
+          </div>
+        </section>
+
+        <section class="highlight">
+          <div class="eyebrow"><span>Your Highlight</span><span class="type">Upset Win</span></div>
+          <div class="content">八强赛中击败 <span class="accent">NTRP 5.0</span> 的林志远</div>
+          <div class="detail">3:1 / Set 2 tiebreak 11:8 / ELO +57</div>
+        </section>
+
+        <section class="history">
+          <div class="eyebrow">Match Record / 3W 1L</div>
+          <div class="matches">
+            <div class="match-line"><span class="dot win"></span><span class="round">R1</span><span class="opponent">vs 周岚</span><span class="score">3:0</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">R2</span><span class="opponent">vs 赵宇航</span><span class="score">3:1</span></div>
+            <div class="match-line"><span class="dot win"></span><span class="round">QF</span><span class="opponent">vs 林志远</span><span class="score">3:1</span></div>
+            <div class="match-line is-loss"><span class="dot loss"></span><span class="round">SF</span><span class="opponent">vs 黄子轩</span><span class="score">1:3</span></div>
+          </div>
+        </section>
+
+        <footer class="foot">
+          <div class="next">
+            <div class="ey">Next Up</div>
+            <div class="h">夏季单打挑战赛</div>
+            <div class="when">06.14 SAT · 报名中</div>
+          </div>
+          <div class="qr">SCAN<br>JOIN</div>
+        </footer>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background: #003DA5; border-color: #555;"></div>
+        <div class="swatch" style="background: #FF6B35;"></div>
+        <div class="swatch" style="background: #FFD23F;"></div>
+        <div class="swatch" style="background: #0c1a33; border-color: #555;"></div>
+        <span class="swatch-label">navy + fire-orange + honey + dark</span>
+      </div>
+      <div class="tags">
+        <span class="tag">bold sans</span>
+        <span class="tag">night court</span>
+        <span class="tag">floodlight glow</span>
+        <span class="tag">New York</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="page-foot">
+    <span>grand slam poster styles</span>
+    <span class="center">4 majors · same data structure</span>
+    <span class="end"><strong>Personal Achievement Card</strong></span>
+  </footer>
+
+</div>
+</body>
+</html>

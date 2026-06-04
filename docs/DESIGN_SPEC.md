@@ -1076,11 +1076,196 @@ interface Tournament {
 
 ### 10.3 后续待补章节（v0.2+）
 
-- §11. 动效与过渡（页面切换、loading skeleton 闪烁、CTA 按下反馈）
-- §12. 暗色模式（深翠 hero 反向 → 米白文字）
-- §13. tournament-detail 的 bracket 视觉（专门一页）
-- §14. 国际化与无障碍（小程序 a11y 限制 + 字号缩放适配）
+- §12. 动效与过渡（页面切换、loading skeleton 闪烁、CTA 按下反馈）
+- §13. 暗色模式（深翠 hero 反向 → 米白文字）
+- §14. tournament-detail 的 bracket 视觉（专门一页）
+- §15. 国际化与无障碍（小程序 a11y 限制 + 字号缩放适配）
 
 ---
 
-**END OF DESIGN_SPEC v0.1**
+## 11. 分享海报模块（Share Poster）
+
+> 触发时机：赛事 `status === 'finished'` 后，管理员或每位参赛球员可生成分享海报图片。
+> 尺寸：750 × 1334 px（2x @375pt）竖版 9:16。
+> 实现方式：页面 `pages/poster/poster`，用 `<canvas type="2d">` 绘制后 `canvasToTempFilePath` 导出图片 → 保存/转发。
+
+### 11.1 产品逻辑
+
+| 维度 | 说明 |
+|---|---|
+| 入口 | tournament-detail (status=finished) 页顶部 topnav 右侧「分享」按钮 |
+| 两种海报 | A. 赛事战报（管理员视角，全员数据） B. 个人战绩卡（每位球员自己的数据） |
+| 风格选择 | 生成前弹出底部面板，用户选 6 种画风之一；默认选第 1 种（emerald-heritage） |
+| 6 种画风 | ① Emerald-heritage ② Sports Energy ③ Australian Open ④ Roland Garros ⑤ Wimbledon ⑥ US Open |
+| 导出 | 生成后展示预览 → 底部两个按钮：「保存到相册」/「发送给朋友」 |
+
+### 11.2 海报 A — 赛事战报（Tournament Report）
+
+管理员分享的全局战报，数据来自 `tournament` 对象。
+
+**结构区域（从上到下）**：
+
+| 区域 | 内容 | 数据源 |
+|---|---|---|
+| Hero | 球场线 SVG 背景 + 品牌行（wordmark + crest）+ kicker + 赛事标题 + meta 行（状态/日期/人数） | `tournament.title`, `tournament.matchDate`, `tournament.players.length` |
+| Podium | 冠/亚/季军头像 + 名字 + 积分 | `tournament.placementAwards` 前 3 名 |
+| Stats | 总场次 / 决赛比分 / 满三盘数 | 遍历 `tournament.groups[].matches` + `tournament.knockout.rounds[].matches` 统计 |
+| Best Match | 最佳比赛（最长盘数或含抢十的对阵） | 同上，筛选规则见 §11.4 |
+| Roster | 参赛球友（4列网格，首字母头像 + 名字） | `tournament.players[]` |
+| Footer | 下一场赛事预告 + 小程序码 | 来自最近一个 `status='signup'` 的 tournament；码通过 `wx.createQRCode` 生成 |
+
+### 11.3 海报 B — 个人战绩卡（Personal Achievement Card）
+
+每位球员自己的分享卡，个性化数据。
+
+**结构区域（从上到下）**：
+
+| 区域 | 内容 | 数据源 |
+|---|---|---|
+| Hero | 品牌行 + 身份区（头像/姓名/NTRP/ELO）+ 赛事引用行（赛名/日期/名次） | `user.wecomName`, `user.rating`, `user.eloRating`, `tournament.title`, placement |
+| Big Four | 2×2 大数字：本次名次 / 获得积分 / ELO 变化 / 排名变化 | `placementAwards` + ELO diff + ranking diff |
+| Highlight | 你的高光时刻（见 §11.5） | 算法选取 |
+| Match History | 本次赛事逐场记录（圆点 + 轮次 + 对手 + 比分） | 筛选该用户在本赛事所有 matches |
+| Footer | 下一场预告 + 小程序码 | 同 A |
+
+### 11.4 "最佳比赛"选取规则（Best Match）
+
+从本赛事所有对阵中，按优先级选出 1 场：
+
+1. 决赛（`knockout.rounds[-1]`，如果有结果）
+2. 打满盘数且含抢十（`scoreSummary` 含 "抢十"/"tiebreak"）
+3. 打满盘数（`scoreA + scoreB === bestOf`）
+4. 淘汰赛对阵（优先半决赛 > 四强）
+5. 兜底：第一场小组赛
+
+### 11.5 高光时刻选取规则（Highlight Priority）
+
+> 核心原则：**永远正面**。无论排名高低，都找到用户值得分享的角度。绝不出现"爆冷被淘汰"这种阻碍分享的表述。
+
+按优先级从高到低取第一个命中的：
+
+| 优先级 | 类型 | 条件 | 文案模版 |
+|---|---|---|---|
+| 1 | 以弱胜强 | 我赢了 NTRP 差 ≥ 1.0 的对手 | `"{round}中击败 NTRP {opponentRating} 的{opponentName}"` |
+| 2 | 决胜局险胜 | 抢十/决胜盘赢了 | `"{round}决胜抢十 {score} 力克{opponentName}"` |
+| 3 | 小组全胜 | 小组赛阶段全赢 | `"小组赛 {wins} 战全胜，以第一名出线"` |
+| 4 | 连胜 ≥ 3 | 本赛事内连续赢 ≥ 3 场 | `"赛事中取得 {streak} 连胜"` |
+| 5 | 激战满盘 | 虽然输了但打满盘数 | `"与{opponentName}激战 {sets} 盘，虽败犹荣"` |
+| 6 | ELO 正变化 | 赛事结束后 ELO 上涨 | `"ELO +{delta}，实力稳步提升"` |
+| 7 | 首次参赛 | 这是该用户第一次参加赛事 | `"首次征战{tournamentTitle}，成功亮相"` |
+| 8 | 排名维持 | 兜底，任何情况都能命中 | `"稳守第 {rank} 名，持续在场"` |
+
+**实现注意**：
+- 每条 highlight 附带 `detail` 字段（比分/ELO 变化等辅助信息）
+- 高光 `type` 用英文 key（`upset_win` / `clutch_tiebreak` / `group_sweep` / `streak` / `full_distance` / `elo_positive` / `first_tournament` / `rank_maintained`）
+- 生成逻辑在前端 `utils/highlight.js` 实现，不走云函数
+
+### 11.6 六种画风 Tokens
+
+#### Style ① Emerald-heritage（主题色，默认）
+
+继承小程序主色板，参考 `share-posters-emerald.html`。
+
+```
+hero-bg:    linear-gradient(168deg, oklch(26% 0.06 155), oklch(16% 0.05 155))
+hero-fg:    var(--bg)
+accent:     var(--accent)  // oklch(62% 0.13 75) 黄铜金
+body-bg:    var(--bg)
+font:       --font-display / --font-body / --font-mono
+```
+
+#### Style ② Sports Energy（黑 + 荧光绿）
+
+参考 `share-posters-sports.html`。
+
+```
+--bg:       #0d0d0d
+--surface:  #1a1a1a
+--border:   #2a2a2a
+--muted:    #6b6b6b
+--fg:       #f0f0f0
+--neon:     #b4ff00 (荧光绿)
+hero-bg:    #000000, radial-gradient 荧光晕染
+font:       'Inter' / 'Space Grotesk' (bold) + SF Mono
+```
+
+#### Style ③ Australian Open（蔚蓝 + 白）
+
+```
+--s-bg:      #e8f4fa       --s-accent: #0091D5
+--s-hero-bg: linear-gradient(168deg, #005fa3, #003b6b)
+--s-hero-fg: #ffffff
+font:        SF Pro Display (bold/geometric)
+特征:         圆角卡片 4px, 粗体数字
+```
+
+#### Style ④ Roland Garros（红土赭 + 暖米）
+
+```
+--s-bg:      #faf3ec       --s-accent: #C84B31
+--s-hero-bg: linear-gradient(168deg, #8B3A1F, #5a2210)
+--s-hero-fg: #fef6ee
+font:        Iowan Old Style / Charter (serif)
+特征:         球场线 SVG, 经典衬线体, 温暖色调
+```
+
+#### Style ⑤ Wimbledon（草地绿 + 金）
+
+```
+--s-bg:      #f5f8f2       --s-accent: #c9a63c
+--s-hero-bg: linear-gradient(168deg, #1a3d1a, #0d2610)
+--s-hero-fg: #f8faf5
+font:        Iowan Old Style / Charter (serif)
+特征:         水平线纹理, 金色强调, 古典质感
+```
+
+#### Style ⑥ US Open（藏蓝 + 橙红）
+
+```
+--s-bg:      #0c1a33       --s-accent: #FF6B35
+--s-hero-bg: linear-gradient(168deg, #001a4d, #000d26)
+--s-hero-fg: #f0f4fa
+--s-positive: #FFD23F (金黄)
+font:        SF Pro Display (black/extra-bold)
+特征:         暗底, 方角 avatar, 高对比色块, 极粗字重
+```
+
+### 11.7 实现要点（给 Claude Code）
+
+1. **页面路径**：`pages/poster/poster`（wxml + wxss + js + json）
+2. **Canvas 绘制**：用 `<canvas type="2d" id="posterCanvas">` + `wx.createSelectorQuery` 获取 node → `canvas.getContext('2d')` 绘制。尺寸 750×1334（2x retina）。
+3. **字体加载**：`wx.loadFontFace` 加载 Iowan Old Style 的 woff2（仅 ④⑤ 风格需要）；其余系统字体直接用。如果 loadFontFace 失败，fallback 到 PingFang SC。
+4. **文字绘制**：`ctx.font` 设置 + `ctx.fillText`；注意 canvas 不支持 CSS 变量，token 值在 JS 里 hardcode 为 hex。
+5. **Court-lines SVG**：转为 Canvas path 绘制（`ctx.beginPath()` / `moveTo` / `lineTo` / `rect`）。
+6. **首字母 Avatar**：`ctx.arc` 画圆 + `ctx.fillText` 居中文字。
+7. **小程序码**：`wx.cloud.callFunction({ name: 'poster', data: { action: 'getQRCode', path } })` → 返回 tempFilePath → `ctx.drawImage`。
+8. **导出**：`wx.canvasToTempFilePath({ canvas, fileType: 'png', quality: 1 })` → `wx.saveImageToPhotosAlbum` 或 `wx.shareFileMessage`。
+9. **风格选择器**：底部弹出面板（`<van-popup position="bottom">`或自写），6 个缩略色块 + 文字标签。选中后重新绘制。
+10. **数据传入**：从 `tournament-detail` 页带参进入（`tournamentId` + `posterType=report|personal`），poster 页 onLoad 时拉取完整 tournament 数据 + 当前用户数据 + 计算 highlight。
+
+### 11.8 云函数扩展
+
+需要新增一个 `poster` 云函数（或在 `tournament` 云函数中加 action）：
+
+```
+action: 'getPosterData'
+params: { tournamentId, openid? }
+returns: {
+  tournament: { ...完整对象 },
+  userStats?: {          // 仅 personal card 时返回
+    placement: string,
+    pointsEarned: number,
+    eloChange: number,
+    rankBefore: number,
+    rankAfter: number,
+    matchHistory: [{ round, opponent, score, win }],
+  },
+  nextTournament?: { title, matchDate, status },
+}
+```
+
+highlight 计算放前端 `utils/highlight.js`，不走云端（避免逻辑变更需发布云函数）。
+
+---
+
+**END OF DESIGN_SPEC v0.2**

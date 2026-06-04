@@ -1,0 +1,680 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tennis Club · Round 4 (Create forms · emerald-heritage)</title>
+<style>
+  :root {
+    --bg:        oklch(96% 0.018 90);
+    --surface:   oklch(98% 0.008 90);
+    --paper:     oklch(99% 0.005 90);
+    --border:    oklch(88% 0.015 90);
+    --hairline:  oklch(85% 0.014 90);
+    --muted:     oklch(45% 0.025 145);
+    --fg:        oklch(22% 0.05 155);
+    --accent:    oklch(62% 0.13 75);
+    --emerald-deep: oklch(26% 0.06 155);
+    --positive:  oklch(48% 0.10 155);
+    --placeholder: var(--placeholder);
+    --font-display: 'Iowan Old Style', 'Charter', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+    --font-body:    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', system-ui, sans-serif;
+    --font-mono:    ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1600px 800px at 50% -120px, oklch(92% 0.02 90), transparent 70%), oklch(89% 0.012 90);
+    font-family: var(--font-body); color: var(--fg);
+    min-height: 100vh; padding: 56px 32px 80px;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  .sheet { max-width: 1500px; margin: 0 auto; }
+  .studio-header {
+    display: grid; grid-template-columns: auto 1fr auto; column-gap: 24px; align-items: baseline;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-bottom: 1px solid var(--fg); padding-bottom: 18px; margin-bottom: 36px;
+  }
+  .studio-header strong { font-family: var(--font-display); font-weight: 500; font-size: 22px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+  .studio-header em { font-style: normal; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--muted); }
+  .section-rule {
+    margin: 16px 0 28px; display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; column-gap: 20px;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg);
+  }
+  .section-rule h2 { margin: 0; font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg); text-transform: none; line-height: 1; }
+  .section-rule .meta { color: var(--muted); }
+  .phones-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; justify-items: center; align-items: start; margin-top: 16px; }
+  .phone-stack { display: flex; flex-direction: column; align-items: center; }
+  .phone-stack .caption {
+    margin-bottom: 18px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    display: grid; grid-template-columns: 1fr auto; column-gap: 14px; align-items: baseline; width: 375px;
+  }
+  .phone-stack .caption strong { font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+  .device {
+    width: 375px; height: 812px; background: var(--bg);
+    border-radius: 48px; border: 9px solid #0c1410; position: relative; overflow: hidden;
+    box-shadow: 0 36px 72px -24px rgba(20,30,25,0.35), 0 8px 24px -8px rgba(20,30,25,0.18);
+  }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 156px; height: 30px; background: #0c1410; border-radius: 0 0 18px 18px; z-index: 50; }
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 47px; z-index: 45; display: flex; align-items: center; justify-content: space-between; padding: 14px 28px 0; color: var(--fg); font-family: var(--font-body); font-size: 15px; font-weight: 600; letter-spacing: -0.02em; pointer-events: none; }
+  .statusbar svg { display: block; }
+  .statusbar .right { display: flex; gap: 5px; align-items: center; }
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; background: var(--fg); border-radius: 3px; z-index: 60; opacity: 0.55; }
+  .screen { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+  .scroll { position: absolute; inset: 0 0 73px 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* topnav: close + eyebrow + draft */
+  .form-topnav {
+    padding: 60px 16px 0 16px;
+    display: grid; grid-template-columns: 36px 1fr 56px; column-gap: 12px; align-items: center;
+  }
+  .form-topnav .icon-pill { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: none; cursor: pointer; padding: 0; }
+  .form-topnav .center {
+    text-align: center; line-height: 1.15;
+  }
+  .form-topnav .center .ey {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.24em; color: var(--accent); text-transform: uppercase;
+  }
+  .form-topnav .center .h {
+    font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--fg); margin-top: 3px; letter-spacing: 0.005em;
+  }
+  .form-topnav .draft {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; text-align: end;
+    cursor: pointer; padding: 6px 0;
+  }
+  .form-topnav .draft.disabled { color: var(--hairline); cursor: default; }
+
+  /* form section */
+  .form-section { margin-top: 18px; }
+  .form-section-title {
+    border-top: 1px solid var(--fg); padding: 12px 24px 8px;
+    display: grid; grid-template-columns: 1fr auto; column-gap: 14px; align-items: baseline;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg);
+  }
+  .form-section-title .meta { color: var(--muted); font-size: 9px; }
+
+  /* form row — the "线框" is the bottom hairline */
+  .form-row {
+    padding: 12px 24px 14px; border-bottom: 1px solid var(--hairline);
+    display: grid; grid-template-columns: 1fr; row-gap: 6px;
+    background: var(--bg);
+  }
+  .form-row .label {
+    display: flex; align-items: baseline; gap: 8px;
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+  }
+  .form-row .label .req { color: var(--accent); font-size: 11px; transform: translateY(1px); }
+  .form-row .label .cn { color: var(--fg); font-family: var(--font-body); font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: normal; }
+  .form-row .label .pip { display: inline-block; width: 3px; height: 3px; background: var(--hairline); border-radius: 50%; }
+  .form-row .input,
+  .form-row .input-text {
+    font-family: var(--font-body); font-size: 15px; color: var(--fg); padding: 4px 0 0 0;
+    background: transparent; border: 0; width: 100%; outline: none; line-height: 1.5;
+  }
+  .form-row .input.placeholder { color: var(--placeholder); }
+  .form-row .helper {
+    margin-top: 6px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--muted); font-feature-settings: 'tnum';
+  }
+  .form-row .helper em { font-style: italic; font-family: var(--font-display); }
+  .form-row.is-textarea .input-text { min-height: 60px; }
+
+  /* picker-trigger row: tap to open native picker */
+  .form-row.is-picker { grid-template-columns: 1fr auto; column-gap: 12px; align-items: baseline; row-gap: 4px; }
+  .form-row.is-picker .label { grid-column: 1 / -1; }
+  .form-row.is-picker .value {
+    font-family: var(--font-display); font-size: 17px; color: var(--fg); font-feature-settings: 'lnum','tnum'; letter-spacing: 0.005em; line-height: 1.4;
+    grid-column: 1; padding: 4px 0 0;
+  }
+  .form-row.is-picker .value em { font-style: normal; color: var(--muted); font-size: 13px; margin-inline-start: 6px; }
+  .form-row.is-picker .value.empty { color: var(--placeholder); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+  .form-row.is-picker .arrow { color: var(--muted); font-family: var(--font-mono); font-size: 13px; align-self: center; padding-bottom: 2px; }
+
+  /* segmented control */
+  .segmented {
+    margin-top: 6px;
+    display: grid; border: 1px solid var(--hairline);
+  }
+  .segmented[data-cols='2'] { grid-template-columns: 1fr 1fr; }
+  .segmented[data-cols='3'] { grid-template-columns: 1fr 1fr 1fr; }
+  .segmented[data-cols='4'] { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .segmented .seg {
+    padding: 11px 0 11px; text-align: center; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); border-inline-start: 1px solid var(--hairline); cursor: pointer;
+    background: transparent; border-block: 0; border-inline-end: 0; line-height: 1;
+  }
+  .segmented .seg:first-child { border-inline-start: 0; }
+  .segmented .seg em { font-style: normal; color: inherit; opacity: 0.55; font-size: 9px; margin-inline-start: 3px; }
+  .segmented .seg.is-active {
+    background: var(--emerald-deep); color: var(--bg);
+  }
+  .segmented .seg.is-active em { color: var(--accent); opacity: 1; }
+  .segmented .seg .cn { display: block; font-family: var(--font-body); font-size: 11.5px; letter-spacing: 0.04em; text-transform: none; margin-top: 4px; opacity: 0.75; }
+  .segmented .seg.is-active .cn { opacity: 0.95; }
+
+  /* stepper */
+  .stepper {
+    margin-top: 6px;
+    display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; gap: 0;
+    border: 1px solid var(--hairline);
+  }
+  .stepper button {
+    height: 40px; border: 0; background: transparent; color: var(--muted); cursor: pointer;
+    display: grid; place-items: center; font-family: var(--font-mono); font-size: 16px;
+  }
+  .stepper button.minus { border-inline-end: 1px solid var(--hairline); }
+  .stepper button.plus { border-inline-start: 1px solid var(--hairline); }
+  .stepper .num {
+    font-family: var(--font-display); font-size: 22px; color: var(--fg); text-align: center;
+    font-feature-settings: 'tnum','lnum'; letter-spacing: -0.005em; font-weight: 500;
+  }
+  .stepper .num em { font-style: normal; color: var(--muted); font-size: 12px; margin-inline-start: 6px; font-family: var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* context card (match-create only) */
+  .context-card {
+    margin: 14px 24px 0; padding: 14px 0; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--hairline);
+    display: grid; grid-template-columns: 1fr auto; column-gap: 14px; align-items: baseline;
+  }
+  .context-card .ey { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .context-card .h { font-family: var(--font-display); font-size: 19px; font-weight: 500; color: var(--fg); line-height: 1.2; letter-spacing: 0.005em; }
+  .context-card .stage { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--fg); text-transform: uppercase; padding: 3px 7px; border: 1px solid var(--fg); align-self: start; margin-top: 4px; }
+  .context-card .meta { grid-column: 1 / -1; margin-top: 8px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--muted); font-feature-settings: 'tnum'; }
+  .context-card .meta .pip { display: inline-block; width: 3px; height: 3px; background: var(--hairline); border-radius: 50%; vertical-align: middle; margin: 0 8px; transform: translateY(-2px); }
+
+  /* player picker (for match-create) */
+  .player-picker {
+    margin-top: 6px;
+    display: grid; grid-template-columns: 36px 1fr auto; column-gap: 12px; align-items: center;
+    padding: 10px 0 4px;
+  }
+  .player-picker .avatar {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); display: grid; place-items: center;
+    font-family: var(--font-display); font-size: 14px; color: var(--fg); background: var(--paper);
+  }
+  .player-picker .avatar.empty { border-style: dashed; border-color: var(--hairline); color: var(--hairline); }
+  .player-picker .avatar.female { border-color: var(--accent); color: var(--accent); }
+  .player-picker .who .name { font-family: var(--font-display); font-size: 16px; color: var(--fg); font-weight: 500; line-height: 1.15; }
+  .player-picker .who .empty-name { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; color: var(--placeholder); text-transform: uppercase; }
+  .player-picker .who .ntrp { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--muted); margin-top: 3px; font-feature-settings: 'tnum'; }
+  .player-picker .arrow { color: var(--muted); font-family: var(--font-mono); font-size: 13px; }
+
+  /* CTA bar */
+  .cta-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; background: var(--paper); border-top: 1px solid var(--border);
+    padding: 14px 20px 30px; display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; z-index: 40;
+  }
+  .cta-bar .meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; line-height: 1.2; font-feature-settings: 'tnum'; }
+  .cta-bar .meta em { font-style: normal; color: var(--accent); }
+  .cta-bar .meta strong { display: block; font-family: var(--font-display); font-weight: 500; color: var(--fg); font-size: 13px; letter-spacing: 0; text-transform: none; margin-top: 2px; }
+  .cta-primary {
+    -webkit-appearance: none; appearance: none; background: var(--emerald-deep); color: var(--bg); border: 1px solid var(--emerald-deep);
+    padding: 14px 22px; font-family: var(--font-body); font-weight: 500; font-size: 15px; letter-spacing: 0.06em; cursor: pointer;
+    position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 0; height: 50px;
+  }
+  .cta-primary::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 7px; height: 1px; background: var(--accent); opacity: 0.85; }
+  .cta-primary svg { stroke: var(--bg); fill: none; }
+
+  /* component spec block at bottom */
+  .spec-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-top: 28px; }
+  .spec-card { background: var(--paper); border: 1px solid var(--border); padding: 18px 18px; }
+  .spec-card .ey { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .spec-card .ey strong { color: var(--accent); font-weight: normal; }
+  .spec-card .h { font-family: var(--font-display); font-size: 17px; font-weight: 500; color: var(--fg); margin: 4px 0 8px; line-height: 1.2; }
+  .spec-card .b { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .spec-card code { font-family: var(--font-mono); font-size: 11px; color: var(--fg); background: var(--bg); padding: 2px 5px; }
+
+  .page-foot {
+    margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--hairline);
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .page-foot .center { text-align: center; }
+  .page-foot .end { text-align: end; }
+  .page-foot strong { color: var(--fg); font-family: var(--font-display); font-weight: 500; font-size: 13px; letter-spacing: 0; text-transform: none; }
+  @media (max-width: 1280px) { .phones-row, .spec-row { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 720px)  { .phones-row, .spec-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="studio-header">
+    <span>Open Design / Tennis Club</span>
+    <strong>Round 4 — Create Forms</strong>
+    <em>activity · tournament · match · 1500w</em>
+  </header>
+
+  <div class="section-rule">
+    <span>A</span>
+    <h2>三个创建表单 / Create flows</h2>
+    <span class="meta">375 × 812 · 共用一套 form-row 语法</span>
+  </div>
+
+  <div class="phones-row">
+
+    <!-- ========================================
+         1. ACTIVITY-CREATE
+         ======================================== -->
+    <div class="phone-stack">
+      <div class="caption">
+        <strong>创建活动 — pages/activity-create</strong>
+        <span>activity.create</span>
+      </div>
+      <div class="device" role="group" aria-label="Activity create, iPhone 375 by 812">
+        <div class="notch"></div>
+        <div class="statusbar" aria-hidden="true">
+          <span>9:41</span>
+          <span class="right">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          </span>
+        </div>
+        <div class="screen">
+          <div class="scroll">
+
+            <nav class="form-topnav">
+              <button class="icon-pill" aria-label="关闭" data-action="onClose">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+              </button>
+              <div class="center">
+                <div class="ey">NEW · ACTIVITY</div>
+                <div class="h">创建活动</div>
+              </div>
+              <span class="draft">草稿</span>
+            </nav>
+
+            <section class="form-section" data-od-id="activity-basic">
+              <div class="form-section-title">
+                <span>基本信息</span>
+                <span class="meta">REQUIRED · 必填</span>
+              </div>
+
+              <div class="form-row" data-field="form.title">
+                <span class="label"><span class="req">*</span><span>TITLE</span><span class="pip"></span><span class="cn">活动标题</span></span>
+                <span class="input-text">春季双打月赛 第三场</span>
+                <span class="helper">22 / 30 字</span>
+              </div>
+
+              <div class="form-row is-picker" data-field="form.startTime" data-action="onPickTime">
+                <span class="label"><span class="req">*</span><span>START</span><span class="pip"></span><span class="cn">开始时间</span></span>
+                <span class="value">05 / 30 SAT<em>· 14:00</em></span>
+                <span class="arrow">→</span>
+              </div>
+
+              <div class="form-row" data-field="form.location">
+                <span class="label"><span class="req">*</span><span>VENUE</span><span class="pip"></span><span class="cn">场地</span></span>
+                <span class="input-text">广州 · 二沙岛网球中心 1-3 号场</span>
+                <span class="helper">支持 50 字内地址</span>
+              </div>
+
+              <div class="form-row" data-field="form.maxPeople">
+                <span class="label"><span class="req">*</span><span>CAPACITY</span><span class="pip"></span><span class="cn">规模上限</span></span>
+                <div class="stepper" role="group" aria-label="规模上限">
+                  <button class="minus" aria-label="减少">−</button>
+                  <span class="num">24<em>人</em></span>
+                  <button class="plus" aria-label="增加">+</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section" data-od-id="activity-note">
+              <div class="form-section-title">
+                <span>说明 / 备注</span>
+                <span class="meta">OPTIONAL</span>
+              </div>
+
+              <div class="form-row is-textarea" data-field="form.note">
+                <span class="label"><span>NOTE</span><span class="pip"></span><span class="cn">备注（选填）</span></span>
+                <span class="input-text">球友自备球拍。主办方提供 Head Pro 比赛球。室外硬地，遇雨顺延一周。</span>
+                <span class="helper">42 / 200 字</span>
+              </div>
+            </section>
+
+            <div style="height: 24px"></div>
+
+          </div>
+
+          <div class="cta-bar">
+            <div class="meta">
+              <span>4 / 4 必填</span>
+              <strong>已完成</strong>
+            </div>
+            <button class="cta-primary" data-action="onSubmit">
+              <span>发布活动</span>
+              <svg width="16" height="14" viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+            </button>
+          </div>
+
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- ========================================
+         2. TOURNAMENT-CREATE
+         ======================================== -->
+    <div class="phone-stack">
+      <div class="caption">
+        <strong>创建赛事 — pages/tournament-create</strong>
+        <span>tournament.create</span>
+      </div>
+      <div class="device" role="group" aria-label="Tournament create, iPhone 375 by 812">
+        <div class="notch"></div>
+        <div class="statusbar" aria-hidden="true">
+          <span>9:41</span>
+          <span class="right">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          </span>
+        </div>
+        <div class="screen">
+          <div class="scroll">
+
+            <nav class="form-topnav">
+              <button class="icon-pill" aria-label="关闭" data-action="onClose">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+              </button>
+              <div class="center">
+                <div class="ey">NEW · TOURNAMENT</div>
+                <div class="h">创建赛事</div>
+              </div>
+              <span class="draft">草稿</span>
+            </nav>
+
+            <section class="form-section" data-od-id="tournament-basic">
+              <div class="form-section-title">
+                <span>赛事基本</span>
+                <span class="meta">FIXTURE</span>
+              </div>
+
+              <div class="form-row" data-field="form.title">
+                <span class="label"><span class="req">*</span><span>TITLE</span><span class="pip"></span><span class="cn">赛事标题</span></span>
+                <span class="input-text">夏季单打挑战赛</span>
+              </div>
+
+              <div class="form-row is-picker" data-field="form.matchDate" data-action="onPickDate">
+                <span class="label"><span class="req">*</span><span>DATE</span><span class="pip"></span><span class="cn">比赛日期</span></span>
+                <span class="value">06 / 06 SAT<em>· — 06 / 07 SUN</em></span>
+                <span class="arrow">→</span>
+              </div>
+
+              <div class="form-row" data-field="form.level">
+                <span class="label"><span class="req">*</span><span>LEVEL</span><span class="pip"></span><span class="cn">赛事级别</span></span>
+                <div class="segmented" data-cols="3" role="radiogroup">
+                  <button class="seg" role="radio">周赛<span class="cn">FRIENDLY</span></button>
+                  <button class="seg is-active" role="radio" aria-checked="true">月赛<span class="cn">CHALLENGE</span></button>
+                  <button class="seg" role="radio">半年赛<span class="cn">MAJOR</span></button>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section" data-od-id="tournament-format">
+              <div class="form-section-title">
+                <span>赛制</span>
+                <span class="meta">FORMAT</span>
+              </div>
+
+              <div class="form-row" data-field="form.type">
+                <span class="label"><span class="req">*</span><span>TYPE</span><span class="pip"></span><span class="cn">类型</span></span>
+                <div class="segmented" data-cols="2" role="radiogroup">
+                  <button class="seg is-active" role="radio" aria-checked="true">单打<span class="cn">SINGLES</span></button>
+                  <button class="seg" role="radio">双打<span class="cn">DOUBLES</span></button>
+                </div>
+              </div>
+
+              <div class="form-row" data-field="form.bestOf">
+                <span class="label"><span class="req">*</span><span>BEST OF</span><span class="pip"></span><span class="cn">先赢局数</span></span>
+                <div class="segmented" data-cols="3" role="radiogroup">
+                  <button class="seg" role="radio">抢 1<em>BO1</em></button>
+                  <button class="seg is-active" role="radio" aria-checked="true">抢 3<em>BO5</em></button>
+                  <button class="seg" role="radio">抢 5<em>BO9</em></button>
+                </div>
+                <span class="helper">单场比赛先赢 N 局，达到则胜出</span>
+              </div>
+
+              <div class="form-row" data-field="form.maxPlayers">
+                <span class="label"><span class="req">*</span><span>SIZE</span><span class="pip"></span><span class="cn">参赛人数</span></span>
+                <div class="stepper">
+                  <button class="minus" aria-label="减少">−</button>
+                  <span class="num">8<em>选手</em></span>
+                  <button class="plus" aria-label="增加">+</button>
+                </div>
+                <span class="helper">将自动分为 2 组小组循环 + 单淘汰</span>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <div class="form-section-title">
+                <span>说明</span>
+                <span class="meta">OPTIONAL</span>
+              </div>
+              <div class="form-row is-textarea" data-field="form.note">
+                <span class="label"><span>NOTE</span><span class="pip"></span><span class="cn">赛事说明</span></span>
+                <span class="input-text">报名截止 06/04 23:59。前 4 名进入名次奖励 — 冠军 200 分、亚军 120 分、季军 80 分、第四名 50 分。</span>
+                <span class="helper">52 / 200 字</span>
+              </div>
+            </section>
+
+            <div style="height: 24px"></div>
+          </div>
+
+          <div class="cta-bar">
+            <div class="meta">
+              <span>6 / 6 必填</span>
+              <strong>已完成</strong>
+            </div>
+            <button class="cta-primary" data-action="onSubmit">
+              <span>发布赛事</span>
+              <svg width="16" height="14" viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+            </button>
+          </div>
+
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- ========================================
+         3. MATCH-CREATE
+         ======================================== -->
+    <div class="phone-stack">
+      <div class="caption">
+        <strong>创建比赛 — pages/match-create</strong>
+        <span>match.create</span>
+      </div>
+      <div class="device" role="group" aria-label="Match create, iPhone 375 by 812">
+        <div class="notch"></div>
+        <div class="statusbar" aria-hidden="true">
+          <span>9:41</span>
+          <span class="right">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.6c2.5 0 4.7 .9 6.4 2.5l-1.2 1.2C11.8 4 9.9 3.3 8 3.3S4.2 4 2.8 5.3L1.6 4.1C3.3 2.5 5.5 1.6 8 1.6zm0 3.3c1.6 0 3 .6 4.1 1.6l-1.2 1.2C10.1 7 9.1 6.6 8 6.6S5.9 7 5.1 7.7L3.9 6.5C5 5.5 6.4 4.9 8 4.9zM8 8.2c.7 0 1.3 .3 1.8 .8L8 10.8 6.2 9c.5-.5 1.1-.8 1.8-.8z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="9" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          </span>
+        </div>
+        <div class="screen">
+          <div class="scroll">
+
+            <nav class="form-topnav">
+              <button class="icon-pill" aria-label="关闭" data-action="onClose">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+              </button>
+              <div class="center">
+                <div class="ey">NEW · MATCH</div>
+                <div class="h">创建比赛</div>
+              </div>
+              <span class="draft disabled">—</span>
+            </nav>
+
+            <section class="context-card" data-od-id="match-context" data-field="match.tournament">
+              <span class="ey">TOURNAMENT · 所属赛事</span>
+              <div class="h">冬季单打挑战赛</div>
+              <span class="stage">SF · 半决赛</span>
+              <div class="meta">
+                <span>06 / 06 SAT</span>
+                <span class="pip"></span>
+                <span>抢 3 · BO5</span>
+                <span class="pip"></span>
+                <span>单打</span>
+              </div>
+            </section>
+
+            <section class="form-section" data-od-id="match-players">
+              <div class="form-section-title">
+                <span>对阵 / Players</span>
+                <span class="meta">2 / 2 已选</span>
+              </div>
+
+              <div class="form-row is-picker" data-field="form.player1" data-action="onPickPlayer1">
+                <span class="label"><span class="req">*</span><span>PLAYER 01</span><span class="pip"></span><span class="cn">球员一</span></span>
+                <div class="player-picker" style="margin-top:0; padding:6px 0 0;">
+                  <div class="avatar">黄</div>
+                  <div class="who">
+                    <div class="name">黄子轩</div>
+                    <div class="ntrp">NTRP 5.0 · ELO 1742</div>
+                  </div>
+                  <span class="arrow">→</span>
+                </div>
+              </div>
+
+              <div class="form-row is-picker" data-field="form.player2" data-action="onPickPlayer2">
+                <span class="label"><span class="req">*</span><span>PLAYER 02</span><span class="pip"></span><span class="cn">球员二</span></span>
+                <div class="player-picker" style="margin-top:0; padding:6px 0 0;">
+                  <div class="avatar">陈</div>
+                  <div class="who">
+                    <div class="name">陈一凡</div>
+                    <div class="ntrp">NTRP 4.5 · ELO 1668</div>
+                  </div>
+                  <span class="arrow">→</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section" data-od-id="match-when">
+              <div class="form-section-title">
+                <span>时间 / 场地</span>
+                <span class="meta">SCHEDULE</span>
+              </div>
+
+              <div class="form-row is-picker" data-field="form.scheduledTime" data-action="onPickTime">
+                <span class="label"><span class="req">*</span><span>WHEN</span><span class="pip"></span><span class="cn">比赛时间</span></span>
+                <span class="value">06 / 06 SAT<em>· 14:30</em></span>
+                <span class="arrow">→</span>
+              </div>
+
+              <div class="form-row" data-field="form.location">
+                <span class="label"><span class="req">*</span><span>COURT</span><span class="pip"></span><span class="cn">球场</span></span>
+                <span class="input-text">二沙岛网球中心 1 号场</span>
+              </div>
+
+              <div class="form-row" data-field="form.bestOf">
+                <span class="label"><span>BEST OF</span><span class="pip"></span><span class="cn">先赢盘数（覆盖赛事默认）</span></span>
+                <div class="segmented" data-cols="3" role="radiogroup">
+                  <button class="seg" role="radio">抢 4<em>BO7</em></button>
+                  <button class="seg" role="radio">抢 5<em>BO9</em></button>
+                  <button class="seg is-active" role="radio" aria-checked="true">抢 6<em>BO11</em></button>
+                </div>
+                <span class="helper">默认沿用赛事 BO5。半决赛通常加长。</span>
+              </div>
+            </section>
+
+            <div style="height: 24px"></div>
+          </div>
+
+          <div class="cta-bar">
+            <div class="meta">
+              <span>5 / 5 必填</span>
+              <strong>已完成</strong>
+            </div>
+            <button class="cta-primary" data-action="onSubmit">
+              <span>创建比赛</span>
+              <svg width="16" height="14" viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+            </button>
+          </div>
+
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-rule" style="margin-top: 64px;">
+    <span>B</span>
+    <h2>共享组件 / Form primitives</h2>
+    <span class="meta">3 页共用 · Claude Code 实施时直接抄</span>
+  </div>
+
+  <div class="spec-row">
+    <div class="spec-card">
+      <div class="ey"><span>PRIMITIVE 01</span><strong>FORM-ROW</strong></div>
+      <div class="h">.form-row</div>
+      <div class="b">
+        每行 <code>padding 12px 24px 14px</code>，底部 <code>1px var(--hairline)</code> 实线。
+        所有 input/textarea 共用同一缩进。<br>
+        <code>.label</code>: mono 9.5px uppercase muted + cn 12px fg。<br>
+        <code>.input</code>: 系统 sans 15px fg，无边框，背景透明。
+      </div>
+    </div>
+    <div class="spec-card">
+      <div class="ey"><span>PRIMITIVE 02</span><strong>SEGMENTED</strong></div>
+      <div class="h">.segmented</div>
+      <div class="b">
+        替代微信原生 picker 灰色下拉。<br>
+        2-4 列网格，1px hairline 边 + 内部 border-inline-start 分隔。<br>
+        <code>.is-active</code>: <code>bg var(--emerald-deep)</code> + bg 文字 + 黄铜 em。<br>
+        用于：level / type / bestOf。
+      </div>
+    </div>
+    <div class="spec-card">
+      <div class="ey"><span>PRIMITIVE 03</span><strong>STEPPER</strong></div>
+      <div class="h">.stepper</div>
+      <div class="b">
+        替代纯数字 input，避免误填。<br>
+        3 列：<code>−</code> 按钮 / Iowan 衬线大数字 + mono 单位 / <code>+</code> 按钮。<br>
+        用于：maxPeople / maxPlayers。
+      </div>
+    </div>
+    <div class="spec-card">
+      <div class="ey"><span>PRIMITIVE 04</span><strong>PICKER-TRIGGER</strong></div>
+      <div class="h">.form-row.is-picker</div>
+      <div class="b">
+        点击触发原生 datetime / locationPicker。<br>
+        左侧 mono 标签 + 下方 Iowan 衬线值 + 右侧 → mono 箭头。<br>
+        未选时 <code>.value.empty</code> 显示 mono 占位 "TAP TO PICK"。<br>
+        用于：startTime / matchDate / scheduledTime。
+      </div>
+    </div>
+    <div class="spec-card">
+      <div class="ey"><span>PRIMITIVE 05</span><strong>CONTEXT-CARD</strong></div>
+      <div class="h">.context-card</div>
+      <div class="b">
+        match-create 专用。让用户清楚这场比赛属于哪个 tournament 的哪一轮。<br>
+        发丝边卡：eyebrow + Iowan 标题 + 阶段 mono pill + meta-row（日期 / BO / 类型）。<br>
+        从 tournament-detail 跳转过来时预填。
+      </div>
+    </div>
+    <div class="spec-card">
+      <div class="ey"><span>PRIMITIVE 06</span><strong>CTA-BAR</strong></div>
+      <div class="h">.cta-bar</div>
+      <div class="b">
+        所有创建页底部固定，<code>position absolute, bottom 0</code>。<br>
+        左侧 mono 进度（"6 / 6 必填" + Iowan "已完成"）。<br>
+        右侧 emerald-deep 主按钮 + ::after 黄铜金细线。<br>
+        进度未满时左侧改为 <code>var(--accent)</code> "还差 1 项"，按钮 disable 灰色。
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-foot">
+    <span>direction · emerald-heritage</span>
+    <span class="center">round 04 · create forms</span>
+    <span class="end"><strong>8 of 11</strong> · pages designed</span>
+  </footer>
+
+</div>
+</body>
+</html>

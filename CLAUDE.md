@@ -33,6 +33,7 @@ emerald-heritage 风格：米白纸 + 深翠墨绿 + 单色黄铜金。**禁用 
 ## 硬约束
 
 - **Tabbar 永远是三个**：活动 / 赛事 / 我的。不要新增、不要重排。
+- **活动模块当前为隐藏阶段**：因个人主体无"社交"类目，`custom-tab-bar/index.js` 已注释掉活动 tab，app.json 中 `pages/index/index`（活动列表首页）目前对用户不可见。**后续所有更新除非明确作用于活动，否则不得修改活动相关代码**（`pages/activity-*`、`cloudfunctions/activity`、app.json 中活动 page 引用、`utils/api.js` 里的 activity actions 等）。等主体/类目合规后再统一恢复。
 - **零 emoji**：项目里所有 emoji 都要替换为 `DESIGN_SPEC.md §4` 的 SVG。
 - **Token 优先**：颜色用 OKLCH 变量（`--bg / --surface / --fg / --muted / --border / --accent / --emerald-deep`），不要硬编码 hex。
 - **三个实体不要混用同一套模板**：Activity（活动，无胜负）、Match（单场对阵，有比分积分）、Tournament（赛事，含小组+淘汰）。视觉对应见 SPEC §2.3。
