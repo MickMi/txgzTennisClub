@@ -1,6 +1,6 @@
 # Plan: 团队赛「拆场地」—— slots → courts
 
-> 🧭 状态：执行中 | 进度 27/28 | 当前归属：Executor | 最近卡点：无
+> 🧭 状态：已完成 | 进度 28/28 | 当前归属：Reviewer | 最近卡点：无
 
 ## 当前版本核心目标 · 2026-08-20 · 场地轮转型团队赛
 
@@ -320,7 +320,7 @@ C. 允许另开环境兼容专项，针对 summer compiler 建最小复现；不
 - [x] 25. [运行] 提交团队赛海报和分享视觉批次。
 - [x] 26. [运行] 提交个人管理、成员管理、活动下线与发布边界批次。
 - [x] 27. [运行] 提交 Harness、CI、架构文档、Changelog 和版本治理批次。
-- [ ] 28. [运行] 执行 release Gate、检查提交图和干净边界，然后推送工作分支到 GitHub。
+- [x] 28. [运行] 执行 release Gate、检查提交图和干净边界，然后推送工作分支到 GitHub。
 
 ### Step 21 — 2026-08-23 00:20
 - files: Git refs/index（未修改项目文件）
@@ -356,6 +356,24 @@ C. 允许另开环境兼容专项，针对 summer compiler 建最小复现；不
 - files: `.gitignore`, `.harness-config.yaml`, `AGENTS.md`, `CHANGELOG.md`, `MEMORY.md`, `TODO.md`, `.github/workflows/ci.yml`, `docs/`, `plan.md`, `scripts/`, `miniprogram/pages/test-fixtures/test-fixtures.js`, Git 索引中的 `.DS_Store`
 - verify: 四个 Bash 脚本 `bash -n` 通过；CI YAML 解析通过；测试夹具 JS 语法通过；版本/规则关键词核对通过；`git diff --cached --check` → exit 0。
 - notes: 修正文档中“团队赛仍计算 ELO”“仍按 slot 录入”“等待旧 Reviewer”的过期描述；`.DS_Store` 仅从 Git 索引移除，本地文件保留并被忽略。
+
+### 阻塞 #2（步骤 28）
+发现：目标仓库 `MickMi/txgzTennisClub` 是公开仓库，推送会公开本分支新增的完整源码、Harness 配置、文档和测试；安全审查要求用户知情后再次明确授权。
+证据：
+- `gh auth status`：当前活动账号为 `MickMi`。
+- `gh repo view MickMi/txgzTennisClub`：`isPrivate=false`，当前账号权限为 `ADMIN`。
+- 目标分支推送前 release Gate 为 3 PASS / 0 FAIL / 0 UNKNOWN，8/8 测试通过；提交树凭据模式扫描无命中。
+建议方案（请用户裁决）：
+A. 明确允许推送到公开仓库的工作分支（符合原目标，推荐）。
+B. 只保留本地提交，不上传远端。
+C. 先把仓库改为 private，再推送工作分支。
+
+> ✅ 用户于 2026-08-23 明确回复“允许推送到公开仓库”，并在 GitHub 最终授权页面出现后确认授权；阻塞已解除。
+
+### Step 28 — 2026-08-23
+- files: Git refs、`plan.md`（未修改产品代码）
+- verify: 推送前 release Gate → 3 PASS / 0 FAIL / 0 UNKNOWN，36 个 JS 语法检查通过、8/8 Node 测试通过、27 个 JSON 解析通过；首次远端核对显示工作分支为 `f70910f`、`main` 仍为 `456f50a`。
+- notes: 首次推送因旧令牌缺少 `workflow` 权限被 GitHub 拒绝，补充并经用户确认授权后推送成功；正式发布 tag 仍按约定等待合并到 `main` 后再创建。
 
 ### 完成判定
 
