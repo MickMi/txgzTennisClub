@@ -7,6 +7,7 @@ const db = cloud.database();
 const _ = db.command;
 const ACT = 'activities';
 const USERS = 'users';
+const ACTIVITY_DISABLED_MESSAGE = '活动功能已下线，请使用赛事功能';
 
 async function getUser(openid) {
   const r = await db.collection(USERS).where({ openid }).get();
@@ -19,6 +20,11 @@ async function getCreatorName(openid) {
 }
 
 exports.main = async event => {
+  // 发布边界：保留历史实现便于回溯，但所有活动能力统一停用。
+  // 这道服务端闸门避免旧版本客户端或直接云函数调用继续写入活动数据。
+  return { code: 1, msg: ACTIVITY_DISABLED_MESSAGE };
+
+  /* istanbul ignore next -- archived implementation kept for future migration reference */
   const { OPENID } = cloud.getWXContext();
   const action = event.action;
 

@@ -29,7 +29,7 @@
   },
   "appid": "wxf896d4d2ff8e3982",
   "projectname": "tennis-club",
-  "description": "腾讯广州网球社活动与比赛记录工具",
+  "description": "腾讯广州网球社赛事与个人战绩管理工具",
   "compileType": "miniprogram",
   "libVersion": "3.7.3",
   "cloudfunctionTemplateRoot": "",

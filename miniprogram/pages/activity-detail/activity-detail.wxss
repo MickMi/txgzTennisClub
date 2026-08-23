@@ -60,21 +60,21 @@
 }
 .admin-btns {
   display: flex;
-  gap: 20rpx;
+  flex-direction: column;
+  gap: 16rpx;
 }
 .admin-btn {
-  flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12rpx;
-  min-height: 80rpx;
-  font-size: var(--text-body-sm);
-  line-height: 1.3;
-  padding: 12rpx 16rpx;
+  min-height: 88rpx;
+  font-size: var(--text-body-lg);
+  line-height: 1.4;
+  padding: 20rpx 24rpx;
   box-sizing: border-box;
   white-space: normal;
-  word-break: keep-all;
 }
 
 /* 关闭报名按钮（独立一行，强调态） */
@@ -85,6 +85,7 @@
   justify-content: center;
   gap: 16rpx;
   margin-bottom: 24rpx;
+  min-height: 88rpx;
   border-color: var(--color-emerald-deep);
   color: var(--color-emerald-deep);
 }
@@ -94,7 +95,13 @@
   line-height: 1.1;
 }
 .cta-cancel {
-  padding: 24rpx 36rpx;
+  width: 100%;
+  min-height: 100rpx;
+  padding: 22rpx 36rpx;
   border-radius: 0;
   font-size: var(--text-body-lg);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

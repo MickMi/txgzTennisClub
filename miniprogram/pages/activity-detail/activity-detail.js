@@ -34,6 +34,10 @@ Page({
     wx.navigateBack();
   },
 
+  onPullDownRefresh() {
+    this.load().finally(() => wx.stopPullDownRefresh());
+  },
+
   load() {
     return api.getActivity(this.data.id).then(detail => {
       const me = this.data.user;

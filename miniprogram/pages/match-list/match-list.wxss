@@ -5,11 +5,11 @@
   margin: 16rpx 48rpx 0;
   padding: 16rpx 24rpx;
   font-size: 22rpx;
-  color: #8a7e6a;
+  color: var(--color-muted);
   text-align: center;
   letter-spacing: 0.04em;
-  border: 1rpx dashed #ddd6c4;
-  background: #faf8f2;
+  border: 1rpx dashed var(--color-border);
+  background: var(--color-surface);
 }
 
 /* ─── Ranking Feature Card ─── */
@@ -149,6 +149,9 @@
 
 .tournament-row .level .num {
   color: var(--color-accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 40rpx;
 }
 
 .tournament-row .level .pip {

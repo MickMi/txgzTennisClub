@@ -74,7 +74,7 @@
         </view>
         <view class="meta-cell">
           <text class="lbl">FORMAT</text>
-          <text class="val">{{item.type === 'doubles' ? '双打' : '单打'}}</text>
+          <text class="val">{{item.type === 'team' ? '团队赛' : item.type === 'doubles' ? '双打' : '单打'}}</text>
         </view>
       </view>
     </view>
