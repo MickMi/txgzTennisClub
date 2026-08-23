@@ -12,11 +12,13 @@ function formatDateMono(ts) {
   return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}, ${d.getFullYear()}`;
 }
 
-function placementText(rank) {
+function placementText(rank, place) {
   if (!rank) return '—';
   if (rank === 1) return '冠军';
   if (rank === 2) return '亚军';
-  if (rank === 3) return '季军';
+  if (rank === 3) return '四强';  // 三四名并列，均为四强
+  // 小组赛名次（placement >= 100）或旧数据兜底（placement === 99）：展示 place 中文
+  if (rank >= 100 || rank === 99) return place || `第${rank}`;
   return `第${rank}`;
 }
 
@@ -144,36 +146,38 @@ Page({
       .map(m => ({
         round: m.round,
         opponentName: m.opponent && m.opponent.wecomName,
+        partnerName: m.partner && m.partner.wecomName,
         scoreText: m.scoreSummary || '',
         win: !!m.won
       }));
 
+    const teamSummary = tournament.type === 'team'
+      ? {
+          appearances: matchRows.length,
+          partners: Array.from(new Set(matchRows.map(row => row.partnerName).filter(Boolean))),
+          opponents: Array.from(new Set(matchRows.map(row => row.opponentName).filter(Boolean)))
+        }
+      : null;
+
     return {
-      placementText: award ? placementText(award.placement) : '—',
+      placementText: award ? placementText(award.placement, award.place) : '—',
       pointsEarned: award ? (award.points || 0) : 0,
       eloChange,
       wins,
       losses,
-      matches: matchRows
+      matches: matchRows,
+      teamSummary
     };
   },
 
   // 赛事战报数据
   computeReportStats(tournament) {
     let total = 0;
-    let fullDistanceCount = 0;
-    const bestOf = tournament.bestOf || 0;
 
     const collectFrom = matches => {
       (matches || []).forEach(m => {
         if (!m.winner) return;
         total++;
-        if (m.scoreSummary) {
-          const [a, b] = m.scoreSummary.split(':').map(s => parseInt(s, 10));
-          if (!isNaN(a) && !isNaN(b) && bestOf > 0 && a + b >= bestOf * 2 - 1) {
-            fullDistanceCount++;
-          }
-        }
       });
     };
 
@@ -193,8 +197,7 @@ Page({
 
     return {
       totalMatches: total,
-      finalScore,
-      fullDistanceCount
+      finalScore
     };
   },
 
@@ -334,8 +337,20 @@ Page({
       fileType: 'png',
       quality: 1,
       success: res => {
-        wx.hideLoading();
-        this.saveToAlbum(res.tempFilePath);
+        this.prepareAlbumFilePath(res.tempFilePath)
+          .then(filePath => {
+            wx.hideLoading();
+            this.saveToAlbum(filePath);
+          })
+          .catch(err => {
+            wx.hideLoading();
+            console.error('[poster] prepare album file FAILED', err);
+            wx.showModal({
+              title: '导出失败',
+              content: `[prepareAlbumFilePath]\n${(err && err.errMsg) || (err && err.message) || JSON.stringify(err)}`,
+              showCancel: false
+            });
+          });
       },
       fail: err => {
         wx.hideLoading();
@@ -346,6 +361,40 @@ Page({
           showCancel: false
         });
       }
+    });
+  },
+
+  // 开发者工具的 2D Canvas 可能返回 http://tmp/... 虚拟地址，
+  // saveImageToPhotosAlbum 会把它误当成系统路径。遇到这种地址时，
+  // 将当前 canvas 写入 USER_DATA_PATH，得到相册接口可读取的真实本地文件。
+  prepareAlbumFilePath(tempFilePath) {
+    if (!/^https?:\/\/tmp\//i.test(tempFilePath || '')) {
+      return Promise.resolve(tempFilePath);
+    }
+    if (!this.canvasNode || typeof this.canvasNode.toDataURL !== 'function') {
+      return Promise.reject(new Error('当前环境无法转换画布临时文件'));
+    }
+
+    let dataUrl;
+    try {
+      dataUrl = this.canvasNode.toDataURL('image/png', 1);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    const commaIndex = typeof dataUrl === 'string' ? dataUrl.indexOf(',') : -1;
+    if (commaIndex < 0) {
+      return Promise.reject(new Error('画布导出数据格式异常'));
+    }
+
+    const filePath = `${wx.env.USER_DATA_PATH}/tennis-poster-export.png`;
+    return new Promise((resolve, reject) => {
+      wx.getFileSystemManager().writeFile({
+        filePath,
+        data: dataUrl.slice(commaIndex + 1),
+        encoding: 'base64',
+        success: () => resolve(filePath),
+        fail: reject
+      });
     });
   },
 

@@ -383,15 +383,11 @@ function drawPersonalPoster(ctx, data, canvasH) {
   y = drawSectionEyebrow(ctx, y, s, 'STATS · 本次成绩');
   y = drawBigFour(ctx, y, s, stats);
   y += SECTION_PAD_Y;
-  drawHairline(ctx, y, s);
-  y += HAIRLINE;
 
   // === Section: Highlight ===
   y = drawSectionEyebrow(ctx, y, s, 'HIGHLIGHT · 高光时刻', s.accent);
   y = drawHighlight(ctx, y, s, hl);
   y += SECTION_PAD_Y;
-  drawHairline(ctx, y, s);
-  y += HAIRLINE;
 
   // === Section: Match History ===
   y = drawSectionEyebrow(ctx, y, s, `MATCHES · ${(stats.matches || []).length} 场记录`);
@@ -450,6 +446,42 @@ function drawBigFour(ctx, y, style, stats) {
 // Highlight 区
 function drawHighlight(ctx, y, style, hl) {
   if (!hl) return y;
+
+  // 一球制胜：特殊渲染 — accent 色 + 星标装饰 + 更大字号
+  if (hl.type === 'golden_point') {
+    // 顶部 accent 装饰线
+    ctx.strokeStyle = style.accent;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(SIDE, y);
+    ctx.lineTo(SIDE + 80, y);
+    ctx.stroke();
+    y += 18;
+
+    // 星标 + 标题
+    setFont(ctx, 20, 'normal', style.fontMono);
+    fillText(ctx, '★ GOLDEN POINT', SIDE, y, { color: style.accent, baseline: 'top' });
+    y += 34;
+
+    // 主文案更大号
+    setFont(ctx, 38, '600', style.fontDisplay);
+    const lines = wrapText(ctx, hl.detail || '', W - SIDE * 2);
+    lines.slice(0, 2).forEach(line => {
+      fillText(ctx, line, SIDE, y, { color: style.accent, baseline: 'top' });
+      y += 44;
+    });
+
+    // 比分
+    if (hl.score) {
+      setFont(ctx, 28, '500', style.fontMono);
+      fillText(ctx, `决胜分  ${hl.score}`, SIDE, y + 8, {
+        color: style.fg, baseline: 'top'
+      });
+      y += 40;
+    }
+    return y + 8;
+  }
+
   // 主文案（display 字体，多行）
   setFont(ctx, T.hlContent, '500', style.fontDisplay);
   ctx.fillStyle = style.fg;
@@ -538,7 +570,7 @@ function drawReportPoster(ctx, data, canvasH) {
   // meta 行
   const peopleCount = (t.players || []).length;
   const levelText = { major: '半年赛', challenge: '月赛', friendly: '周赛' }[t.level] || '周赛';
-  const typeText = t.type === 'doubles' ? 'DOUBLES' : 'SINGLES';
+  const typeText = t.type === 'team' ? 'TEAM' : t.type === 'doubles' ? 'DOUBLES' : 'SINGLES';
   setFont(ctx, T.metaRow, 'normal', s.fontMono);
   fillText(ctx, `${(t._dateStr || '').toUpperCase()}  ·  ${peopleCount} 选手  ·  ${typeText}`,
     SIDE, HERO_H - HERO_PAD_BOT + 10, { color: s.heroMuted, baseline: 'top' });
@@ -548,15 +580,17 @@ function drawReportPoster(ctx, data, canvasH) {
   y = drawSectionEyebrow(ctx, y, s, '名次 · PLACEMENT', s.accent);
   y = drawPodium(ctx, y, s, t, avatarMap);
   y += SECTION_PAD_Y;
-  drawHairline(ctx, y, s);
-  y += HAIRLINE;
 
   // === Section: Stats Strip ===
   y += SECTION_PAD_Y;
   y = drawStatsStrip(ctx, y, s, rs);
   y += SECTION_PAD_Y;
-  drawHairline(ctx, y, s);
-  y += HAIRLINE;
+
+  // === Section: Knockout Bracket（淘汰赛对阵树） ===
+  y = drawKnockoutBracket(ctx, y, s, t);
+
+  // === Section: Group Standings（小组赛积分表） ===
+  y = drawGroupStandings(ctx, y, s, t);
 
   // === Section: Roster ===
   const rosterLabel = t.type === 'doubles' && Array.isArray(t.teams) && t.teams.length > 0
@@ -603,10 +637,10 @@ function computePodiumH(awards, fallbackPlayers) {
   const top3 = aggregatePodiumAwards(awards || []);
   const u1 = top3.find(u => u.placement === 1);
   const u2 = top3.find(u => u.placement === 2);
-  const u3 = top3.find(u => u.placement === 3);
-  const isFinalDuel = !!u1 && !!u2 && !u3;
+  const u3s = top3.filter(u => u.placement === 3);
+  const isFinalDuel = !!u1 && !!u2 && u3s.length === 0;
   if (isFinalDuel) return 266;
-  // fallback 状态总用三格风格（N≤3）
+  // 3+ 格（含三四名并列场景）：220rpx
   return 220;
 }
 
@@ -749,20 +783,21 @@ function drawPodium(ctx, y, style, tournament, avatarMap) {
     }));
   }
 
-  // 3) 取出冠/亚/季 unit；严格前缀
+  // 3) 取出冠/亚/四强 unit（三四名并列，都是 placement=3）
   const u1 = top3.find(u => u.placement === 1) || null;
   const u2 = top3.find(u => u.placement === 2) || null;
-  const u3 = top3.find(u => u.placement === 3) || null;
+  const u3s = top3.filter(u => u.placement === 3);
 
   // ➤ N=2 且非 fallback：走计分牌路径
-  const isFinalDuel = !!u1 && !!u2 && !u3 && !u1._fallback && !u2._fallback;
+  const isFinalDuel = !!u1 && !!u2 && u3s.length === 0 && !u1._fallback && !u2._fallback;
   if (isFinalDuel) {
     return drawFinalScoreboard(ctx, y, style, tournament, [u1, u2], aMap);
   }
 
   let arr;
-  if (u1 && u2 && u3) arr = [u2, u1, u3];
-  else if (u1 && u2) arr = [u2, u1];     // fallback 时仍走传统两格
+  if (u1 && u2 && u3s.length >= 2) arr = [u1, u2, ...u3s];         // 4 格：冠/亚/四强/四强
+  else if (u1 && u2 && u3s.length === 1) arr = [u1, u2, u3s[0]];  // 3 格：冠/亚/四强
+  else if (u1 && u2) arr = [u1, u2];     // fallback 时仍走传统两格
   else if (u1) arr = [u1];
   else arr = [];
 
@@ -770,12 +805,14 @@ function drawPodium(ctx, y, style, tournament, avatarMap) {
 
   const labelOf = (u) => u && u.placement === 1 ? '冠军'
     : u && u.placement === 2 ? '亚军'
-    : u && u.placement === 3 ? '季军'
+    : u && u.placement === 3 ? '四强'
     : '';
 
-  // 4) 居中布局：每格宽度 W/3，N 个格子整体居中
-  const cellW = (W - SIDE * 2) / 3;
-  const offset = ((3 - arr.length) * cellW) / 2;
+  // 4) 居中布局：每格宽度 W / min(3, arr.length)，N 个格子整体居中
+  const totalSlots = arr.length >= 4 ? 4 : 3;
+  const cellWTotal = W - SIDE * 2;
+  const cellW = cellWTotal / totalSlots;
+  const offset = ((totalSlots - arr.length) * cellW) / 2;
 
   for (let i = 0; i < arr.length; i++) {
     const cx = SIDE + offset + i * cellW + cellW / 2;
@@ -838,12 +875,332 @@ function drawPodium(ctx, y, style, tournament, avatarMap) {
   return y + 220;
 }
 
+// ====== Group Standings（小组赛积分表）======
+
+const STANDINGS_ROW_H = 44;
+const STANDINGS_HEADER_H = 34;
+const STANDINGS_GROUP_LABEL_H = 30;
+const STANDINGS_GROUP_GAP = 24;
+
+// 计算小组赛积分表 section 总高度（无 groups 数据返回 0）
+function computeGroupStandingsH(tournament) {
+  const groups = tournament && tournament.groups;
+  if (!Array.isArray(groups) || groups.length === 0) return 0;
+  let h = 0;
+  groups.forEach(g => {
+    const rows = (g.standings || []).length;
+    if (rows === 0) return;
+    h += STANDINGS_GROUP_LABEL_H + STANDINGS_HEADER_H + rows * STANDINGS_ROW_H + STANDINGS_GROUP_GAP;
+  });
+  if (h === 0) return 0;
+  // eyebrow + titleGap + body + bottomPadding
+  return (T.eyebrow + 28 + SECTION_PAD_Y) + 16 + h + SECTION_PAD_Y;
+}
+
+function drawGroupStandings(ctx, y, style, tournament) {
+  const groups = tournament && tournament.groups;
+  if (!Array.isArray(groups) || groups.length === 0) return y;
+
+  // 过滤掉空组
+  const nonEmpty = groups.filter(g => Array.isArray(g.standings) && g.standings.length > 0);
+  if (nonEmpty.length === 0) return y;
+
+  // Section eyebrow
+  y = drawSectionEyebrow(ctx, y, style, 'GROUP STAGE · 小组赛战绩', style.accent);
+  y += 16;
+
+  const advanceCount = (tournament.config && tournament.config.advanceCount) || 2;
+  const padX = 16;
+  const rankW = 48;
+  const statW = 48;
+  const diffW = 64;
+  const flexW = W - SIDE * 2 - padX * 2 - rankW - statW * 2 - diffW;
+
+  nonEmpty.forEach((group, gi) => {
+    const standings = group.standings || [];
+
+    // Group label
+    setFont(ctx, 20, '500', style.fontMono);
+    fillText(ctx, `${group.name || '?'} 组`, SIDE + padX, y, {
+      color: style.fg, baseline: 'top'
+    });
+    y += STANDINGS_GROUP_LABEL_H;
+
+    // Header row
+    const headerMidY = y + STANDINGS_HEADER_H / 2;
+    setFont(ctx, 16, 'normal', style.fontMono);
+    let cx = SIDE + padX;
+    fillText(ctx, '#', cx + rankW / 2, headerMidY, {
+      color: style.muted, align: 'center', baseline: 'middle'
+    });
+    fillText(ctx, '选手', cx + rankW + 6, headerMidY, {
+      color: style.muted, baseline: 'middle'
+    });
+    cx += rankW + flexW;
+    fillText(ctx, 'W', cx + statW / 2, headerMidY, {
+      color: style.muted, align: 'center', baseline: 'middle'
+    });
+    cx += statW;
+    fillText(ctx, 'L', cx + statW / 2, headerMidY, {
+      color: style.muted, align: 'center', baseline: 'middle'
+    });
+    cx += statW;
+    fillText(ctx, '+/-', cx + diffW / 2, headerMidY, {
+      color: style.muted, align: 'center', baseline: 'middle'
+    });
+
+    // Header hairline
+    y += STANDINGS_HEADER_H;
+    ctx.fillStyle = style.border;
+    ctx.fillRect(SIDE + padX, y, W - SIDE * 2 - padX * 2, 1);
+
+    // Rows
+    standings.forEach((s, rank) => {
+      const isAdvance = rank < advanceCount;
+      const rowMidY = y + STANDINGS_ROW_H / 2;
+
+      // Subtle highlight for advancing rows
+      if (isAdvance) {
+        ctx.fillStyle = style.accent;
+        ctx.globalAlpha = 0.07;
+        ctx.fillRect(SIDE + padX, y, W - SIDE * 2 - padX * 2, STANDINGS_ROW_H);
+        ctx.globalAlpha = 1;
+      }
+
+      cx = SIDE + padX;
+      // Rank
+      setFont(ctx, 22, isAdvance ? '600' : 'normal', style.fontDisplay);
+      fillText(ctx, String(rank + 1), cx + rankW / 2, rowMidY, {
+        color: isAdvance ? style.accent : style.muted,
+        align: 'center', baseline: 'middle'
+      });
+      cx += rankW;
+      // Name
+      fillText(ctx, ellipsize(ctx, s.wecomName || '?', flexW - 16), cx + 6, rowMidY, {
+        color: isAdvance ? style.fg : style.muted, baseline: 'middle'
+      });
+      cx += flexW;
+
+      if (isAdvance) {
+        // 晋级行：完整显示 W / L / +/-
+        setFont(ctx, 22, 'normal', style.fontMono);
+        fillText(ctx, String(s.wins || 0), cx + statW / 2, rowMidY, {
+          color: style.fg, align: 'center', baseline: 'middle'
+        });
+        cx += statW;
+        fillText(ctx, String(s.losses || 0), cx + statW / 2, rowMidY, {
+          color: style.fg, align: 'center', baseline: 'middle'
+        });
+        cx += statW;
+        const diff = (s.setsWon || 0) - (s.setsLost || 0);
+        const diffStr = diff > 0 ? `+${diff}` : String(diff);
+        fillText(ctx, diffStr, cx + diffW / 2, rowMidY, {
+          color: diff > 0 ? style.positive : style.fg,
+          align: 'center', baseline: 'middle'
+        });
+      } else {
+        // 未晋级行：隐藏分数，只留一个 muted 短横
+        setFont(ctx, 18, 'normal', style.fontMono);
+        fillText(ctx, '—', cx + statW + statW / 2 + diffW / 2, rowMidY, {
+          color: style.muted, align: 'center', baseline: 'middle'
+        });
+      }
+
+      // Row hairline
+      y += STANDINGS_ROW_H;
+      ctx.fillStyle = style.border;
+      ctx.fillRect(SIDE + padX, y, W - SIDE * 2 - padX * 2, 0.5);
+    });
+
+    // Group gap
+    y += STANDINGS_GROUP_GAP;
+  });
+
+  return y + SECTION_PAD_Y;
+}
+
+// ====== Knockout Bracket（淘汰赛对阵树）======
+
+// 匹配卡高度（含内边距）
+const BRACKET_CARD_H = 80;
+const BRACKET_CARD_GAP = 32; // 同轮两场之间的纵向间距
+const BRACKET_COL_GAP = 20;  // 轮次列之间的横向间距
+
+// 计算 bracket 区总高度（不含 eyebrow，只算卡片+间距占用的实际高度）
+function bracketBodyH(firstRoundMatchCount) {
+  return firstRoundMatchCount * (BRACKET_CARD_H + BRACKET_CARD_GAP) - BRACKET_CARD_GAP;
+}
+
+// 计算整个 bracket section 高度（eyebrow + gap + body + 底 padding）
+function computeBracketSectionH(tournament) {
+  const ko = tournament && tournament.knockout;
+  if (!ko || !ko.rounds) return 0;
+  const valid = ko.rounds.filter(r => r.matches && r.matches.length > 0);
+  if (valid.length === 0) return 0;
+  const n = (valid[0].matches || []).length;
+  // eyebrow(eyebrow+28+SECTION_PAD_Y) + titleGap(20) + body + SECTION_PAD_Y
+  return (T.eyebrow + 28 + SECTION_PAD_Y) + 20 + bracketBodyH(n) + SECTION_PAD_Y;
+}
+
+// 单场对阵卡片
+function drawBracketCard(ctx, x, y, w, match, style) {
+  const h = BRACKET_CARD_H;
+  const px = 14;
+  const py = 14;
+  const lineH = (h - py * 2) / 2;
+  const scoreW = 36; // 比分数字预留宽度
+
+  // 背景 + 边框
+  ctx.fillStyle = style.surface;
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = match.winner ? style.accent : style.border;
+  ctx.lineWidth = match.winner ? 2 : 1;
+  ctx.strokeRect(x, y, w, h);
+
+  const a = match.playerA;
+  const b = match.playerB;
+  if (!a && !b) {
+    setFont(ctx, 22, 'normal', style.fontDisplay);
+    fillText(ctx, '待定', x + w / 2, y + h / 2, {
+      color: style.muted, align: 'center', baseline: 'middle'
+    });
+    return;
+  }
+
+  const nameMaxW = w - px * 2 - scoreW - 8;
+
+  // Player A
+  const aY = y + py + lineH / 2;
+  setFont(ctx, 22, match.winner === 'A' ? '600' : 'normal', style.fontDisplay);
+  fillText(ctx, ellipsize(ctx, a ? a.wecomName : '—', nameMaxW), x + px, aY, {
+    color: match.winner === 'A' ? style.accent : style.fg, baseline: 'middle'
+  });
+  if (match.winner && match.scoreA != null) {
+    setFont(ctx, 22, '500', style.fontMono);
+    fillText(ctx, String(match.scoreA), x + w - px, aY, {
+      color: match.winner === 'A' ? style.accent : style.fg,
+      align: 'right', baseline: 'middle'
+    });
+  }
+
+  // Player B
+  const bY = y + py + lineH + lineH / 2;
+  setFont(ctx, 22, match.winner === 'B' ? '600' : 'normal', style.fontDisplay);
+  fillText(ctx, ellipsize(ctx, b ? b.wecomName : '—', nameMaxW), x + px, bY, {
+    color: match.winner === 'B' ? style.accent : style.fg, baseline: 'middle'
+  });
+  if (match.winner && match.scoreB != null) {
+    setFont(ctx, 22, '500', style.fontMono);
+    fillText(ctx, String(match.scoreB), x + w - px, bY, {
+      color: match.winner === 'B' ? style.accent : style.fg,
+      align: 'right', baseline: 'middle'
+    });
+  }
+}
+
+// 淘汰赛对阵树主函数
+function drawKnockoutBracket(ctx, y, style, tournament) {
+  const ko = tournament && tournament.knockout;
+  if (!ko || !ko.rounds) return y;
+  const rounds = ko.rounds.filter(r => Array.isArray(r.matches) && r.matches.length > 0);
+  if (rounds.length === 0) return y;
+
+  // Section eyebrow
+  y = drawSectionEyebrow(ctx, y, style, 'BRACKET · 淘汰赛对阵', style.accent);
+  y += 20;
+
+  const numRounds = rounds.length;
+  const availW = W - SIDE * 2;
+  const colW = (availW - BRACKET_COL_GAP * (numRounds - 1)) / numRounds;
+  const bodyH = bracketBodyH(rounds[0].matches.length);
+  const bracketTop = y;
+
+  // === 计算每场 match 的中心 Y（树形布局） ===
+  // Round 0：均匀分布；Round N+1：取两个孩子中心 Y 的中点
+  const pos = []; // pos[ri][mi] = { centerY }
+  pos[0] = [];
+  const r0Count = rounds[0].matches.length;
+  const spacing = bodyH / r0Count;
+  for (let mi = 0; mi < r0Count; mi++) {
+    pos[0][mi] = { centerY: bracketTop + spacing * (mi + 0.5) };
+  }
+  for (let ri = 1; ri < numRounds; ri++) {
+    pos[ri] = [];
+    const prev = pos[ri - 1];
+    for (let mi = 0; mi < rounds[ri].matches.length; mi++) {
+      const cA = prev[mi * 2];
+      const cB = prev[mi * 2 + 1];
+      if (cA && cB) {
+        pos[ri][mi] = { centerY: (cA.centerY + cB.centerY) / 2 };
+      } else if (cA) {
+        pos[ri][mi] = { centerY: cA.centerY };
+      } else {
+        pos[ri][mi] = { centerY: bracketTop + bodyH / 2 };
+      }
+    }
+  }
+
+  // === 先画连线（在卡片下面） ===
+  for (let ri = 0; ri < numRounds - 1; ri++) {
+    for (let mi = 0; mi < rounds[ri].matches.length; mi++) {
+      const m = rounds[ri].matches[mi];
+      const p = pos[ri][mi];
+      const np = pos[ri + 1][Math.floor(mi / 2)];
+      const sx = SIDE + ri * (colW + BRACKET_COL_GAP) + colW;
+      const ex = SIDE + (ri + 1) * (colW + BRACKET_COL_GAP);
+      const mx = (sx + ex) / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(sx, p.centerY);
+      ctx.lineTo(mx, p.centerY);
+      ctx.lineTo(mx, np.centerY);
+      ctx.lineTo(ex, np.centerY);
+      ctx.strokeStyle = m.winner ? style.accent : style.border;
+      ctx.lineWidth = m.winner ? 2.5 : 1;
+      ctx.stroke();
+    }
+  }
+
+  // === 再画卡片 + 轮次标签 ===
+  for (let ri = 0; ri < numRounds; ri++) {
+    const round = rounds[ri];
+    const colX = SIDE + ri * (colW + BRACKET_COL_GAP);
+
+    // 轮次标签
+    setFont(ctx, 17, 'normal', style.fontMono);
+    const label = (round.name || '').toUpperCase();
+    fillText(ctx, label, colX + colW / 2, bracketTop - 8, {
+      color: style.muted, align: 'center', baseline: 'bottom'
+    });
+
+    // 卡片
+    for (let mi = 0; mi < round.matches.length; mi++) {
+      const m = round.matches[mi];
+      const p = pos[ri][mi];
+      const cardY = p.centerY - BRACKET_CARD_H / 2;
+      const isFinal = ri === numRounds - 1;
+
+      // 决赛冠军标注
+      if (isFinal && m.winner) {
+        setFont(ctx, 15, 'normal', style.fontMono);
+        fillText(ctx, 'CHAMPION', colX + colW / 2, cardY - 14, {
+          color: style.accent, align: 'center', baseline: 'bottom'
+        });
+      }
+
+      drawBracketCard(ctx, colX, cardY, colW, m, style);
+    }
+  }
+
+  return bracketTop + bodyH + SECTION_PAD_Y;
+}
+
 function drawStatsStrip(ctx, y, style, rs) {
-  const cellW = (W - SIDE * 2) / 3;
+  const cols = 2;
+  const cellW = (W - SIDE * 2) / cols;
   const items = [
     { n: rs.totalMatches || 0, l: '总场次' },
-    { n: rs.finalScore || '—', l: '决赛比分' },
-    { n: rs.fullDistanceCount || 0, l: '满盘场次' }
+    { n: rs.finalScore || '—', l: '决赛比分' }
   ];
   items.forEach((it, i) => {
     const cx = SIDE + i * cellW + cellW / 2;
@@ -917,7 +1274,7 @@ function drawRoster(ctx, y, style, players, avatarMap, tournament) {
   const cols = 4;
   const cellW = (W - SIDE * 2) / cols;
   const rowH = 130;
-  const max = 8;
+  const max = 12;
   const list = players.slice(0, max);
   list.forEach((p, i) => {
     const cx = SIDE + (i % cols) * cellW + cellW / 2;
@@ -967,23 +1324,164 @@ function drawFooter(ctx, style, footY, qrImage) {
 
 // ====== 主入口 ======
 
+// 团队赛海报完整展示所有常规场次；新版 courts 与旧版 slots 统一投影为行。
+function getTeamPosterSlots(match) {
+  if (!match) return [];
+  if (Array.isArray(match.courts)) {
+    let index = 0;
+    return match.courts.reduce((all, court, courtIndex) => all.concat((court.encounters || [])
+      .filter(encounter => encounter.winner)
+      .map(encounter => ({
+        ...encounter,
+        index: ++index,
+        courtName: court.name || `${courtIndex + 1}号场`
+      }))), []);
+  }
+  return (match.slots || []).filter(slot => !slot.isTiebreak);
+}
+
+// 团队赛海报使用更紧凑的节奏，不影响其他海报类型。
+const TEAM_SECTION_TOP = 22;
+const TEAM_SECTION_GAP = 14;
+const TEAM_SECTION_BOTTOM = 18;
+const TEAM_SCORE_ROW_H = 38;
+const TEAM_RESULT_H = 152;
+const TEAM_FOOT_GAP = 20;
+
+function drawTeamSectionEyebrow(ctx, y, style, text, color) {
+  const top = y + TEAM_SECTION_TOP;
+  setFont(ctx, T.eyebrow, 'normal', style.fontMono);
+  fillText(ctx, text, SIDE, top, {
+    color: color || style.muted, baseline: 'top'
+  });
+  return top + T.eyebrow + TEAM_SECTION_GAP;
+}
+
+// 队员名按完整 token 横排；队长预留实心徽章宽度，只有超宽时才换行。
+function getInlineRosterRows(ctx, members, maxWidth) {
+  const tokens = (members || [])
+    .filter(m => m && m.wecomName)
+    .map(m => ({
+      member: m,
+      width: ctx.measureText(m.wecomName).width + (m.isCaptain ? 26 : 0)
+    }));
+  if (tokens.length === 0) {
+    return [[{ member: { wecomName: '—', isCaptain: false }, width: ctx.measureText('—').width }]];
+  }
+  const separator = '  ·  ';
+  const separatorW = ctx.measureText(separator).width;
+  const rows = [];
+  let current = [];
+  let currentW = 0;
+  tokens.forEach(token => {
+    const nextW = currentW + (current.length ? separatorW : 0) + token.width;
+    if (current.length && nextW > maxWidth) {
+      rows.push(current);
+      current = [token];
+      currentW = token.width;
+    } else {
+      current.push(token);
+      currentW = nextW;
+    }
+  });
+  if (current.length) rows.push(current);
+  return rows;
+}
+
+function getInlineRosterRowWidth(ctx, row) {
+  const separatorW = ctx.measureText('  ·  ').width;
+  return (row || []).reduce((width, token, index) =>
+    width + token.width + (index > 0 ? separatorW : 0), 0);
+}
+
+function getTeamSlotScoreParts(slot) {
+  if (slot && (slot.setsA !== undefined || slot.setsB !== undefined)) {
+    return [
+      slot.setsA === undefined || slot.setsA === null ? '—' : String(slot.setsA),
+      slot.setsB === undefined || slot.setsB === null ? '—' : String(slot.setsB)
+    ];
+  }
+  const score = slot && slot.score !== undefined && slot.score !== null
+    ? String(slot.score).trim()
+    : '';
+  const parts = score.split(/\s*[-–—:：]\s*/);
+  return parts.length === 2 && parts[0] && parts[1]
+    ? parts
+    : [score || '—', '—'];
+}
+
 // 根据 data 内容预计算 canvas 实际高度。
 // 与下面 drawReportPoster / drawPersonalPoster 的 Y 累加逻辑严格对应。
 // 改其中一处，另一处也要同步。
 function computeCanvasH(ctx, data) {
   const s = data.style;
+  const t = data.tournament || {};
+
+  // 团队赛海报：总战绩 → 一球制胜 → 每场比分 → 加分 → 队员名单
+  // 与 drawTeamMatchPoster 布局严格对应。
+  if (t.type === 'team') {
+    const match = (t.groups && t.groups[0] && t.groups[0].matches && t.groups[0].matches[0]) || null;
+    const posterSlots = getTeamPosterSlots(match);
+    const me = data.me || {};
+    const teams = t.teams || [];
+    const teamA = teams[0] || { members: [] };
+    const teamB = teams[1] || { members: [] };
+    const winner = match && match.winner;
+    const isPersonal = data.type !== 'report';
+
+    let y = HERO_H;
+
+    // Section 1: 获胜结果 + 一球制胜合并卡片
+    y += TEAM_SECTION_TOP + T.eyebrow + TEAM_SECTION_GAP;
+    y += TEAM_RESULT_H + TEAM_SECTION_BOTTOM;
+
+    // Section 2: 全部场次比分
+    y += TEAM_SECTION_TOP + T.eyebrow + TEAM_SECTION_GAP;
+    y += posterSlots.length * TEAM_SCORE_ROW_H + TEAM_SECTION_BOTTOM;
+
+    // Section 3: 加分（胜负奖励横向同排）
+    y += TEAM_SECTION_TOP + T.eyebrow + TEAM_SECTION_GAP;
+    y += winner ? 48 : 36;
+
+    // Personal bonus sub-section
+    if (isPersonal && winner && me.openid) {
+      const inA = (teamA.members || []).some(m => m.openid === me.openid);
+      const inB = (teamB.members || []).some(m => m.openid === me.openid);
+      if (inA || inB) {
+        y += 46;
+      }
+    }
+    if (isPersonal && data.userStats && data.userStats.teamSummary) y += 72;
+    y += TEAM_SECTION_BOTTOM;
+
+    // Section 4: 队员左右两栏镜像排列
+    y += TEAM_SECTION_TOP + T.eyebrow + TEAM_SECTION_GAP;
+    setFont(ctx, 22, 'normal', s.fontDisplay);
+    const rosterColGap = 48;
+    const rosterColW = (W - SIDE * 2 - rosterColGap) / 2;
+    const rosterARows = getInlineRosterRows(ctx, teamA.members, rosterColW);
+    const rosterBRows = getInlineRosterRows(ctx, teamB.members, rosterColW);
+    y += 34 + Math.max(rosterARows.length, rosterBRows.length) * 30;
+
+    y += TEAM_FOOT_GAP + FOOT_H;
+    return y;
+  }
+
   if (data.type === 'report') {
-    const t = data.tournament || {};
     const players = t.players || [];
     let y = HERO_H;
     // Podium section
     y += T.eyebrow + 28 + SECTION_PAD_Y; // eyebrow + gap (drawSectionEyebrow)
     y += computePodiumH(t.placementAwards, t.players); // 220（1/3 格）/ 266（计分牌 N=2）
-    y += SECTION_PAD_Y + HAIRLINE;       // 下 padding + hairline
+    y += SECTION_PAD_Y;       // 下 padding + hairline
     // Stats section（无 eyebrow，靠两 hairline 夹）
     y += SECTION_PAD_Y;                  // 上 padding
     y += T.statN + T.statL + 22;         // stats 数字 + 标签 + 内边距
-    y += SECTION_PAD_Y + HAIRLINE;       // 下 padding + hairline
+    y += SECTION_PAD_Y;       // 下 padding + hairline
+    // Bracket section（淘汰赛对阵树，无 knockout 数据时自动跳过）
+    y += computeBracketSectionH(t);
+    // Group Standings section（小组赛积分表，无 groups 数据时跳过）
+    y += computeGroupStandingsH(t);
     // Roster section
     y += T.eyebrow + 28 + SECTION_PAD_Y; // eyebrow
     const isDoubles = t.type === 'doubles' && Array.isArray(t.teams) && t.teams.length > 0;
@@ -991,9 +1489,9 @@ function computeCanvasH(ctx, data) {
       const rosterRows = Math.max(1, Math.ceil(t.teams.length / 3));
       y += rosterRows * 140;
     } else {
-      const rosterRows = Math.max(1, Math.ceil(Math.min(8, players.length) / 4));
+      const rosterRows = Math.max(1, Math.ceil(Math.min(12, players.length) / 4));
       y += rosterRows * 130;
-      if (players.length > 8) y += 40;
+      if (players.length > 12) y += 40;
     }
     // Footer
     y += FOOT_GAP + FOOT_H;
@@ -1012,10 +1510,19 @@ function computeCanvasH(ctx, data) {
   // Highlight section
   y += T.eyebrow + 28 + SECTION_PAD_Y;
   if (hl) {
-    setFont(ctx, T.hlContent, '500', s.fontDisplay);
-    const lines = Math.min(3, wrapText(ctx, hl.detail || hl.title || '', W - SIDE * 2).length);
-    y += lines * (T.hlContent + 8);
-    if (hl.score) y += T.hlDetail + 16;
+    if (hl.type === 'golden_point') {
+      y += 18 + 34; // accent bar + eyebrow
+      setFont(ctx, 38, '600', s.fontDisplay);
+      const gpLines = Math.min(2, wrapText(ctx, hl.detail || '', W - SIDE * 2).length);
+      y += gpLines * 44;
+      if (hl.score) y += 40;
+      y += 8; // bottom padding
+    } else {
+      setFont(ctx, T.hlContent, '500', s.fontDisplay);
+      const lines = Math.min(3, wrapText(ctx, hl.detail || hl.title || '', W - SIDE * 2).length);
+      y += lines * (T.hlContent + 8);
+      if (hl.score) y += T.hlDetail + 16;
+    }
   }
   y += SECTION_PAD_Y + HAIRLINE;
   // Match History section
@@ -1032,13 +1539,353 @@ function computeCanvasH(ctx, data) {
   return y;
 }
 
+// 团队赛海报（type='team'）：总战绩 → 一球制胜 → 每场比分 → 加分 → 队员名单
+// 同时用于 report（赛事战报）和 personal（我的战绩卡）——personal 额外显示个人得分行
+function drawTeamMatchPoster(ctx, data, canvasH) {
+  const s = data.style;
+  const t = data.tournament || {};
+  const me = data.me || {};
+  const match = (t.groups && t.groups[0] && t.groups[0].matches && t.groups[0].matches[0]) || null;
+  const slots = (match && match.slots) || [];
+  const posterSlots = getTeamPosterSlots(match);
+  const tiebreakSlot = (match && match.tiebreak) || slots.find(s => s.isTiebreak);
+  const teamScoreA = match && match.teamScore ? (match.teamScore.A || 0) : 0;
+  const teamScoreB = match && match.teamScore ? (match.teamScore.B || 0) : 0;
+  const teams = t.teams || [];
+  const teamA = teams[0] || { members: [] };
+  const teamB = teams[1] || { members: [] };
+  const winner = match && match.winner;
+  const isPersonal = data.type !== 'report';
+
+  // 队长名 → 队名
+  const captains = t.captains || {};
+  const captainA = (teamA.members || []).find(m => m.openid === captains.A);
+  const captainB = (teamB.members || []).find(m => m.openid === captains.B);
+  const captainAName = captainA ? captainA.wecomName : 'A队队长';
+  const captainBName = captainB ? captainB.wecomName : 'B队队长';
+  const teamAName = captainA ? captainA.wecomName + '队' : 'A 队';
+  const teamBName = captainB ? captainB.wecomName + '队' : 'B 队';
+
+  clear(ctx, s, canvasH);
+  drawHeroBg(ctx, s);
+
+  // === Hero ===
+  drawBrandLine(ctx, HERO_PAD_TOP, s);
+  drawHeroKicker(ctx, HERO_PAD_TOP + 90, s, 'TEAM MATCH · 团队赛');
+
+  setFont(ctx, T.title, '500', s.fontDisplay);
+  drawWrappedText(ctx, t.title || '团队赛', SIDE, HERO_PAD_TOP + 130,
+    W - SIDE * 2, T.title * 1.06, 2,
+    { color: s.heroFg, baseline: 'top' });
+
+  // === Hero 内大比分 ===
+  const scoreY = HERO_PAD_TOP + 300;
+  const teamNameY = scoreY - 44;
+  const scoreNumberY = scoreY + 30;
+  // A 队名
+  setFont(ctx, 22, 'normal', s.fontMono);
+  fillText(ctx, teamAName, W / 2 - 90, teamNameY, {
+    color: winner === 'A' ? s.accent : s.heroMuted, align: 'center', baseline: 'middle'
+  });
+  // B 队名
+  fillText(ctx, teamBName, W / 2 + 90, teamNameY, {
+    color: winner === 'B' ? s.accent : s.heroMuted, align: 'center', baseline: 'middle'
+  });
+  // A 队分数
+  setFont(ctx, 96, '500', s.fontDisplay);
+  fillText(ctx, String(teamScoreA), W / 2 - 90, scoreNumberY, {
+    color: winner === 'A' ? s.accent : s.heroFg, align: 'center', baseline: 'middle'
+  });
+  // vs
+  setFont(ctx, 34, 'normal', s.fontMono);
+  fillText(ctx, 'vs', W / 2, scoreNumberY, {
+    color: s.heroMuted, align: 'center', baseline: 'middle'
+  });
+  // B 队分数
+  setFont(ctx, 96, '500', s.fontDisplay);
+  fillText(ctx, String(teamScoreB), W / 2 + 90, scoreNumberY, {
+    color: winner === 'B' ? s.accent : s.heroFg, align: 'center', baseline: 'middle'
+  });
+
+  let y = HERO_H;
+
+  // openid → wecomName 映射
+  const lineupNameMap = {};
+  [...(teamA.members || []), ...(teamB.members || [])].forEach(m => {
+    if (m.openid) lineupNameMap[m.openid] = m.wecomName || '';
+  });
+  const sideNames = (oids) =>
+    (oids || []).map(oid => lineupNameMap[oid] || '').filter(Boolean).join(' / ');
+
+  // 三列布局：左右姓名锚定内容区外沿；中间比分使用固定等宽槽位。
+  const SCORE_CELL_OFFSET = 36;
+  const SCORE_BLOCK_HALF = 62;
+  const SCORE_NAME_GAP = 20;
+  const nameColW = W / 2 - SCORE_BLOCK_HALF - SIDE - SCORE_NAME_GAP;
+  const colA = SIDE;
+  const colScore = W / 2;
+  const colB = W - SIDE;
+
+  // === Section 1: 获胜结果 + 一球制胜合并 ===
+  y = drawTeamSectionEyebrow(ctx, y, s, 'RESULT · 终场判定', s.accent);
+  const resultCardX = SIDE;
+  const resultCardY = y;
+  const resultCardW = W - SIDE * 2;
+
+  ctx.save();
+  ctx.globalAlpha = 0.09;
+  ctx.fillStyle = s.accent;
+  ctx.fillRect(resultCardX, resultCardY, resultCardW, TEAM_RESULT_H);
+  ctx.restore();
+  ctx.fillStyle = s.accent;
+  ctx.fillRect(resultCardX, resultCardY, 6, TEAM_RESULT_H);
+
+  const resultText = winner
+    ? `${winner === 'A' ? teamAName : teamBName} 获胜`
+    : '比赛进行中';
+  setFont(ctx, 16, 'normal', s.fontMono);
+  fillText(ctx, winner ? 'WINNER · FINAL' : 'LIVE · IN PROGRESS', resultCardX + 24, resultCardY + 16, {
+    color: s.accent, baseline: 'top'
+  });
+  setFont(ctx, 34, '600', s.fontDisplay);
+  fillText(ctx, resultText, resultCardX + 24, resultCardY + 54, {
+    color: s.fg, baseline: 'top'
+  });
+  setFont(ctx, 18, 'normal', s.fontMono);
+  const finalScoreText = match && match.scoreSummary
+    ? `最终比分 ${String(match.scoreSummary).replace(/（.*$/, '').trim()}`
+    : '暂无比分';
+  fillText(ctx, finalScoreText, resultCardX + 24, resultCardY + 116, {
+    color: s.muted, baseline: 'top'
+  });
+
+  if (tiebreakSlot) {
+    const tiebreakCenterX = resultCardX + 390 + (resultCardW - 390) / 2;
+    const [tiebreakScoreA, tiebreakScoreB] = getTeamSlotScoreParts(tiebreakSlot);
+    const tiebreakNameA = sideNames(tiebreakSlot.lineup && tiebreakSlot.lineup.A) || captainAName;
+    const tiebreakNameB = sideNames(tiebreakSlot.lineup && tiebreakSlot.lineup.B) || captainBName;
+
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = s.accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(resultCardX + 390, resultCardY + 24);
+    ctx.lineTo(resultCardX + 390, resultCardY + TEAM_RESULT_H - 24);
+    ctx.stroke();
+    ctx.restore();
+
+    setFont(ctx, 16, 'normal', s.fontMono);
+    fillText(ctx, '★ MATCH POINT · 队长对决', resultCardX + 414, resultCardY + 16, {
+      color: s.accent, baseline: 'top'
+    });
+
+    // 决胜比分沿用 Hero 字体，并用等宽左右槽位对应两位队长。
+    setFont(ctx, 50, '500', s.fontDisplay);
+    fillText(ctx, tiebreakScoreA, tiebreakCenterX - 42, resultCardY + 50, {
+      color: tiebreakSlot.winner === 'A' ? s.accent : s.fg,
+      align: 'center', baseline: 'top'
+    });
+    fillText(ctx, tiebreakScoreB, tiebreakCenterX + 42, resultCardY + 50, {
+      color: tiebreakSlot.winner === 'B' ? s.accent : s.fg,
+      align: 'center', baseline: 'top'
+    });
+    setFont(ctx, 24, 'normal', s.fontMono);
+    fillText(ctx, '–', tiebreakCenterX, resultCardY + 60, {
+      color: s.muted, align: 'center', baseline: 'top'
+    });
+
+    setFont(ctx, 18, 'normal', s.fontDisplay);
+    fillText(ctx, ellipsize(ctx, tiebreakNameA, 116), tiebreakCenterX - 22, resultCardY + 120, {
+      color: tiebreakSlot.winner === 'A' ? s.accent : s.muted,
+      align: 'right', baseline: 'top'
+    });
+    setFont(ctx, 15, 'normal', s.fontMono);
+    fillText(ctx, 'vs', tiebreakCenterX, resultCardY + 122, {
+      color: s.muted, align: 'center', baseline: 'top'
+    });
+    setFont(ctx, 18, 'normal', s.fontDisplay);
+    fillText(ctx, ellipsize(ctx, tiebreakNameB, 116), tiebreakCenterX + 22, resultCardY + 120, {
+      color: tiebreakSlot.winner === 'B' ? s.accent : s.muted,
+      baseline: 'top'
+    });
+  }
+  y += TEAM_RESULT_H + TEAM_SECTION_BOTTOM;
+
+  // === Section 2: 每场比分 ===
+  y = drawTeamSectionEyebrow(ctx, y, s, 'SCORES · 每场比分', s.accent);
+  setFont(ctx, 22, 'normal', s.fontDisplay);
+
+  posterSlots.forEach(sl => {
+    const slWinner = sl.winner;
+    const hasLineup = sl.lineup && Array.isArray(sl.lineup.A) && Array.isArray(sl.lineup.B)
+      && sl.lineup.A.length > 0 && sl.lineup.B.length > 0;
+
+    let nameA, nameB;
+    if (hasLineup) {
+      nameA = sideNames(sl.lineup.A);
+      nameB = sideNames(sl.lineup.B);
+    } else {
+      nameA = `SLOT ${sl.index}`; nameB = '';
+    }
+
+    // A 方队员（胜方用 accent 强调）
+    fillText(ctx, ellipsize(ctx, nameA || '—', nameColW), colA, y, {
+      color: slWinner === 'A' ? s.accent : s.fg, baseline: 'top'
+    });
+
+    // 比分：左右数字各自在等宽槽位中居中，分隔符固定在画布中线。
+    const [scoreA, scoreB] = getTeamSlotScoreParts(sl);
+    setFont(ctx, 26, '500', s.fontMono);
+    fillText(ctx, scoreA, colScore - SCORE_CELL_OFFSET, y, {
+      color: slWinner === 'A' ? s.accent : (slWinner ? s.fg : s.muted),
+      align: 'center', baseline: 'top'
+    });
+    fillText(ctx, '–', colScore, y, {
+      color: s.muted, align: 'center', baseline: 'top'
+    });
+    fillText(ctx, scoreB, colScore + SCORE_CELL_OFFSET, y, {
+      color: slWinner === 'B' ? s.accent : (slWinner ? s.fg : s.muted),
+      align: 'center', baseline: 'top'
+    });
+    setFont(ctx, 22, 'normal', s.fontDisplay);
+
+    // B 方队员
+    fillText(ctx, ellipsize(ctx, nameB || '—', nameColW), colB, y, {
+      color: slWinner === 'B' ? s.accent : s.fg, align: 'right', baseline: 'top'
+    });
+
+    y += TEAM_SCORE_ROW_H;
+  });
+
+  y += TEAM_SECTION_BOTTOM;
+
+  // === Section 3: 加分情况（横向对照） ===
+  y = drawTeamSectionEyebrow(ctx, y, s, 'BONUS · 加分', s.accent);
+
+  if (winner) {
+    const teamABonus = winner === 'A' ? 40 : 20;
+    const teamBBonus = winner === 'B' ? 40 : 20;
+    setFont(ctx, 26, '600', s.fontDisplay);
+    fillText(ctx, `${teamAName}  +${teamABonus}`, SIDE, y, {
+      color: winner === 'A' ? s.accent : s.muted, baseline: 'top'
+    });
+    fillText(ctx, `${teamBName}  +${teamBBonus}`, W - SIDE, y, {
+      color: winner === 'B' ? s.accent : s.muted, align: 'right', baseline: 'top'
+    });
+    y += 48;
+  } else {
+    setFont(ctx, 24, 'normal', s.fontDisplay);
+    fillText(ctx, '比赛尚未结束，暂不发放加分', SIDE, y, { color: s.muted, baseline: 'top' });
+    y += 36;
+  }
+
+  // 个人得分使用紧凑高亮条
+  if (isPersonal && winner && me.openid) {
+    const inA = (teamA.members || []).some(m => m.openid === me.openid);
+    const inB = (teamB.members || []).some(m => m.openid === me.openid);
+    if (inA || inB) {
+      const myTeam = inA ? 'A' : 'B';
+      const bonus = winner === myTeam ? 40 : 20;
+      ctx.save();
+      ctx.globalAlpha = 0.08;
+      ctx.fillStyle = s.accent;
+      ctx.fillRect(SIDE, y, W - SIDE * 2, 38);
+      ctx.restore();
+      setFont(ctx, 24, '600', s.fontDisplay);
+      fillText(ctx, `我的得分  +${bonus}`, W / 2, y + 19, {
+        color: s.accent, align: 'center', baseline: 'middle'
+      });
+      y += 46;
+    }
+  }
+  if (isPersonal && data.userStats && data.userStats.teamSummary) {
+    const summary = data.userStats.teamSummary;
+    const partners = (summary.partners || []).join(' / ') || '单打轮换';
+    const opponents = (summary.opponents || []).join(' / ') || '暂无';
+    setFont(ctx, 24, '600', s.fontDisplay);
+    fillText(ctx, `我的战绩  ${data.userStats.wins || 0}胜 ${data.userStats.losses || 0}负  ·  出场 ${summary.appearances || 0}`, SIDE, y + 4, {
+      color: s.fg, baseline: 'top'
+    });
+    setFont(ctx, 17, 'normal', s.fontMono);
+    fillText(ctx, ellipsize(ctx, `搭档 ${partners}  ·  对手 ${opponents}`, W - SIDE * 2), SIDE, y + 40, {
+      color: s.muted, baseline: 'top'
+    });
+    y += 72;
+  }
+  y += TEAM_SECTION_BOTTOM;
+
+  // === Section 4: 队员左右两栏镜像排列 ===
+  y = drawTeamSectionEyebrow(ctx, y, s, 'TEAMS · 队员名单', s.accent);
+  const rosterColGap = 48;
+  const rosterColW = (W - SIDE * 2 - rosterColGap) / 2;
+  const rosterRight = W - SIDE;
+  setFont(ctx, 22, 'normal', s.fontDisplay);
+  const rosterARows = getInlineRosterRows(ctx, teamA.members, rosterColW);
+  const rosterBRows = getInlineRosterRows(ctx, teamB.members, rosterColW);
+
+  setFont(ctx, 19, 'normal', s.fontMono);
+  fillText(ctx, teamAName, SIDE, y, {
+    color: winner === 'A' ? s.accent : s.muted, baseline: 'top'
+  });
+  fillText(ctx, teamBName, rosterRight, y, {
+    color: winner === 'B' ? s.accent : s.muted, align: 'right', baseline: 'top'
+  });
+
+  const drawRosterTokens = (rows, alignRight) => {
+    setFont(ctx, 22, 'normal', s.fontDisplay);
+    const separator = '  ·  ';
+    const separatorW = ctx.measureText(separator).width;
+    rows.forEach((row, rowIndex) => {
+      const tokenY = y + 34 + rowIndex * 30;
+      let tokenX = alignRight
+        ? rosterRight - getInlineRosterRowWidth(ctx, row)
+        : SIDE;
+      row.forEach((token, tokenIndex) => {
+        if (tokenIndex > 0) {
+          fillText(ctx, separator, tokenX, tokenY, {
+            color: s.muted, baseline: 'top'
+          });
+          tokenX += separatorW;
+        }
+        const member = token.member;
+        if (member.isCaptain) {
+          const badgeX = tokenX + 8;
+          const badgeY = tokenY + 12;
+          ctx.beginPath();
+          ctx.arc(badgeX, badgeY, 8, 0, Math.PI * 2);
+          ctx.fillStyle = s.accent;
+          ctx.fill();
+          setFont(ctx, 10, '700', s.fontMono);
+          fillText(ctx, 'C', badgeX, badgeY + 1, {
+            color: s.bg, align: 'center', baseline: 'middle'
+          });
+          tokenX += 26;
+          setFont(ctx, 22, 'normal', s.fontDisplay);
+        }
+        fillText(ctx, member.wecomName, tokenX, tokenY, {
+          color: s.fg, baseline: 'top'
+        });
+        tokenX += ctx.measureText(member.wecomName).width;
+      });
+    });
+  };
+
+  drawRosterTokens(rosterARows, false);
+  drawRosterTokens(rosterBRows, true);
+
+  drawFooter(ctx, s, canvasH - FOOT_H, data.qrImage);
+}
+
 function drawPoster(ctx, canvas, data) {
   const canvasH = computeCanvasH(ctx, data);
   if (canvas) {
     canvas.width = W;
     canvas.height = canvasH;
   }
-  if (data.type === 'report') {
+  if (data.tournament && data.tournament.type === 'team') {
+    drawTeamMatchPoster(ctx, data, canvasH);
+  } else if (data.type === 'report') {
     drawReportPoster(ctx, data, canvasH);
   } else {
     drawPersonalPoster(ctx, data, canvasH);
