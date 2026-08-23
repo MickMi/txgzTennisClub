@@ -1,6 +1,12 @@
 <view class="container">
   <!-- 全局隐私授权弹窗 -->
   <privacy-popup />
+
+  <!-- 返回按钮（浅底页 A 型，参考 CLAUDE.md 规格） -->
+  <view class="page-back" style="top: {{navTop}}rpx;" bindtap="goBack">
+    <image src="/assets/icons/back.svg" />
+  </view>
+
   <view class="hero">
     <view class="emoji"><icon name="tennis" size="112" /></view>
     <view class="welcome">欢迎加入腾讯广州网球社</view>
@@ -54,7 +60,7 @@
   <view class="privacy-section">
     <view class="privacy-check" bindtap="onTogglePrivacy">
       <view class="checkbox {{privacyAgreed ? 'checked' : ''}}">
-        <text wx:if="{{privacyAgreed}}">✓</text>
+        <image wx:if="{{privacyAgreed}}" class="checkbox-icon" src="/assets/icons/check-light.svg" />
       </view>
       <view class="privacy-text">
         我已阅读并同意<text class="privacy-link" catchtap="onShowPrivacy">《用户隐私保护指引》</text>

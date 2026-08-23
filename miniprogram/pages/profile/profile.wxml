@@ -39,11 +39,12 @@ module.exports = {
       <image wx:if="{{user.avatarUrl}}" class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill" />
       <view wx:else class="avatar-letter">{{fmt.firstChar(user.wecomName)}}</view>
     </button>
-    <view class="avatar-wrap" wx:else>
+    <view class="avatar-wrap" wx:else bindtap="goOnboarding">
       <view class="avatar-letter">?</view>
     </view>
     <view class="who">
-      <view class="name">{{user.wecomName || '未登记'}}</view>
+      <view wx:if="{{user && user.wecomName}}" class="name">{{user.wecomName}}</view>
+      <view wx:else class="name" bindtap="goOnboarding">未登记</view>
       <view class="role">
         <block wx:if="{{user && user.wecomName}}">
           <block wx:if="{{user.role === 'admin'}}">
@@ -60,16 +61,14 @@ module.exports = {
   <!-- 未登记引导 -->
   <view wx:if="{{user && !user.wecomName}}" class="register-prompt" bindtap="goOnboarding">
     <view class="register-prompt-text">完成身份登记后可参与赛事录分</view>
-    <text class="register-prompt-btn">去登记 →</text>
+    <view class="register-prompt-btn">
+      <text>去登记</text>
+      <image class="register-prompt-icon" src="/assets/icons/arrow-right.svg" />
+    </view>
   </view>
 
   <!-- 2. Identity Grid -->
   <view class="identity-grid">
-    <view class="cell">
-      <text class="lbl">NTRP</text>
-      <text class="val">{{rating}}</text>
-      <view class="delta flat">—</view>
-    </view>
     <view class="cell">
       <text class="lbl">积分</text>
       <text class="val">{{totalPoints}}</text>
@@ -79,6 +78,11 @@ module.exports = {
       <text class="lbl">ELO</text>
       <text class="val">{{eloRating}}</text>
       <view class="delta {{eloDelta > 0 ? 'up' : eloDelta < 0 ? 'down' : ''}}">{{eloDelta > 0 ? '+' : ''}}{{eloDelta}}</view>
+    </view>
+    <view class="cell" bindtap="onTapNtrp">
+      <text class="lbl">NTRP</text>
+      <text class="val">{{rating}}<text class="ntrp-edit-hint"> ›</text></text>
+      <view class="delta flat">—</view>
     </view>
   </view>
 
@@ -112,15 +116,21 @@ module.exports = {
   <!-- 4. Chart Block -->
   <view class="chart-block">
     <view class="chart-tabs">
-      <view class="tab {{chartTab === 0 ? 'is-active' : ''}}" data-tab="0" bindtap="onChartTabChange">ELO</view>
-      <view class="tab {{chartTab === 1 ? 'is-active' : ''}}" data-tab="1" bindtap="onChartTabChange">积分</view>
+      <view class="tab {{chartTab === 0 ? 'is-active' : ''}}" data-tab="0" bindtap="onChartTabChange">积分</view>
+      <view class="tab {{chartTab === 1 ? 'is-active' : ''}}" data-tab="1" bindtap="onChartTabChange">ELO</view>
     </view>
     <view class="chart-canvas-wrap">
-      <canvas id="trendChart" type="2d" class="profile-chart"></canvas>
+      <canvas id="trendChart" type="2d" class="profile-chart"
+        bindtouchstart="onChartTouch" bindtouchmove="onChartTouch" bindtouchend="onChartTouchEnd"></canvas>
+      <view wx:if="{{chartTooltip}}" class="chart-tooltip" style="left: {{chartTooltip.left}}px;">
+        <text class="chart-tooltip-val">{{chartTooltip.value}}</text>
+        <text class="chart-tooltip-date">{{chartTooltip.date}}</text>
+        <text wx:if="{{chartTooltip.title}}" class="chart-tooltip-title">{{chartTooltip.title}}</text>
+      </view>
     </view>
     <view class="chart-foot">
-      <text>{{chartTab === 0 ? 'ELO TREND' : 'POINTS TREND'}}</text>
-      <text>CURRENT <text class="chart-foot-val">{{chartTab === 0 ? eloRating : totalPoints}}</text></text>
+      <text>{{chartTab === 0 ? 'POINTS TREND' : 'ELO TREND'}}</text>
+      <text>CURRENT <text class="chart-foot-val">{{chartTab === 0 ? totalPoints : eloRating}}</text></text>
     </view>
   </view>
 
@@ -130,7 +140,7 @@ module.exports = {
       <text class="admin-entry-eyebrow">ADMIN</text>
       <text class="admin-entry-title">成员管理</text>
     </view>
-    <text class="admin-entry-arrow">→</text>
+    <image class="admin-entry-arrow" src="/assets/icons/arrow-right.svg" />
   </view>
 
   <!-- 5. Recent Block -->
@@ -138,7 +148,7 @@ module.exports = {
     <view class="recent-eyebrow">
       <text>近期比赛</text>
       <text class="meta">RECENT MATCHES</text>
-      <text class="arrow">→</text>
+      <image class="arrow" src="/assets/icons/arrow-right.svg" />
     </view>
 
     <block wx:if="{{matchHistory.length > 0}}">
@@ -146,6 +156,7 @@ module.exports = {
         wx:for="{{matchHistory}}"
         wx:key="_id"
         class="match-row {{item.resultClass === 'loss' ? 'is-loss' : ''}} {{item.resultClass === 'pending' ? 'is-pending' : ''}}"
+        hover-class="match-row-pressed"
         data-id="{{item.tournamentId}}"
         bindtap="goMatchDetail"
       >
@@ -165,13 +176,19 @@ module.exports = {
   </view>
 
   <!-- 邀请入口 -->
-  <view class="qr-section">
+  <view class="qr-section" bindtap="onTapQr">
     <view class="qr-text">
       <view class="qr-eyebrow">INVITE</view>
       <view class="qr-title">邀请队友加入</view>
-      <view class="qr-desc">长按识别小程序码</view>
+      <view class="qr-desc">点击小程序码可放大</view>
     </view>
-    <image class="qr-img" src="/assets/qrcode.png" mode="aspectFit" show-menu-by-longpress="{{true}}" />
+    <image class="qr-img" src="/assets/qrcode.png" mode="aspectFit" />
+  </view>
+
+  <!-- 二维码放大弹层 -->
+  <view wx:if="{{showQrModal}}" class="qr-overlay" bindtap="onCloseQr">
+    <image class="qr-large" src="/assets/qrcode.png" mode="aspectFit" catchtap="onCloseQr" />
+    <view class="qr-overlay-hint">点击任意处关闭</view>
   </view>
 
   <!-- Edit Overlay (keeps existing JS logic working) -->

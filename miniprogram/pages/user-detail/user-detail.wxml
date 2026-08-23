@@ -116,6 +116,7 @@ module.exports = {
           wx:for="{{matchHistory}}"
           wx:key="_id"
           class="match-row {{item.resultClass === 'loss' ? 'is-loss' : ''}} {{item.resultClass === 'pending' ? 'is-pending' : ''}}"
+          hover-class="match-row-pressed"
           data-id="{{item.tournamentId}}"
           bindtap="goMatchDetail"
         >
@@ -125,34 +126,13 @@ module.exports = {
           </view>
           <view class="who">
             <view class="title">{{item.title}}</view>
-            <view class="vs">vs {{item.opponent || 'TBD'}} · {{item.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</view>
+            <view class="vs">vs {{item.opponent || 'TBD'}} · <text wx:if="{{item.isTeamSlot}}" class="team-tag">TEAM</text>{{item.isTeamSlot ? ' · ' : ''}}{{item.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</view>
           </view>
           <text class="score">{{item.scoreSummary || item.resultText}}</text>
         </view>
       </block>
 
       <view wx:else class="no-data">NO DATA · 暂无比赛记录</view>
-    </view>
-
-    <!-- 6. Activities -->
-    <view class="recent-block" wx:if="{{activities.length > 0}}">
-      <view class="recent-eyebrow">
-        <text>参与的活动</text>
-        <text class="meta">ACTIVITIES</text>
-      </view>
-      <view
-        wx:for="{{activities}}"
-        wx:key="_id"
-        class="activity-row"
-        data-id="{{item._id}}"
-        bindtap="goActivityDetail"
-      >
-        <view class="activity-info">
-          <view class="title">{{item.title}}</view>
-          <view class="vs">{{item.startTimeStr}} · {{item.location}}</view>
-        </view>
-        <text class="meta-pill">{{item.status === 'closed' ? '已结束' : '报名中'}}</text>
-      </view>
     </view>
 
     <view class="bottom-padding"></view>

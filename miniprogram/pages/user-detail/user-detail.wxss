@@ -80,6 +80,10 @@
   border: 1rpx solid var(--color-border);
 }
 
+.match-row .team-tag {
+  color: var(--color-accent);
+}
+
 .bottom-padding {
   height: 80rpx;
 }

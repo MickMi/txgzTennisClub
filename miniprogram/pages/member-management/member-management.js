@@ -39,8 +39,12 @@ Page({
     wx.navigateBack();
   },
 
+  onPullDownRefresh() {
+    this.load().finally(() => wx.stopPullDownRefresh());
+  },
+
   load() {
-    api.listMembers().then(data => {
+    return api.listMembers().then(data => {
       const list = data.list || [];
       this.setData({
         list,

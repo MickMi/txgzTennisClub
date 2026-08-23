@@ -1,6 +1,6 @@
 /* ranking 排行榜页 */
 .container {
-  padding-top: 120rpx;
+  /* padding-top 走 inline 动态：navTop + 64(按钮高) + 24(气口) = navTop + 88rpx */
   padding-left: 48rpx;
   padding-right: 48rpx;
 }

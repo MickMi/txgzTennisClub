@@ -1,6 +1,6 @@
 // 选手详情页（只读，从排行榜进入）
 const api = require('../../utils/api.js');
-const { formatDateTime, formatDate } = require('../../utils/format.js');
+const { formatDate } = require('../../utils/format.js');
 
 Page({
   data: {
@@ -15,8 +15,7 @@ Page({
     chartTab: 0, // 0: ELO, 1: 积分
     eloHistory: [],
     pointsHistory: [],
-    matchHistory: [],
-    activities: []
+    matchHistory: []
   },
 
   onLoad(opts) {
@@ -47,15 +46,8 @@ Page({
     wx.navigateTo({ url: `/pages/tournament-detail/tournament-detail?id=${id}` });
   },
 
-  // 跳转活动详情
-  goActivityDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    if (!id) return;
-    wx.navigateTo({ url: `/pages/activity-detail/activity-detail?id=${id}` });
-  },
-
   loadProfile() {
-    api
+    return api
       .getProfileByOpenid(this.data.openid)
       .then(profile => {
         const user = profile.user;
@@ -64,10 +56,6 @@ Page({
           matchDateStr: formatDate(m.matchDate),
           resultText: m.result === 'win' ? '胜' : m.result === 'loss' ? '负' : '进行中',
           resultClass: m.result === 'win' ? 'win' : m.result === 'loss' ? 'loss' : 'pending'
-        }));
-        const activities = (profile.activities || []).map(a => ({
-          ...a,
-          startTimeStr: formatDateTime(a.startTime)
         }));
         const stats = profile.stats || { wins: 0, losses: 0, pending: 0, total: 0 };
         const played = stats.wins + stats.losses;
@@ -83,8 +71,7 @@ Page({
           eloRating: user.eloRating || 1500,
           eloHistory: profile.eloHistory || [],
           pointsHistory: profile.pointsHistory || [],
-          matchHistory,
-          activities
+          matchHistory
         });
         // 等 DOM 渲染完成再绘图
         setTimeout(() => this.drawChart(), 300);
@@ -92,6 +79,10 @@ Page({
       .catch(() => {
         this.setData({ loading: false });
       });
+  },
+
+  onPullDownRefresh() {
+    this.loadProfile().finally(() => wx.stopPullDownRefresh());
   },
 
   onChartTabChange(e) {

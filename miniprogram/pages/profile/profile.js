@@ -1,6 +1,6 @@
 const api = require('../../utils/api.js');
 const { setCachedUser } = require('../../utils/user.js');
-const { formatDateTime, formatDate } = require('../../utils/format.js');
+const { formatDate } = require('../../utils/format.js');
 
 const RATING_OPTIONS = ['1.0', '1.5', '2.0', '2.5', '3.0', '3.5', '4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0'];
 
@@ -29,26 +29,31 @@ Page({
     eloRating: 1500,
     eloDelta: 0,
     // 图表
-    chartTab: 0, // 0: ELO曲线, 1: 积分曲线
+    chartTab: 0, // 0: 积分曲线, 1: ELO曲线
     eloHistory: [],
     pointsHistory: [],
+    chartTooltip: null, // { x, y, value, date }
     // 历史战绩
     matchHistory: [],
-    // 参与的活动
-    activities: [],
     // Tab 切换
-    activeTab: 0
+    activeTab: 0,
+    // 二维码放大
+    showQrModal: false
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 1 }); // 原为 2，隐藏活动 tab 后"我的"变为 index 1
+      this.getTabBar().setData({ selected: 1 });
     }
     this.loadProfile();
   },
 
+  onPullDownRefresh() {
+    this.loadProfile().finally(() => wx.stopPullDownRefresh());
+  },
+
   loadProfile() {
-    api
+    return api
       .getProfile()
       .then(profile => {
         const user = profile.user;
@@ -60,11 +65,6 @@ Page({
           matchDateStr: formatDate(m.matchDate),
           resultText: m.result === 'win' ? '胜' : m.result === 'loss' ? '负' : '进行中',
           resultClass: m.result === 'win' ? 'win' : m.result === 'loss' ? 'loss' : 'pending'
-        }));
-        // 格式化活动日期
-        const activities = (profile.activities || []).map(a => ({
-          ...a,
-          startTimeStr: formatDateTime(a.startTime)
         }));
         const stats = profile.stats || { wins: 0, losses: 0, pending: 0, total: 0 };
         const singlesStats = profile.singlesStats || { wins: 0, losses: 0, pending: 0, total: 0 };
@@ -87,8 +87,7 @@ Page({
           eloDelta: profile.eloDelta || 0,
           eloHistory: profile.eloHistory || [],
           pointsHistory: profile.pointsHistory || [],
-          matchHistory,
-          activities
+          matchHistory
         });
         // 绘制图表（需等 DOM 就绪）
         setTimeout(() => this.drawChart(), 300);
@@ -185,7 +184,35 @@ Page({
       .catch(() => {});
   },
 
-  // 评级修改
+  // 二维码放大
+  onTapQr() {
+    this.setData({ showQrModal: true });
+  },
+  onCloseQr() {
+    this.setData({ showQrModal: false });
+  },
+
+  // 直接点 NTRP 卡片：弹出 picker 快速修改
+  onTapNtrp() {
+    const that = this;
+    wx.showActionSheet({
+      itemList: RATING_OPTIONS,
+      success(res) {
+        const idx = res.tapIndex;
+        const rating = RATING_OPTIONS[idx];
+        api
+          .updateUser({ rating })
+          .then(user => {
+            setCachedUser(user);
+            that.setData({ rating, ratingIndex: idx });
+            wx.showToast({ title: 'NTRP 已更新', icon: 'success' });
+          })
+          .catch(() => {});
+      }
+    });
+  },
+
+  // 评级修改（编辑面板内）
   onEditRating() {
     this.setData({ editingRating: true });
   },
@@ -218,12 +245,6 @@ Page({
     wx.navigateTo({ url: `/pages/tournament-detail/tournament-detail?id=${id}` });
   },
 
-  // 跳转活动详情
-  goActivityDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/activity-detail/activity-detail?id=${id}` });
-  },
-
   // 跳转成员管理（admin only，wxml 已用 user.role === 'admin' 包裹）
   goMemberManagement() {
     wx.navigateTo({ url: '/pages/member-management/member-management' });
@@ -238,6 +259,15 @@ Page({
   onChartTabChange(e) {
     this.setData({ chartTab: parseInt(e.currentTarget.dataset.tab) });
     this.drawChart();
+  },
+
+  // 前端补零保底（后端部署前也能正确显示起点）
+  _prepareChartData(raw) {
+    if (!raw || raw.length === 0) return raw;
+    if (raw[0].value > 0) {
+      return [{ date: raw[0].date - 86400000, value: 0, title: '起点' }, ...raw];
+    }
+    return raw;
   },
 
   // 绘制折线图
@@ -256,9 +286,61 @@ Page({
         canvas.height = height * dpr;
         ctx.scale(dpr, dpr);
 
-        const data = this.data.chartTab === 0 ? this.data.eloHistory : this.data.pointsHistory;
+        const raw = this.data.chartTab === 0 ? this.data.pointsHistory : this.data.eloHistory;
+        const data = this.data.chartTab === 0 ? this._prepareChartData(raw) : raw;
+        this._chartMeta = { data, width, height, dpr };
         this.renderLineChart(ctx, width, height, data);
       });
+  },
+
+  // 触摸图表显示 tooltip
+  onChartTouch(e) {
+    const meta = this._chartMeta;
+    if (!meta || !meta.data || meta.data.length < 2) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    const data = meta.data;
+    const padding = { top: 20, right: 15, bottom: 25, left: 40 };
+    const chartW = meta.width - padding.left - padding.right;
+    const slots = Math.max(data.length, 10);
+
+    const query = wx.createSelectorQuery();
+    query.select('#trendChart').boundingClientRect().exec(rects => {
+      if (!rects || !rects[0]) return;
+      const rect = rects[0];
+      const touchX = touch.clientX - rect.left;
+      const getX = (i) => padding.left + (i / (slots - 1)) * chartW;
+
+      let nearest = 0;
+      let minDist = Infinity;
+      for (let i = 0; i < data.length; i++) {
+        const dist = Math.abs(touchX - getX(i));
+        if (dist < minDist) { minDist = dist; nearest = i; }
+      }
+
+      if (minDist > 30) {
+        this.setData({ chartTooltip: null });
+        return;
+      }
+
+      const pt = data[nearest];
+      const d = new Date(pt.date);
+      const dateStr = (d.getMonth() + 1) + '/' + d.getDate();
+      const pxX = getX(nearest);
+      this.setData({
+        chartTooltip: {
+          left: pxX,
+          value: pt.value,
+          date: dateStr,
+          title: pt.title || (pt.tournamentId ? '' : '')
+        }
+      });
+    });
+  },
+
+  onChartTouchEnd() {
+    setTimeout(() => this.setData({ chartTooltip: null }), 1500);
   },
 
   renderLineChart(ctx, width, height, data) {
@@ -302,12 +384,13 @@ Page({
     const minVal = Math.min(...values);
     const maxVal = Math.max(...values);
     const range = maxVal - minVal || 1;
+    const slots = Math.max(data.length, 10);
 
-    // 坐标转换
-    const getX = (i) => padding.left + (i / (data.length - 1)) * chartW;
+    // 坐标转换 — x 轴至少 10 个刻度（积分取近 10 场最佳）
+    const getX = (i) => padding.left + (i / (slots - 1)) * chartW;
     const getY = (v) => padding.top + chartH - ((v - minVal) / range) * chartH;
 
-    // 绘制网格线
+    // 绘制水平网格线
     ctx.strokeStyle = '#ddd6c4';
     ctx.lineWidth = 0.5;
     for (let i = 0; i <= 4; i++) {
@@ -317,6 +400,19 @@ Page({
       ctx.lineTo(width - padding.right, y);
       ctx.stroke();
     }
+
+    // 绘制垂直刻度线（每个 slot 一条细虚线）
+    ctx.strokeStyle = '#e8e2d6';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 3]);
+    for (let i = 0; i < slots; i++) {
+      const x = getX(i);
+      ctx.beginPath();
+      ctx.moveTo(x, padding.top);
+      ctx.lineTo(x, padding.top + chartH);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
 
     // Y轴标签
     ctx.fillStyle = '#5d6e63';
@@ -329,7 +425,7 @@ Page({
     }
 
     // 绘制折线
-    const color = this.data.chartTab === 0 ? '#243a30' : '#b87a36';
+    const color = this.data.chartTab === 0 ? '#b87a36' : '#243a30';
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.lineJoin = 'round';
@@ -366,12 +462,15 @@ Page({
     ctx.fill();
     ctx.globalAlpha = 1;
 
-    // 起始和结束值标注
+    // 数据点值标注
     ctx.fillStyle = color;
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(String(data[0].value), getX(0), getY(data[0].value) - 8);
-    ctx.textAlign = 'right';
-    ctx.fillText(String(data[data.length - 1].value), getX(data.length - 1), getY(data[data.length - 1].value) - 8);
+    if (data.length > 1) {
+      ctx.textAlign = 'right';
+      const lastIdx = data.length - 1;
+      ctx.fillText(String(data[lastIdx].value), getX(lastIdx), getY(data[lastIdx].value) - 8);
+    }
   }
 });

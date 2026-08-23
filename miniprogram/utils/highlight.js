@@ -95,6 +95,68 @@ function collectUserMatches(tournament, openid) {
     });
   });
 
+  // 团队赛：新版遍历 courts[].encounters；旧赛事继续兼容 slots。
+  if (tournament.type === 'team') {
+    const group = tournament.groups && tournament.groups[0];
+    const match = group && group.matches && group.matches[0];
+    if (match) {
+      const teamMembers = [];
+      (tournament.teams || []).forEach(tu => {
+        (tu.members || []).forEach(m => { if (m.openid && m.wecomName) teamMembers.push(m); });
+      });
+      const nameMap = {};
+      teamMembers.forEach(m => { nameMap[m.openid] = m.wecomName; });
+
+      const courtEncounters = Array.isArray(match.courts)
+        ? match.courts.reduce((all, court, courtIndex) => all.concat((court.encounters || []).map(encounter => ({
+            ...encounter,
+            courtName: court.name || `${courtIndex + 1}号场`,
+            isTiebreak: false
+          }))), [])
+        : (match.slots || []).map(slot => ({
+            ...slot,
+            courtName: `Slot ${slot.index}`,
+            isTiebreak: !!slot.isTiebreak
+          }));
+      const allEncounters = match.tiebreak
+        ? courtEncounters.concat([{ ...match.tiebreak, courtName: '一球制胜', isTiebreak: true }])
+        : courtEncounters;
+
+      allEncounters.forEach(encounter => {
+        const lineup = encounter.lineup;
+        if (!lineup) return;
+        const inA = (lineup.A || []).includes(openid);
+        const inB = (lineup.B || []).includes(openid);
+        if (!inA && !inB) return;
+
+        const mySide = inA ? 'A' : 'B';
+        const oppSide = inA ? 'B' : 'A';
+        const oppOids = (lineup[oppSide] || []);
+        const oppNames = oppOids.map(oid => nameMap[oid] || '').filter(Boolean).join('/');
+        const partnerOids = (lineup[mySide] || []).filter(oid => oid !== openid);
+        const partnerNames = partnerOids.map(oid => nameMap[oid] || '').filter(Boolean).join('/');
+        const slotIsDoubles = (lineup.A || []).length === 2;
+
+        const scoreSummary = encounter.setsA !== undefined && encounter.setsB !== undefined
+          ? `${encounter.setsA}:${encounter.setsB}`
+          : String(encounter.score || '').replace(/\s*[-–—]\s*/, ':');
+        list.push({
+          round: `团队赛 · ${encounter.courtName}`,
+          match: { winner: encounter.winner, isTiebreak: !!encounter.isTiebreak, scoreSummary },
+          meSide: mySide,
+          oppSide: oppSide,
+          opponent: { wecomName: oppNames || 'TBD', openid: oppOids[0] || '' },
+          partner: { wecomName: partnerNames || '', openid: partnerOids[0] || '' },
+          scored: !!encounter.winner,
+          won: encounter.winner === mySide,
+          scoreSummary,
+          isTeamSlot: true,
+          slotIsDoubles
+        });
+      });
+    }
+  }
+
   return list;
 }
 
@@ -125,6 +187,18 @@ function computeHighlight(tournament, openid) {
   const meInfo = (tournament.players || []).find(p => p.openid === openid) || {};
   const myRating = parseRating(meInfo.rating);
 
+  // ⓪ golden_point — 一球制胜（最高优先级，最刺激）
+  for (const m of userMatches) {
+    if (m.isTeamSlot && m.match && m.match.isTiebreak && m.scored && m.won) {
+      return {
+        type: 'golden_point',
+        title: '一球制胜',
+        detail: `团队赛平分后，一球决胜击败${m.opponent.wecomName || '对手'}！`,
+        score: m.scoreSummary
+      };
+    }
+  }
+
   // ① upset_win — 击败 NTRP 高 ≥ 1.0 的对手
   for (const m of userMatches) {
     if (!m.won) continue;
@@ -139,16 +213,21 @@ function computeHighlight(tournament, openid) {
     }
   }
 
-  // ② clutch_tiebreak — 决胜局险胜（数据没有 tiebreak 标记，近似为：打满盘数 + 1 局之差）
-  // bestOf 是先赢的盘数，例如 bestOf=6，scoreSummary "6:5" 表示打到底
+  // ② clutch_tiebreak — 决胜险胜
+  // 多盘制（bestOf=4/6）：打满盘数 + 1 局之差，如 6-5
+  // 单盘抢分制（bestOf=7/11）：延长胜（净胜恰好 2、且超过 target），如 8-6、9-7
   const bestOf = tournament.bestOf || 0;
+  const isShort = bestOf === 7 || bestOf === 11;
   for (const m of userMatches) {
     if (!m.won || !m.scoreSummary) continue;
     const [sa, sb] = m.scoreSummary.split(':').map(s => parseInt(s, 10));
     if (isNaN(sa) || isNaN(sb)) continue;
-    const total = sa + sb;
-    const diff = Math.abs(sa - sb);
-    if (bestOf > 0 && total === bestOf * 2 - 1 && diff === 1) {
+    const high = Math.max(sa, sb);
+    const low = Math.min(sa, sb);
+    const isClutch = isShort
+      ? (high > bestOf && high - low === 2)
+      : (bestOf > 0 && sa + sb === bestOf * 2 - 1 && high - low === 1);
+    if (isClutch) {
       return {
         type: 'clutch_tiebreak',
         title: '决胜险胜',
@@ -180,12 +259,17 @@ function computeHighlight(tournament, openid) {
     };
   }
 
-  // ⑤ full_distance — 输了但打满盘数（虽败犹荣）
+  // ⑤ full_distance — 输了但激战到最后（虽败犹荣）
+  // 多盘制：打满盘数；单盘抢分制：被延长（净胜 2、且超过 target）
   for (const m of userMatches) {
     if (m.won || !m.scoreSummary) continue;
     const [sa, sb] = m.scoreSummary.split(':').map(s => parseInt(s, 10));
     if (isNaN(sa) || isNaN(sb)) continue;
-    if (bestOf > 0 && sa + sb >= bestOf * 2 - 1) {
+    const high = Math.max(sa, sb);
+    const isFull = isShort
+      ? (high > bestOf)
+      : (bestOf > 0 && sa + sb >= bestOf * 2 - 1);
+    if (isFull) {
       return {
         type: 'full_distance',
         title: '激战满盘',
@@ -214,13 +298,19 @@ function computeHighlight(tournament, openid) {
   // 之前用 findIndex+1 当排名是错的（双打数组里同一队两人都 placement=1，
   // 第二个被找到的人 idx=1 会被当成"亚军"）。直接读 award.placement。
   const myAward = (tournament.placementAwards || []).find(a => a.openid === openid);
-  const placement = myAward && myAward.placement && myAward.placement <= 8 ? myAward.placement : 0;
+  const placement = myAward && myAward.placement;
+  // 淘汰赛名次（1-8）展示数字；小组赛名次（≥100）展示 place 中文；否则兜底
+  const hasKnockoutPlacement = placement && placement > 0 && placement <= 8;
+  const hasGroupPlacement = placement && placement >= 100;
+  const detailText = hasKnockoutPlacement
+    ? `本次赛事第 ${placement} 名，持续在场`
+    : (hasGroupPlacement && myAward.place)
+      ? `${myAward.place}，持续在场`
+      : `参与本次${LEVEL_TEXT[tournament.level] || '赛事'}，持续在场`;
   return {
     type: 'rank_maintained',
     title: '稳健发挥',
-    detail: placement > 0
-      ? `本次赛事第 ${placement} 名，持续在场`
-      : `参与本次${LEVEL_TEXT[tournament.level] || '赛事'}，持续在场`,
+    detail: detailText,
     score: ''
   };
 }

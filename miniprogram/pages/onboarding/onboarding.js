@@ -7,7 +7,22 @@ Page({
     gender: '',
     avatarTempUrl: '',
     submitting: false,
-    privacyAgreed: false
+    privacyAgreed: false,
+    navTop: 0
+  },
+
+  onLoad() {
+    const app = getApp();
+    this.setData({ navTop: app.globalData.nav ? app.globalData.nav.navTopRpx : 0 });
+  },
+
+  goBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.switchTab({ url: '/pages/match-list/match-list' });
+    }
   },
 
   onChooseAvatar(e) {

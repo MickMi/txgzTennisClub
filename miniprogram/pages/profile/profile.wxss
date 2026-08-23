@@ -87,20 +87,27 @@
 .register-prompt {
   margin: 0 48rpx 32rpx;
   padding: 28rpx 32rpx;
-  background: #faf8f2;
-  border: 1rpx dashed #ddd6c4;
+  background: var(--color-surface);
+  border: 1rpx dashed var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .register-prompt-text {
   font-size: 24rpx;
-  color: #8a7e6a;
+  color: var(--color-muted);
 }
 .register-prompt-btn {
   font-size: 24rpx;
-  color: #b87a36;
+  color: var(--color-accent);
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+.register-prompt-icon {
+  width: 24rpx;
+  height: 24rpx;
 }
 
 /* ============ Identity Grid ============ */
@@ -152,7 +159,7 @@
   letter-spacing: 0.06em;
 }
 .identity-grid .delta.up { color: var(--color-accent); }
-.identity-grid .delta.down { color: #c0392b; }
+.identity-grid .delta.down { color: var(--color-danger); }
 .identity-grid .delta.flat { color: var(--color-muted); }
 
 /* ============ Stats Strip ============ */
@@ -265,6 +272,41 @@
 
 .chart-canvas-wrap {
   width: 100%;
+  position: relative;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  background: var(--color-fg, #243a30);
+  color: var(--color-bg, #f8f4e8);
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.chart-tooltip-val {
+  font-size: 24rpx;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
+.chart-tooltip-date {
+  font-size: 20rpx;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.chart-tooltip-title {
+  font-size: 18rpx;
+  opacity: 0.5;
+  line-height: 1.4;
 }
 
 .profile-chart {
@@ -324,9 +366,8 @@
   color: var(--color-fg);
 }
 .admin-entry-arrow {
-  font-family: var(--font-mono);
-  font-size: 28rpx;
-  color: var(--color-emerald-deep);
+  width: 28rpx;
+  height: 28rpx;
 }
 
 /* ============ Recent Block ============ */
@@ -356,7 +397,9 @@
 }
 
 .recent-eyebrow .arrow {
-  color: var(--color-muted);
+  width: 22rpx;
+  height: 22rpx;
+  opacity: 0.6;
 }
 
 .match-row {
@@ -366,6 +409,11 @@
   padding: 24rpx 0;
   border-bottom: 1rpx solid var(--color-border);
   align-items: center;
+  transition: background 0.15s ease;
+}
+
+.match-row-pressed {
+  background: rgba(184, 122, 54, 0.06);
 }
 
 .match-row .when {
@@ -507,6 +555,13 @@
   color: var(--color-accent);
 }
 
+.ntrp-edit-hint {
+  color: var(--color-muted);
+  font-size: 24rpx;
+  margin-left: 6rpx;
+  opacity: 0.5;
+}
+
 .edit-rating {
   margin-top: 24rpx;
   padding-top: 24rpx;
@@ -553,6 +608,27 @@
   color: var(--color-accent);
 }
 
+/* ============ Admin Dev Entry ============ */
+.dev-entry {
+  margin: 0 48rpx 48rpx;
+  padding: 20rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1rpx solid var(--color-border);
+}
+.dev-entry-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 24rpx;
+  color: var(--color-muted);
+  letter-spacing: 1rpx;
+}
+.dev-entry-arrow {
+  width: 24rpx;
+  height: 24rpx;
+  opacity: 0.6;
+}
+
 /* ============ QR Invite Section ============ */
 .qr-section {
   margin: 48rpx 48rpx 80rpx;
@@ -594,4 +670,32 @@
   width: 120rpx;
   height: 120rpx;
   flex-shrink: 0;
+}
+
+/* 二维码放大弹层 */
+.qr-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(20, 26, 18, 0.92);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-large {
+  width: 500rpx;
+  height: 500rpx;
+}
+
+.qr-overlay-hint {
+  margin-top: 48rpx;
+  font-family: var(--font-mono);
+  font-size: 24rpx;
+  color: rgba(248, 244, 232, 0.5);
+  letter-spacing: 0.1em;
 }

@@ -125,7 +125,7 @@
 
 .optional {
   font-size: 22rpx;
-  color: #aaa;
+  color: var(--color-disabled);
   font-weight: normal;
 }
 
@@ -144,36 +144,40 @@
   flex-shrink: 0;
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #8a7e6a;
+  border: 2rpx solid var(--color-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  color: #fff;
+  color: var(--color-bg);
   margin-top: 4rpx;
+}
+.privacy-check .checkbox-icon {
+  width: 22rpx;
+  height: 22rpx;
 }
 
 .privacy-check .checkbox.checked {
-  background: #243a30;
-  border-color: #243a30;
+  background: var(--color-emerald-deep);
+  border-color: var(--color-emerald-deep);
 }
 
 .privacy-text {
   font-size: 26rpx;
-  color: #5d6e63;
+  color: var(--color-muted);
   line-height: 1.5;
 }
 
 .privacy-link {
-  color: #b87a36;
+  color: var(--color-accent);
 }
 
 .privacy-summary {
   margin-top: 16rpx;
   padding: 20rpx 24rpx;
-  background: #faf8f2;
-  border: 1rpx solid #eee8d8;
+  background: var(--color-surface);
+  border: 1rpx solid var(--color-border);
   font-size: 22rpx;
-  color: #8a7e6a;
+  color: var(--color-muted);
   line-height: 1.6;
 }

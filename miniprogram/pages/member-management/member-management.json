@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "成员管理",
   "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
   "usingComponents": {
     "icon": "/components/icon/icon"
   }

@@ -315,6 +315,7 @@ page {
    关键防御：用 min-height 让文字多行时自然撑高；line-height 1.4 不依赖
    外部高度；box-sizing 让 padding 计入宽度（防止微信 <button> 默认溢出） */
 .cta-primary {
+  width: 100%;
   background: var(--color-emerald-deep);
   color: var(--color-bg);
   border: 1rpx solid var(--color-emerald-deep);

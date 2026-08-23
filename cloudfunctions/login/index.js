@@ -78,7 +78,7 @@ exports.main = async (event, context) => {
     await db.collection(USERS).doc(user._id).update({ data: update });
     user = { ...user, ...update };
 
-    // 同步更新已报名活动 / 比赛中的展示名和头像（保证显示一致）
+    // 同步更新已报名赛事中的展示名和头像（保证显示一致）
     if (update.wecomName || update.avatarUrl !== undefined) {
       await syncUserDisplay(OPENID, update.wecomName || user.wecomName, update.avatarUrl !== undefined ? update.avatarUrl : (user.avatarUrl || ''));
     }
@@ -92,21 +92,32 @@ exports.main = async (event, context) => {
       .limit(100)
       .field({ openid: true, wecomName: true, gender: true, avatarUrl: true, rating: true, totalPoints: true, eloRating: true })
       .get();
-    const list = (res.data || []).map((u, idx) => ({
-      rank: idx + 1,
-      openid: u.openid,
-      wecomName: u.wecomName,
-      gender: u.gender || '',
-      avatarUrl: u.avatarUrl || '',
-      rating: u.rating || '',
-      totalPoints: u.totalPoints || 0,
-      eloRating: u.eloRating || 1500
-    }));
-    const myRank = list.findIndex(u => u.openid === OPENID) + 1;
+    // 并列排名：同分同名次（dense ranking: 1, 2, 2, 3, ...）
+    let rank = 0;
+    let prevPoints = null;
+    const list = (res.data || []).map((u, idx) => {
+      const points = u.totalPoints || 0;
+      if (idx === 0 || points !== prevPoints) {
+        rank = rank + 1;
+      }
+      prevPoints = points;
+      return {
+        rank,
+        openid: u.openid,
+        wecomName: u.wecomName,
+        gender: u.gender || '',
+        avatarUrl: u.avatarUrl || '',
+        rating: u.rating || '',
+        totalPoints: points,
+        eloRating: u.eloRating || 1500
+      };
+    });
+    const myEntry = list.find(u => u.openid === OPENID);
+    const myRank = myEntry ? myEntry.rank : 0;
     return { code: 0, data: { list, myRank } };
   }
 
-  // 获取个人档案：评级 + 战绩统计 + 参与的活动
+  // 获取个人档案：评级 + 战绩统计
   // 支持查看其他用户：传 event.openid 即可。社团内部，不限隐私。
   if (action === 'getProfile') {
     const targetOpenid = event.openid || OPENID;
@@ -294,32 +305,75 @@ async function buildProfile(openid, user) {
         }
       }
     }
+
+    // 遍历团队赛（type='team'）：match 结构不同于个人赛，需要遍历 slots
+    if (t.type === 'team') {
+      const teams = t.teams || [];
+      const group = t.groups && t.groups[0];
+      const match = group && group.matches && group.matches[0];
+      if (!match) continue;
+
+      // 判断玩家属于哪个队
+      let playerTeamSide = null; // 'A' | 'B'
+      for (const tu of teams) {
+        if ((tu.members || []).some(m => m.openid === openid)) {
+          playerTeamSide = tu.openid === match.teamA ? 'A' : 'B';
+          break;
+        }
+      }
+      if (!playerTeamSide) continue;
+
+      // 构建 openid → wecomName 查找表（用于对手名）
+      const nameMap = {};
+      for (const tu of teams) {
+        for (const m of (tu.members || [])) {
+          if (m.openid && m.wecomName) nameMap[m.openid] = m.wecomName;
+        }
+      }
+
+      // 遍历每个 slot：只统计玩家明确上场的 slot
+      for (const slot of (match.slots || [])) {
+        const lineup = slot.lineup;
+        if (!lineup) continue;
+
+        const inLineupA = (lineup.A || []).includes(openid);
+        const inLineupB = (lineup.B || []).includes(openid);
+        if (!inLineupA && !inLineupB) continue;
+
+        const playerSide = inLineupA ? 'A' : 'B';
+        const oppSide = inLineupA ? 'B' : 'A';
+        const slotIsDoubles = (lineup.A || []).length === 2;
+
+        // 对手名
+        const oppOids = (lineup[oppSide] || []);
+        const oppNames = oppOids.map(oid => nameMap[oid] || '').filter(Boolean).join('/');
+
+        if (slot.winner) {
+          const iWon = slot.winner === playerSide;
+          if (iWon) { wins++; if (slotIsDoubles) doublesWins++; else singlesWins++; }
+          else { losses++; if (slotIsDoubles) doublesLosses++; else singlesLosses++; }
+          matchHistory.push({
+            _id: t._id + '_slot_' + slot.index,
+            tournamentId: t._id,
+            title: t.title + ' · 团队赛 Slot ' + slot.index + (slot.isTiebreak ? ' 一球制胜' : ''),
+            type: slotIsDoubles ? 'doubles' : 'singles',
+            matchDate: t.matchDate,
+            scoreSummary: slot.score || '',
+            result: iWon ? 'win' : 'loss',
+            opponent: oppNames || 'TBD',
+            isTeamSlot: true
+          });
+        } else {
+          // 已排阵但未录分
+          pending++;
+          if (slotIsDoubles) doublesPending++; else singlesPending++;
+        }
+      }
+    }
   }
 
   // 按时间倒序排列战绩
   matchHistory.sort((a, b) => (b.matchDate || 0) - (a.matchDate || 0));
-
-  // 查询参与的活动
-  const actRes = await db.collection('activities')
-    .where({ 'participants.openid': openid })
-    .field({
-      title: true,
-      startTime: true,
-      location: true,
-      participants: true,
-      status: true
-    })
-    .orderBy('startTime', 'desc')
-    .limit(30)
-    .get();
-  const activities = (actRes.data || []).map(a => ({
-    _id: a._id,
-    title: a.title,
-    startTime: a.startTime,
-    location: a.location,
-    participantCount: (a.participants || []).length,
-    status: a.status
-  }));
 
   // ELO 历史（用于折线图）
   const eloHistory = user.eloHistory || [];
@@ -332,8 +386,8 @@ async function buildProfile(openid, user) {
     const total = soFar.reduce((s, e) => s + e.earned, 0);
     pointsHistory.push({ date: earnings[i].date, value: total, title: earnings[i].title });
   }
-  // 如果只有 1 个数据点，前补起点 0 让图表能画出趋势线
-  if (pointsHistory.length === 1) {
+  // 前补起点 0，让图表从零开始显示趋势
+  if (pointsHistory.length >= 1) {
     pointsHistory.unshift({ date: pointsHistory[0].date - 86400000, value: 0, title: '起点' });
   }
 
@@ -352,7 +406,6 @@ async function buildProfile(openid, user) {
     eloDelta,
     pointsDelta,
     matchHistory: matchHistory.slice(0, 20),
-    activities,
     eloHistory,
     pointsHistory
   };
@@ -375,14 +428,12 @@ async function shouldBeAdmin(openid) {
   return total === 0;
 }
 
-// 用户改名/换头像后同步活动/赛事中保存的冗余名称和头像
+// 用户改名/换头像后同步赛事中保存的冗余名称和头像
 // 注：match 集合已废弃（独立比赛功能于 2026-05-24 删除），不再同步
 async function syncUserDisplay(openid, newName, newAvatarUrl) {
-  // 并行拉取需要更新的活动 + 赛事
-  const [actsRes, tourRes] = await Promise.all([
-    db.collection('activities').where({ 'participants.openid': openid }).get(),
-    db.collection('tournaments').where({ 'players.openid': openid }).get()
-  ]);
+  const tourRes = await db.collection('tournaments')
+    .where({ 'players.openid': openid })
+    .get();
 
   const patchPlayer = (p) => {
     if (p.openid !== openid) return p;
@@ -390,12 +441,6 @@ async function syncUserDisplay(openid, newName, newAvatarUrl) {
     if (newAvatarUrl !== undefined) patched.avatarUrl = newAvatarUrl;
     return patched;
   };
-
-  // 活动 participants（并行更新）
-  const actUpdates = (actsRes.data || []).map(a => {
-    const ps = (a.participants || []).map(patchPlayer);
-    return db.collection('activities').doc(a._id).update({ data: { participants: ps } });
-  });
 
   // 赛事 tournaments：players / groups / knockout 中的冗余名称（并行更新）
   const tourUpdates = (tourRes.data || []).map(t => {
@@ -446,5 +491,5 @@ async function syncUserDisplay(openid, newName, newAvatarUrl) {
     return db.collection('tournaments').doc(t._id).update({ data: updateData });
   }).filter(Boolean);
 
-  await Promise.all([...actUpdates, ...tourUpdates]);
+  await Promise.all(tourUpdates);
 }

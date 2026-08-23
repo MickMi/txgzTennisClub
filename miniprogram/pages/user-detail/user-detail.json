@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "选手档案",
   "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
   "usingComponents": {
     "icon": "/components/icon/icon"
   }
