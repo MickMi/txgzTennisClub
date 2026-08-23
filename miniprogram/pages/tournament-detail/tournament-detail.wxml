@@ -20,7 +20,10 @@
     </view>
     <!-- Masthead -->
     <view class="hero-masthead">
-      <view class="kicker">{{t.levelText}} · {{t.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</view>
+      <view class="kicker">
+        <block wx:if="{{t.type === 'team'}}">TEAM MATCH · 团队赛</block>
+        <block wx:else>{{t.levelText}} · {{t.type === 'doubles' ? 'DOUBLES' : 'SINGLES'}}</block>
+      </view>
       <view class="hero-title">{{t.title}}</view>
       <view class="status-row">
         <view class="status-pill status-{{t.status}}">{{t.statusText}}</view>
@@ -33,22 +36,28 @@
   <view class="tournament-meta">
     <view class="cell">
       <text class="lbl">FORMAT</text>
-      <text class="val">{{t.type === 'doubles' ? '双打' : '单打'}}</text>
+      <text class="val">{{t.type === 'team' ? '团队赛' : t.type === 'doubles' ? '双打' : '单打'}}</text>
     </view>
     <view class="cell">
       <text class="lbl">PLAYERS</text>
       <text class="val">{{t.players.length}}<text class="em">人</text></text>
     </view>
-    <view class="cell">
+    <view class="cell {{canEditSets ? 'is-editable' : ''}}" bindtap="onMetaSetsTap">
       <text class="lbl">SETS</text>
-      <text class="val">先赢<text class="em">{{t.bestOf}}</text></text>
+      <text class="val">
+        <text wx:if="{{t.bestOf === 7 || t.bestOf === 11}}">单盘抢<text class="em">{{t.bestOf}}</text></text>
+        <text wx:elif="{{t.bestOf === 4}}">四局制</text>
+        <text wx:elif="{{t.bestOf === 6}}">六局制</text>
+        <text wx:else>待抽签时定</text>
+      </text>
+      <text wx:if="{{canEditSets}}" class="meta-edit-hint">点击修改</text>
     </view>
   </view>
 
   <!-- Content area -->
   <view class="content">
-    <!-- Tab bar (only after signup phase) -->
-    <view class="stage-tabs" wx:if="{{t.status !== 'signup'}}">
+    <!-- Tab bar (only after signup phase; team 模式只有"赛况"一个 tab，整个 tab bar 隐藏) -->
+    <view class="stage-tabs" wx:if="{{t.status !== 'signup' && t.type !== 'team'}}">
       <view class="stage-tab {{activeTab === 0 ? 'is-active' : ''}}" data-tab="0" bindtap="onTabChange">赛况</view>
       <view class="stage-tab {{activeTab === 1 ? 'is-active' : ''}}" data-tab="1" bindtap="onTabChange">签表</view>
     </view>
@@ -75,8 +84,8 @@
           </view>
         </view>
 
-        <!-- 管理员抽签设置 -->
-        <view class="draw-section" wx:if="{{isOwner}}">
+        <!-- 管理员抽签设置（单/双打：分组数量/晋级/种子/配对） -->
+        <view class="draw-section" wx:if="{{isOwner && t.type !== 'team'}}">
           <view class="section-eyebrow">
             <text>分组设置</text>
             <text class="meta">ADMIN</text>
@@ -96,7 +105,7 @@
             </view>
             <view class="draw-row" wx:if="{{t.level === 'major'}}">
               <text class="draw-label">种子数</text>
-              <input class="draw-input" type="number" value="{{drawSeedCount}}" bindinput="onDrawSeedInput" placeholder="0" />
+              <input class="draw-input" type="number" value="{{drawSeedCount}}" bindinput="onDrawSeedInput" bindblur="onDrawSeedBlur" placeholder="0" />
             </view>
             <view class="draw-hint">
               <block wx:if="{{t.type === 'doubles'}}">
@@ -148,10 +157,12 @@
             </view>
 
             <view class="pair-status-ok" wx:if="{{pairsComplete}}">
-              <text>✓ 配对完成（{{pairs.length}} 对）</text>
+              <image class="status-icon" src="/assets/icons/check.svg" />
+              <text>配对完成（{{pairs.length}} 对）</text>
             </view>
             <view class="pair-status-warn" wx:elif="{{t.players.length % 2 !== 0}}">
-              <text>⚠ 双打需要偶数人，当前 {{t.players.length}} 人</text>
+              <image class="status-icon" src="/assets/icons/alert.svg" />
+              <text>双打需要偶数人，当前 {{t.players.length}} 人</text>
             </view>
           </view>
 
@@ -164,30 +175,48 @@
           </button>
         </view>
 
-        <!-- 删除赛事（仅 signup 阶段、creator/admin 可见） -->
-        <view class="danger-zone" wx:if="{{isOwner}}">
-          <view class="danger-action" bindtap="onDeleteTournament">
-            <text>删除赛事</text>
-            <text class="danger-meta">DELETE · 不可撤销</text>
+        <!-- 团队赛抽签入口（仅 team + signup + isOwner） -->
+        <view class="draw-section" wx:if="{{isOwner && t.type === 'team'}}">
+          <view class="section-eyebrow">
+            <text>团队赛抽签</text>
+            <text class="meta">TEAM DRAW</text>
           </view>
+          <view class="draw-hint">
+            <text>{{t.players.length}} 人报名 · 选队长 · 按水平分队并拆分场地</text>
+          </view>
+          <button class="cta-primary draw-btn" bindtap="onShowTeamDrawModal">
+            <text>选队长 / 抽签</text>
+          </button>
         </view>
+
+        <!-- 分享报名码（signup 阶段、creator/admin 可见） -->
+        <view class="qr-section" wx:if="{{isOwner}}" bindtap="onShowQRCode">
+          <view class="qr-text">
+            <view class="qr-eyebrow">INVITE</view>
+            <view class="qr-title">邀请扫码</view>
+            <view class="qr-desc">生成小程序码分享到微信群，扫码进入赛事详情后自助报名</view>
+          </view>
+          <image class="qr-arrow" src="/assets/icons/arrow-right.svg" />
+        </view>
+
       </block>
 
       <!-- GROUP PHASE -->
       <block wx:if="{{t.status === 'group' || t.status === 'knockout' || t.status === 'finished'}}">
         <view wx:for="{{t.groups}}" wx:key="name" wx:for-item="group" wx:for-index="gi" class="group-block">
-          <view class="group-eyebrow">
+          <view wx:if="{{t.type !== 'team'}}" class="group-eyebrow">
             <text>{{group.name}} 组 · GROUP</text>
           </view>
 
-          <!-- 排名表 -->
-          <view class="standings">
+          <!-- 排名表（非团队赛） -->
+          <view wx:if="{{t.type !== 'team'}}" class="standings">
             <view class="standings-header">
               <text class="st-rank">#</text>
               <text class="st-name">选手</text>
               <text class="st-stat">胜</text>
               <text class="st-stat">负</text>
               <text class="st-stat">净盘</text>
+              <text wx:if="{{isOwner && t.status === 'group'}}" class="st-stat st-act"></text>
             </view>
             <view wx:for="{{group.standings}}" wx:key="openid" wx:for-item="s" wx:for-index="rank" class="standings-row {{rank < t.config.advanceCount ? 'advance' : ''}}">
               <text class="st-rank">{{rank + 1}}</text>
@@ -195,11 +224,13 @@
               <text class="st-stat">{{s.wins}}</text>
               <text class="st-stat">{{s.losses}}</text>
               <text class="st-stat">{{s.setsWon - s.setsLost}}</text>
+              <text wx:if="{{isOwner && t.status === 'group'}}" class="st-move" data-openid="{{s.openid}}" data-name="{{s.wecomName}}" bindtap="onMovePlayer">→</text>
+              <text wx:if="{{isOwner && t.status === 'group'}}" class="st-remove" data-openid="{{s.openid}}" data-name="{{s.wecomName}}" bindtap="onRemovePlayer">×</text>
             </view>
           </view>
 
-          <!-- 小组赛对阵 -->
-          <view class="match-list">
+          <!-- 小组赛对阵（非团队赛） -->
+          <view wx:if="{{t.type !== 'team'}}" class="match-list">
             <view wx:for="{{group.matches}}" wx:key="id" wx:for-item="m" class="match-row">
               <view class="match-players">
                 <text class="match-name {{m.winner === 'A' ? 'winner-name' : ''}}">{{m.playerA.wecomName}}</text>
@@ -231,13 +262,208 @@
               <view wx:elif="{{t.status === 'group'}}" class="match-action" data-gi="{{gi}}" data-mid="{{m.id}}" bindtap="onEditGroupScore">录入比分</view>
             </view>
           </view>
+
+          <!-- 团队赛：队际总分 + 多片场地自由轮换 -->
+          <view wx:if="{{t.type === 'team'}}" class="team-board">
+            <block wx:for="{{group.matches}}" wx:key="id" wx:for-item="m" wx:for-index="mi">
+              <!-- 顶部 scoreboard：左右对称 + vs 固定居中 -->
+              <view class="team-scoreboard">
+                <view class="board-half board-half--a">
+                  <text class="team-scoreboard-label">{{teamAName}}</text>
+                  <text class="team-scoreboard-num {{m.winner === 'A' ? 'is-winner' : ''}}">{{m.teamScore.A || 0}}</text>
+                </view>
+                <text class="board-sep">vs</text>
+                <view class="board-half board-half--b">
+                  <text class="team-scoreboard-label">{{teamBName}}</text>
+                  <text class="team-scoreboard-num {{m.winner === 'B' ? 'is-winner' : ''}}">{{m.teamScore.B || 0}}</text>
+                </view>
+              </view>
+              <!-- 小分：左右对称 + 冒号固定居中 -->
+              <view wx:if="{{m.gamesA !== undefined && m.gamesB !== undefined}}" class="team-net-games">
+                <text class="net-side net-side--a">小分 {{m.gamesA}}</text>
+                <text class="board-sep">:</text>
+                <text class="net-side net-side--b">{{m.gamesB}}</text>
+              </view>
+
+              <view class="team-court-list">
+                <view wx:for="{{m.courts}}" wx:key="id" wx:for-item="court" wx:for-index="ci" class="team-court-card">
+                  <view class="team-court-head">
+                    <view>
+                      <text class="team-court-index">0{{court.displayIndex}}</text>
+                      <text class="team-court-title">{{court.name}}</text>
+                      <text class="team-court-count">· {{court.playerCount}} 人</text>
+                    </view>
+                    <view
+                      wx:if="{{isOwner && canAdjustCourts && m.courts.length > 1 && court.canRemove}}"
+                      class="team-court-remove"
+                      data-mid="{{m.id}}"
+                      data-cid="{{court.id}}"
+                      data-name="{{court.name}}"
+                      bindtap="onRemoveCourt"
+                    >移除</view>
+                  </view>
+
+                  <view class="team-court-roster">
+                    <view class="team-court-roster-row">
+                      <text class="team-court-side-label">A队</text>
+                      <view class="team-court-player-list">
+                        <text wx:for="{{court.teamAPlayers}}" wx:key="openid" wx:for-item="player" class="team-court-player">
+                          <text wx:if="{{player.isCaptain}}" class="captain-badge">C</text>{{player.wecomName}}
+                        </text>
+                      </view>
+                    </view>
+                    <view class="team-court-roster-row">
+                      <text class="team-court-side-label">B队</text>
+                      <view class="team-court-player-list">
+                        <text wx:for="{{court.teamBPlayers}}" wx:key="openid" wx:for-item="player" class="team-court-player">
+                          <text wx:if="{{player.isCaptain}}" class="captain-badge">C</text>{{player.wecomName}}
+                        </text>
+                      </view>
+                    </view>
+                  </view>
+                  <view wx:if="{{court.densityWarning}}" class="team-court-density-warning">{{court.densityWarning}}</view>
+
+                  <view class="team-court-section-label">已打对局 <text>FREE ROTATION</text></view>
+                  <view wx:if="{{court.encounters.length > 0}}" class="team-encounter-list">
+                    <view wx:for="{{court.encounters}}" wx:key="id" wx:for-item="enc" class="team-encounter-row">
+                      <text class="team-encounter-side team-encounter-side--a">
+                        <text wx:for="{{enc.lineupAPlayers}}" wx:key="openid" wx:for-item="player" wx:for-index="pi"><text wx:if="{{pi > 0}}">/</text>{{player.wecomName}}</text>
+                      </text>
+                      <text class="team-encounter-vs">vs</text>
+                      <text class="team-encounter-side team-encounter-side--b">
+                        <text wx:for="{{enc.lineupBPlayers}}" wx:key="openid" wx:for-item="player" wx:for-index="pi"><text wx:if="{{pi > 0}}">/</text>{{player.wecomName}}</text>
+                      </text>
+                      <view wx:if="{{enc.winner}}" class="team-encounter-score">
+                        <text>{{enc.setsA}}</text><text>:</text><text>{{enc.setsB}}</text>
+                      </view>
+                      <text wx:if="{{enc.winner}}" class="team-encounter-winner">✓ {{enc.winner}}</text>
+                      <text wx:else class="team-encounter-pending">待录比分</text>
+                      <text
+                        wx:if="{{court.canScore && t.status === 'group' && !m.tiebreak}}"
+                        class="team-encounter-edit"
+                        data-mid="{{m.id}}"
+                        data-cid="{{court.id}}"
+                        data-eid="{{enc.id}}"
+                        bindtap="onOpenEncounterModal"
+                      >{{enc.winner ? '改' : '录分'}}</text>
+                    </view>
+                  </view>
+                  <view wx:else class="team-court-empty">还没有对局，先添加一场</view>
+
+                  <button
+                    wx:if="{{court.canScore && t.status === 'group' && m.status !== 'finished' && !m.tiebreak && !m.isLegacyTeamMatch && !court.pendingEncounter}}"
+                    class="team-court-record-btn"
+                    data-mid="{{m.id}}"
+                    data-cid="{{court.id}}"
+                    bindtap="onOpenEncounterModal"
+                  >＋ 添加场次</button>
+
+                  <view wx:if="{{court.canScore && t.status === 'group' && !m.tiebreak && court.recommendation && !court.pendingEncounter}}" class="team-next-match">
+                    <view class="team-next-match-head">
+                      <text>NEXT · 下一场建议</text>
+                      <text data-cid="{{court.id}}" bindtap="onCycleCourtRecommendation">换一组</text>
+                    </view>
+                    <view class="team-next-match-lineup">
+                      <text>{{court.recommendation.aText}}</text>
+                      <text class="team-encounter-vs">vs</text>
+                      <text>{{court.recommendation.bText}}</text>
+                    </view>
+                    <button
+                      class="team-next-match-use"
+                      data-mid="{{m.id}}"
+                      data-cid="{{court.id}}"
+                      data-recommend="{{true}}"
+                      bindtap="onOpenEncounterModal"
+                    >采用此阵容</button>
+                  </view>
+                </view>
+              </view>
+
+              <button wx:if="{{isOwner && canAdjustCourts}}" class="team-add-court-btn" data-mid="{{m.id}}" bindtap="onAddCourt">＋ 加场地</button>
+
+              <!-- 一球制胜是跨场地的队长对决 -->
+              <view wx:if="{{m.tiebreak}}" class="team-tiebreak-card">
+                <view class="team-tiebreak-kicker">若平分 · MATCH POINT</view>
+                <view class="team-tiebreak-main">
+                  <view class="team-tiebreak-names">
+                    <text>{{m.tiebreak.lineupAPlayers[0].wecomName || teamAName}}</text>
+                    <text class="team-encounter-vs">vs</text>
+                    <text>{{m.tiebreak.lineupBPlayers[0].wecomName || teamBName}}</text>
+                  </view>
+                  <view wx:if="{{m.tiebreak.winner}}" class="team-tiebreak-score">{{m.tiebreak.setsA}} : {{m.tiebreak.setsB}}</view>
+                  <button
+                    wx:elif="{{m.canScoreTiebreak}}"
+                    class="team-tiebreak-record"
+                    data-mid="{{m.id}}"
+                    data-tiebreak="{{true}}"
+                    bindtap="onOpenEncounterModal"
+                  >录入 1:0</button>
+                  <text wx:else class="team-tiebreak-readonly">等待队长录入</text>
+                </view>
+              </view>
+
+              <!-- 队员名单（折叠式） -->
+              <view class="team-roster">
+                <view class="team-roster-side">
+                  <text class="team-roster-label">{{teamAName}}成员</text>
+                  <view class="team-roster-names">
+                    <text wx:for="{{teamAMembers}}" wx:key="openid" wx:for-item="mem" class="team-roster-name">
+                      <text wx:if="{{mem.isCaptain}}" class="captain-badge">C</text>
+                      <text>{{mem.wecomName}}</text>
+                    </text>
+                  </view>
+                </view>
+                <view class="team-roster-side">
+                  <text class="team-roster-label">{{teamBName}}成员</text>
+                  <view class="team-roster-names">
+                    <text wx:for="{{teamBMembers}}" wx:key="openid" wx:for-item="mem" class="team-roster-name">
+                      <text wx:if="{{mem.isCaptain}}" class="captain-badge">C</text>
+                      <text>{{mem.wecomName}}</text>
+                    </text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 团队赛调队入口：仅 team + status=group + isOwner + 无任何对局已录比分 -->
+              <view
+                wx:if="{{t.type === 'team' && t.status === 'group' && isOwner && canSwapMembers}}"
+                class="team-swap-entry"
+              >
+                <button class="btn-default" bindtap="onShowSwapModal">调整队员分队</button>
+                <button wx:if="{{m.courts.length > 1 && !m.isLegacyTeamMatch}}" class="btn-default" data-mid="{{m.id}}" bindtap="onShowCourtMoveModal">调整队员场地</button>
+                <view class="team-swap-hint">已录过比分后不可调整</view>
+              </view>
+            </block>
+          </view>
         </view>
 
-        <!-- 管理员：进入淘汰赛 -->
-        <view wx:if="{{isOwner && t.status === 'group'}}" class="admin-action">
+        <!-- 管理员工具栏（group 阶段） -->
+        <view wx:if="{{isOwner && t.status === 'group'}}" class="admin-toolbar">
+          <view class="toolbar-row">
+            <button class="toolbar-btn" bindtap="onShowAddPlayerModal">
+              <text>＋ 添加选手</text>
+            </button>
+            <button wx:if="{{t.type !== 'team'}}" class="toolbar-btn" bindtap="onShowConfigModal">
+              <text>⚙ 赛制</text>
+            </button>
+            <button class="toolbar-btn toolbar-btn--danger" bindtap="onRollbackToSignup">
+              <text>↩ 回滚</text>
+            </button>
+          </view>
+          <view class="toolbar-hint">管理工具 · 小组赛阶段可调整人员和赛制，已录分场次不受影响</view>
+        </view>
+
+        <!-- 团队赛：结束比赛 / 一球制胜 -->
+        <view wx:if="{{canFinishMatch}}" class="team-finish-section">
+          <button class="team-finish-btn" hover-class="team-finish-btn--hover" bindtap="onFinishTeamMatch">{{finishMatchLabel}}</button>
+        </view>
+
+        <!-- 管理员：进入淘汰赛（团队赛无淘汰阶段，不展示） -->
+        <view wx:if="{{isOwner && t.status === 'group' && t.type !== 'team'}}" class="admin-action">
           <button class="cta-primary" bindtap="onStartKnockout">
             <text>小组赛结束，进入淘汰赛</text>
           </button>
+          <view class="admin-action-sub" bindtap="onRecalcStandings">重算排名（修正胜负关系）</view>
         </view>
       </block>
 
@@ -247,9 +473,21 @@
           <view class="group-eyebrow">
             <text>淘汰赛 · KNOCKOUT</text>
           </view>
+          <!-- 管理员：重建淘汰赛对阵（需先撤回所有淘汰赛比分） -->
+          <view wx:if="{{isOwner && canRegenKnockout}}" class="admin-action-sub" bindtap="onRegenKnockout">重建对阵（按 H2H 修正排名）</view>
+
+          <!-- 管理员：三四名决赛操作 -->
+          <view wx:if="{{isOwner && canAddThirdPlace}}" class="admin-action">
+            <view class="third-place-actions">
+              <button class="btn-default" bindtap="onAddThirdPlace">添加三四名决赛</button>
+              <button class="btn-default" bindtap="onFinalizeFourStrong">只分四强</button>
+            </view>
+            <view class="team-swap-hint">半决赛已完成，选择是否进行季军争夺战</view>
+          </view>
           <view wx:for="{{t.knockout.rounds}}" wx:key="name" wx:for-item="round" wx:for-index="ri" class="ko-round">
             <view class="ko-round-title">{{round.name}}</view>
             <view wx:for="{{round.matches}}" wx:key="id" wx:for-item="m" class="match-row">
+              <view wx:if="{{m.isThirdPlace}}" class="third-place-label">三四名决赛</view>
               <view class="match-players">
                 <text class="match-name {{m.winner === 'A' ? 'winner-name' : ''}}">{{m.playerA.wecomName || '待定'}}</text>
                 <text class="match-vs">vs</text>
@@ -291,8 +529,8 @@
 
     </view>
 
-    <!-- ========== Tab 1: 签表 ========== -->
-    <view wx:if="{{activeTab === 1}}">
+    <!-- ========== Tab 1: 签表（team 模式无签表，整段隐藏） ========== -->
+    <view wx:if="{{activeTab === 1 && t.type !== 'team'}}">
 
       <!-- 小组分组签表 -->
       <view class="section-eyebrow">
@@ -355,4 +593,343 @@
       <text>取消报名</text>
     </button>
   </view>
+
+  <!-- 团队赛抽签弹层（modal-overlay 模式，参考 profile.wxml 的 .edit-overlay） -->
+  <view wx:if="{{showTeamDrawModal}}" class="edit-overlay" bindtap="onCloseTeamDrawModal">
+    <view class="edit-panel team-draw-panel" catchtap="onPanelTap">
+      <view class="edit-heading">团队赛抽签设置</view>
+      <view class="edit-sub">指定 A/B 队长、赛制和实际可用场地</view>
+
+      <!-- A 队长 -->
+      <view class="team-draw-block">
+        <view class="team-draw-block-title">A 队长</view>
+        <radio-group bindchange="onTeamCaptainAChange" class="captain-radio-group">
+          <label
+            wx:for="{{t.players}}"
+            wx:key="openid"
+            class="captain-radio {{teamDraw.captainA === item.openid ? 'is-selected' : ''}}"
+          >
+            <radio value="{{item.openid}}" checked="{{teamDraw.captainA === item.openid}}" />
+            <text>{{item.wecomName}}</text>
+          </label>
+        </radio-group>
+      </view>
+
+      <!-- B 队长（排除 A 队长） -->
+      <view class="team-draw-block">
+        <view class="team-draw-block-title">B 队长</view>
+        <radio-group bindchange="onTeamCaptainBChange" class="captain-radio-group">
+          <label
+            wx:for="{{t.players}}"
+            wx:key="openid"
+            wx:for-item="p"
+            class="captain-radio {{teamDraw.captainB === p.openid ? 'is-selected' : ''}} {{teamDraw.captainA === p.openid ? 'is-disabled' : ''}}"
+          >
+            <radio
+              value="{{p.openid}}"
+              checked="{{teamDraw.captainB === p.openid}}"
+              disabled="{{teamDraw.captainA === p.openid}}"
+            />
+            <text>{{p.wecomName}}</text>
+          </label>
+        </radio-group>
+      </view>
+
+      <!-- 赛制 -->
+      <view class="team-draw-block">
+        <view class="team-draw-block-title">赛制</view>
+        <radio-group bindchange="onTeamBestOfChange" class="captain-radio-group">
+          <label class="captain-radio {{teamDraw.bestOf === 4 ? 'is-selected' : ''}}">
+            <radio value="4" checked="{{teamDraw.bestOf === 4}}" />
+            <text>四局制</text>
+          </label>
+          <label class="captain-radio {{teamDraw.bestOf === 6 ? 'is-selected' : ''}}">
+            <radio value="6" checked="{{teamDraw.bestOf === 6}}" />
+            <text>六局制</text>
+          </label>
+          <label class="captain-radio {{teamDraw.bestOf === 7 ? 'is-selected' : ''}}">
+            <radio value="7" checked="{{teamDraw.bestOf === 7}}" />
+            <text>单盘抢 7</text>
+          </label>
+          <label class="captain-radio {{teamDraw.bestOf === 11 ? 'is-selected' : ''}}">
+            <radio value="11" checked="{{teamDraw.bestOf === 11}}" />
+            <text>单盘抢 11</text>
+          </label>
+        </radio-group>
+      </view>
+
+      <!-- 场地数（默认每 6 人一片，管理员按实际订场调整） -->
+      <view class="team-draw-block">
+        <view class="team-draw-block-title">场地数</view>
+        <view class="team-draw-slots-row">
+          <input class="team-draw-slots-input" type="number" value="{{teamDraw.courts}}" bindinput="onTeamCourtsInput" bindblur="onTeamCourtsBlur" placeholder="1" />
+          <text class="team-draw-slots-hint">片（最多 {{teamDrawMaxCourts}}）</text>
+        </view>
+        <view class="draw-hint" style="margin-top: 10rpx; text-align: left;">
+          <text>当前 {{t.players.length}} 人报名 · 建议每片约 6 人，现场自由轮换</text>
+        </view>
+        <view wx:if="{{teamDrawCourtWarning}}" class="team-draw-warning">{{teamDrawCourtWarning}}</view>
+      </view>
+
+      <!-- CTA -->
+      <button
+        class="cta-primary"
+        bindtap="onTeamDrawConfirm"
+        disabled="{{!teamDraw.captainA || !teamDraw.captainB || teamDraw.captainA === teamDraw.captainB}}"
+      >
+        确认抽签
+      </button>
+      <view class="edit-cancel-link" bindtap="onCloseTeamDrawModal">取消</view>
+    </view>
+  </view>
+
+  <!-- 团队赛场地对局 / 一球制胜录分 -->
+  <view wx:if="{{showEncounterModal}}" class="edit-overlay" bindtap="onCloseEncounterModal">
+    <view class="edit-panel encounter-panel" catchtap="onPanelTap">
+      <view class="edit-heading">{{editingTeamEncounter.isTiebreak ? '一球制胜' : editingTeamEncounter.isNew ? '添加场次' : editingTeamEncounter.hasScore ? '修改比分' : '录入比分'}}</view>
+      <view class="edit-sub">{{editingTeamEncounter.isTiebreak ? '队长对决 · 只记 1:0 或 0:1' : editingTeamEncounter.isNew ? '先确认上场人员，比分可以赛后再录' : '核对上场人员并录入本场比分'}}</view>
+
+      <view wx:if="{{!editingTeamEncounter.isTiebreak}}" class="encounter-lineups">
+        <view class="team-slot-lineup-group">
+          <text class="team-slot-lineup-label">A队</text>
+          <view class="team-slot-lineup-chips">
+            <view
+              wx:for="{{encounterTeamAMembers}}"
+              wx:key="openid"
+              wx:for-item="mem"
+              class="lineup-chip {{teamSlotLineupASet[mem.openid] ? 'is-selected' : ''}}"
+              data-side="A"
+              data-openid="{{mem.openid}}"
+              bindtap="onToggleEncounterLineup"
+            >{{mem.wecomName}}</view>
+          </view>
+        </view>
+        <view class="team-slot-lineup-group">
+          <text class="team-slot-lineup-label">B队</text>
+          <view class="team-slot-lineup-chips">
+            <view
+              wx:for="{{encounterTeamBMembers}}"
+              wx:key="openid"
+              wx:for-item="mem"
+              class="lineup-chip {{teamSlotLineupBSet[mem.openid] ? 'is-selected' : ''}}"
+              data-side="B"
+              data-openid="{{mem.openid}}"
+              bindtap="onToggleEncounterLineup"
+            >{{mem.wecomName}}</view>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="encounter-captains">
+        <text>{{encounterTeamAMembers[0].wecomName}}</text>
+        <text class="team-encounter-vs">vs</text>
+        <text>{{encounterTeamBMembers[0].wecomName}}</text>
+      </view>
+
+      <view wx:if="{{editingTeamEncounter.isTiebreak || !editingTeamEncounter.isNew}}" class="encounter-score-edit">
+        <input class="score-input" type="number" placeholder="A" value="{{teamSlotScoreA}}" bindinput="onTeamSlotAInput" />
+        <text>:</text>
+        <input class="score-input" type="number" placeholder="B" value="{{teamSlotScoreB}}" bindinput="onTeamSlotBInput" />
+      </view>
+      <view class="score-btns encounter-actions">
+        <button class="btn-default flex1" bindtap="onCloseEncounterModal">取消</button>
+        <button wx:if="{{editingTeamEncounter.isNew}}" class="btn-primary flex1" bindtap="onSaveEncounterLineup">确认场次</button>
+        <button wx:else class="btn-primary flex1" bindtap="onSaveEncounterScore">保存比分</button>
+      </view>
+      <view
+        wx:if="{{isOwner && editingTeamEncounter.encounterId && editingTeamEncounter.hasScore && !editingTeamEncounter.isTiebreak}}"
+        class="encounter-revert-link"
+        bindtap="onRevertEncounterScore"
+      >撤回本场比分</view>
+    </view>
+  </view>
+
+  <!-- 团队赛调队 modal（Plan-4 R4-B.4） -->
+  <view wx:if="{{showSwapModal}}" class="edit-overlay" bindtap="onCloseSwapModal">
+    <view class="edit-panel team-swap-panel" catchtap="onPanelTap">
+      <view class="edit-heading">调整队员分队</view>
+      <view class="edit-sub">点队员旁的"→"按钮移到对面队；队长不可调</view>
+
+      <view class="swap-teams">
+        <!-- A 队 -->
+        <view class="swap-team-col">
+          <view class="swap-team-title">A 队</view>
+          <view wx:for="{{teamAMembers}}" wx:key="openid" wx:for-item="mem" class="swap-member-row">
+            <view class="swap-member-name">
+              <text>{{mem.wecomName}}</text>
+              <text wx:if="{{mem.isCaptain}}" class="captain-badge">C</text>
+            </view>
+            <view
+              wx:if="{{!mem.isCaptain}}"
+              class="swap-btn"
+              data-openid="{{mem.openid}}"
+              bindtap="onSwapMember"
+            ><image class="swap-btn-icon" src="/assets/icons/arrow-right.svg" /></view>
+          </view>
+        </view>
+
+        <!-- B 队 -->
+        <view class="swap-team-col">
+          <view class="swap-team-title">B 队</view>
+          <view wx:for="{{teamBMembers}}" wx:key="openid" wx:for-item="mem" class="swap-member-row">
+            <view
+              wx:if="{{!mem.isCaptain}}"
+              class="swap-btn"
+              data-openid="{{mem.openid}}"
+              bindtap="onSwapMember"
+            ><image class="swap-btn-icon" src="/assets/icons/arrow-left.svg" /></view>
+            <view class="swap-member-name">
+              <text>{{mem.wecomName}}</text>
+              <text wx:if="{{mem.isCaptain}}" class="captain-badge">C</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="edit-cancel-link" bindtap="onCloseSwapModal">完成</view>
+    </view>
+  </view>
+
+  <!-- 团队赛场地间调人 -->
+  <view wx:if="{{showCourtMoveModal}}" class="edit-overlay" bindtap="onCloseCourtMoveModal">
+    <view class="edit-panel court-move-panel" catchtap="onPanelTap">
+      <view class="edit-heading">调整队员场地</view>
+      <view class="edit-sub">点选队员，再选择要去的场地；队伍归属保持不变</view>
+      <scroll-view class="court-move-list" scroll-y>
+        <view wx:for="{{courtMoveCourts}}" wx:key="id" wx:for-item="court" class="court-move-group">
+          <view class="court-move-title">{{court.name}} <text>{{court.playerCount}} 人</text></view>
+          <view wx:for="{{court.teamAPlayers}}" wx:key="openid" wx:for-item="mem" class="court-move-member" data-openid="{{mem.openid}}" data-cid="{{court.id}}" bindtap="onMoveCourtMember">
+            <text><text class="court-move-side">A</text>{{mem.wecomName}}</text><image src="/assets/icons/arrow-right.svg" />
+          </view>
+          <view wx:for="{{court.teamBPlayers}}" wx:key="openid" wx:for-item="mem" class="court-move-member" data-openid="{{mem.openid}}" data-cid="{{court.id}}" bindtap="onMoveCourtMember">
+            <text><text class="court-move-side">B</text>{{mem.wecomName}}</text><image src="/assets/icons/arrow-right.svg" />
+          </view>
+        </view>
+      </scroll-view>
+      <view class="edit-cancel-link" bindtap="onCloseCourtMoveModal">完成</view>
+    </view>
+  </view>
+
+  <!-- 报名码弹层（静态小程序码） -->
+  <view wx:if="{{showQRModal}}" class="edit-overlay" bindtap="onCloseQRCode">
+    <view class="edit-panel qr-modal-panel" catchtap="onPanelTap">
+      <view class="edit-heading">扫码加入</view>
+      <view class="edit-sub">长按或截屏保存，分享到微信群即可邀请队友扫码进入小程序</view>
+      <image class="qr-code-img" src="/assets/qrcode.png" mode="aspectFit" />
+      <view class="edit-cancel-link" bindtap="onCloseQRCode">关闭</view>
+    </view>
+  </view>
+
+  <!-- 中途加人弹层 -->
+  <view wx:if="{{showAddPlayerModal}}" class="edit-overlay" bindtap="onCloseAddPlayerModal">
+    <view class="edit-panel add-player-panel" catchtap="onPanelTap">
+      <view class="edit-heading">添加选手</view>
+      <view class="edit-sub">
+        <block wx:if="{{t.type === 'doubles'}}">选择 2 人组成一对加入比赛</block>
+        <block wx:elif="{{t.type === 'team'}}">可多选，所选成员将加入同一队伍</block>
+        <block wx:else>可多选，所选成员将加入同一小组</block>
+      </view>
+
+      <!-- 搜索框 -->
+      <input class="add-player-search" placeholder="搜索成员…" value="{{addPlayerSearch}}" bindinput="onAddPlayerSearch" catchtap="onPanelTap" />
+
+      <!-- 成员列表 -->
+      <scroll-view class="add-player-list" scroll-y>
+        <block wx:if="{{addPlayerFiltered.length > 0}}">
+          <view
+            wx:for="{{addPlayerFiltered}}"
+            wx:key="openid"
+            class="add-player-chip {{addPlayerSelectedSet[item.openid] ? 'is-selected' : ''}}"
+            data-openid="{{item.openid}}"
+            bindtap="onToggleAddPlayer"
+          >
+            <view class="add-player-check {{addPlayerSelectedSet[item.openid] ? 'is-checked' : ''}}">
+              <image wx:if="{{addPlayerSelectedSet[item.openid]}}" class="add-player-check-mark" src="/assets/icons/check-light.svg" />
+            </view>
+            <text class="add-player-chip-name">{{item.wecomName}}</text>
+            <text class="add-player-chip-meta" wx:if="{{item.rating}}">{{item.rating}}</text>
+          </view>
+        </block>
+        <view wx:else class="empty-hint" style="text-align: center; padding: 40rpx 0;">无符合条件的成员</view>
+      </scroll-view>
+
+      <!-- 已选展示 -->
+      <view wx:if="{{addPlayerSelected.length > 0}}" class="add-player-selected">
+        <view class="add-player-selected-head">
+          <text class="add-player-selected-label">已选 {{addPlayerSelected.length}} 人</text>
+          <text class="add-player-selected-hint">再次点击可取消</text>
+        </view>
+        <scroll-view class="add-player-selected-names" scroll-y>
+          <view class="add-player-selected-names-inner">
+            <text wx:for="{{addPlayerSelected}}" wx:key="*this" wx:for-item="oid" class="add-player-selected-name">{{addPlayerNameMap[oid] || ''}}</text>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="add-player-footer">
+        <!-- 单打/双打：选目标组 -->
+        <view wx:if="{{t.type !== 'team' && addPlayerGroupLabels.length > 0}}" class="add-player-group-pick">
+          <text class="add-player-group-label">目标组：</text>
+          <picker bindchange="onAddPlayerGroupChange" value="{{addPlayerTargetGroup}}" range="{{addPlayerGroupLabels}}">
+            <view class="draw-picker">{{addPlayerGroupLabels[addPlayerTargetGroup] || addPlayerGroupLabels[0]}}</view>
+          </picker>
+        </view>
+
+        <!-- 团队赛：选目标队 -->
+        <view wx:if="{{t.type === 'team'}}" class="add-player-team-pick">
+          <text class="add-player-group-label">目标队伍：</text>
+          <radio-group bindchange="onAddPlayerTeamChange">
+            <label class="gender-opt {{addPlayerTargetTeam === 'A' ? 'sel' : ''}}">
+              <radio value="A" checked="{{addPlayerTargetTeam === 'A'}}" color="#b87a36" />
+              <text>A 队</text>
+            </label>
+            <label class="gender-opt {{addPlayerTargetTeam === 'B' ? 'sel' : ''}}">
+              <radio value="B" checked="{{addPlayerTargetTeam === 'B'}}" color="#b87a36" />
+              <text>B 队</text>
+            </label>
+          </radio-group>
+        </view>
+
+        <!-- CTA -->
+        <button class="cta-primary add-player-confirm" bindtap="onConfirmAddPlayer" disabled="{{addPlayerSelected.length === 0}}">
+          确认添加<text wx:if="{{addPlayerSelected.length > 0}}">（{{addPlayerSelected.length}} 人）</text>
+        </button>
+        <view class="edit-cancel-link add-player-cancel" bindtap="onCloseAddPlayerModal">取消</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 调整赛制弹窗 -->
+  <view wx:if="{{showConfigModal}}" class="edit-overlay" bindtap="onCloseConfigModal">
+    <view class="edit-panel" catchtap="onPanelTap">
+      <view class="edit-heading">{{configSetsOnly ? '修改盘数' : '调整赛制'}}</view>
+      <view class="edit-sub" wx:if="{{configSetsOnly}}">未录入比分前可修改，保存后立即用于后续比分校验</view>
+      <view class="edit-sub" wx:else>修改晋级人数或赛制</view>
+
+      <view class="team-draw-block" wx:if="{{!configSetsOnly && t.type !== 'team'}}">
+        <view class="team-draw-block-title">晋级人数</view>
+        <picker bindchange="onConfigAdvanceChange" value="{{0}}" range="{{advanceOptions}}">
+          <view class="draw-picker">每组前 {{configForm.advanceCount}} 名晋级</view>
+        </picker>
+      </view>
+
+      <view class="team-draw-block">
+        <view class="team-draw-block-title">赛制</view>
+        <picker bindchange="onConfigBestOfChange" value="{{configBestOfIndex}}" range="{{configBestOfOptions}}">
+          <view class="draw-picker">{{configBestOfOptions[configBestOfIndex]}}</view>
+        </picker>
+      </view>
+
+      <button class="cta-primary" bindtap="onSaveConfig">{{configSetsOnly ? '保存盘数' : '保存'}}</button>
+      <view class="edit-cancel-link" bindtap="onCloseConfigModal">取消</view>
+    </view>
+  </view>
+
+      <!-- 删除赛事 -->
+      <view class="danger-zone" wx:if="{{isOwner}}">
+        <view class="danger-action" bindtap="onDeleteTournament">
+          <text>删除赛事</text>
+          <text wx:if="{{t.status === 'signup'}}" class="danger-meta">DELETE · 不可撤销</text>
+          <text wx:else class="danger-meta">已录比分将全部回滚 · 不可撤销</text>
+        </view>
+      </view>
 </view>

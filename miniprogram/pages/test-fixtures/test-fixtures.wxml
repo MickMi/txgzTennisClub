@@ -1,0 +1,75 @@
+<view class="container">
+  <view class="page-back" style="top: {{navTop}}rpx;" bindtap="goBack">
+    <image src="/assets/icons/back.svg" />
+  </view>
+
+  <view class="masthead">
+    <view class="masthead-left">
+      <view class="wordmark">测试夹具</view>
+      <view class="wordmark-caption">TEST FIXTURES · 仅管理员可见</view>
+    </view>
+  </view>
+
+  <view class="warn-card">
+    <text class="warn-text">此页生成的所有数据带 _isTest:true 标记，可一键清除；切勿写入生产用户。</text>
+  </view>
+
+  <view class="section-title">TEAM · 团队赛场景</view>
+  <view class="scenario-list">
+    <button
+      wx:for="{{scenarios}}"
+      wx:key="key"
+      class="btn-default scenario-btn"
+      data-scenario="{{item.key}}"
+      bindtap="onSeed"
+    >
+      <text class="scenario-index">{{index + 1}}.</text>
+      <text class="scenario-label">{{item.label}}</text>
+    </button>
+  </view>
+
+  <view class="section-title" style="margin-top: 48rpx;">单打 / 双打 · 加人测试</view>
+  <view class="scenario-list">
+    <button
+      wx:for="{{tournamentScenarios}}"
+      wx:key="key"
+      class="btn-default scenario-btn"
+      data-scenario="{{item.key}}"
+      bindtap="onSeedTournament"
+    >
+      <text class="scenario-index">{{index + 1}}.</text>
+      <text class="scenario-label">{{item.label}}</text>
+    </button>
+  </view>
+
+  <view class="section-title" style="margin-top: 48rpx;">淘汰赛 · 三四名测试</view>
+  <view class="scenario-list">
+    <button
+      wx:for="{{knockoutScenarios}}"
+      wx:key="key"
+      class="btn-default scenario-btn"
+      bindtap="onSeedKnockout"
+    >
+      <text class="scenario-index">{{index + 1}}.</text>
+      <text class="scenario-label">{{item.label}}</text>
+    </button>
+  </view>
+
+  <view class="section-title" style="margin-top: 48rpx;">UI · 页面预览（无副作用）</view>
+  <view class="scenario-list">
+    <button
+      wx:for="{{uiPreviews}}"
+      wx:key="key"
+      class="btn-default scenario-btn"
+      data-key="{{item.key}}"
+      bindtap="onPreview"
+    >
+      <text class="scenario-index">{{index + 1}}.</text>
+      <text class="scenario-label">{{item.label}}</text>
+    </button>
+  </view>
+
+  <view class="cleanup-section">
+    <button class="btn-danger" bindtap="onCleanup">清空所有测试数据</button>
+  </view>
+</view>

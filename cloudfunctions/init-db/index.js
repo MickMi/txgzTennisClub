@@ -715,10 +715,10 @@ function defineTournaments(adminOpenid, now, userMap) {
         { openid: 'u01', place: '亚军', placement: 2, pts: 120, points: 120, teamId: null },
         { openid: 'u04', place: '四强', placement: 3, pts: 60,  points: 60,  teamId: null },
         { openid: 'u03', place: '四强', placement: 3, pts: 60,  points: 60,  teamId: null },
-        { openid: 'u05', place: '参与', placement: 99, pts: 15, points: 15, teamId: null },
-        { openid: 'u06', place: '参与', placement: 99, pts: 15, points: 15, teamId: null },
-        { openid: 'u07', place: '参与', placement: 99, pts: 15, points: 15, teamId: null },
-        { openid: 'u08', place: '参与', placement: 99, pts: 15, points: 15, teamId: null }
+        { openid: 'u05', place: 'A组第3名', placement: 103, pts: 15, points: 15, teamId: null },
+        { openid: 'u07', place: 'A组第4名', placement: 104, pts: 15, points: 15, teamId: null },
+        { openid: 'u06', place: 'B组第3名', placement: 203, pts: 15, points: 15, teamId: null },
+        { openid: 'u08', place: 'B组第4名', placement: 204, pts: 15, points: 15, teamId: null }
       ],
       config: { groupCount: 2, advanceCount: 2, seedCount: 2 },
       creator: 'u01', creatorName: '张伟',
@@ -855,7 +855,7 @@ function defineTournaments(adminOpenid, now, userMap) {
     ]);
     // 前 2 = T1, T2 进决赛 → T2 反扑赢 T1 拿冠军
     const finalM = koMatch('ko_r1_0', t1, t2, [3, 5]);  // T2 (u01+u04) 夺冠
-    // placementAwards：T2 两人都是冠军、T1 两人都是亚军、T3+T4 两人都是参与
+    // placementAwards：T2 两人都是冠军、T1 两人都是亚军、T3 两人 A 组第 3、T4 两人 A 组第 4
     const championPts = 100; // challenge 级别
     const runnerUpPts = 60;
     const participantPts = 8;
@@ -882,11 +882,11 @@ function defineTournaments(adminOpenid, now, userMap) {
         // 亚军：team t1 (admin + u02)
         { openid: adminOpenid, wecomName: '管理员', place: '亚军', placement: 2, pts: runnerUpPts, points: runnerUpPts, teamId: teamIdT1 },
         { openid: 'u02', wecomName: '陈明', place: '亚军', placement: 2, pts: runnerUpPts, points: runnerUpPts, teamId: teamIdT1 },
-        // 参与：t3 + t4
-        { openid: 'u03', wecomName: '王强', place: '参与', placement: 99, pts: participantPts, points: participantPts, teamId: null },
-        { openid: 'u05', wecomName: '周杰', place: '参与', placement: 99, pts: participantPts, points: participantPts, teamId: null },
-        { openid: 'u06', wecomName: '刘洋', place: '参与', placement: 99, pts: participantPts, points: participantPts, teamId: null },
-        { openid: 'u07', wecomName: '赵敏', place: '参与', placement: 99, pts: participantPts, points: participantPts, teamId: null }
+        // 小组赛：t3 (u03+u05) A组第3，t4 (u06+u07) A组第4
+        { openid: 'u03', wecomName: '王强', place: 'A组第3名', placement: 103, pts: participantPts, points: participantPts, teamId: null },
+        { openid: 'u05', wecomName: '周杰', place: 'A组第3名', placement: 103, pts: participantPts, points: participantPts, teamId: null },
+        { openid: 'u06', wecomName: '刘洋', place: 'A组第4名', placement: 104, pts: participantPts, points: participantPts, teamId: null },
+        { openid: 'u07', wecomName: '赵敏', place: 'A组第4名', placement: 104, pts: participantPts, points: participantPts, teamId: null }
       ],
       config: { groupCount: 1, advanceCount: 2, seedCount: 0 },
       creator: 'u01', creatorName: '张伟',

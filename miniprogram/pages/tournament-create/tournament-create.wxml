@@ -21,23 +21,23 @@
     </view>
 
     <view class="form-row">
-      <text class="form-label">LEVEL · 级别 <text class="required">*</text></text>
-      <picker bindchange="onLevelChange" value="{{levelIndex}}" range="{{levelOptions}}" range-key="label">
-        <view class="form-picker">{{levelOptions[levelIndex].label}}</view>
-      </picker>
-    </view>
-
-    <view class="form-row">
       <text class="form-label">TYPE · 类型 <text class="required">*</text></text>
       <picker bindchange="onTypeChange" value="{{typeIndex}}" range="{{typeOptions}}" range-key="label">
         <view class="form-picker">{{typeOptions[typeIndex].label}}</view>
       </picker>
     </view>
 
-    <view class="form-row">
+    <view class="form-row" wx:if="{{!showTeamOptions}}">
+      <text class="form-label">LEVEL · 级别 <text class="required">*</text></text>
+      <picker bindchange="onLevelChange" value="{{levelIndex}}" range="{{levelOptions}}" range-key="label">
+        <view class="form-picker">{{levelOptions[levelIndex].label}}</view>
+      </picker>
+    </view>
+
+    <view class="form-row" wx:if="{{!showTeamOptions}}">
       <text class="form-label">FORMAT · 赛制 <text class="required">*</text></text>
-      <picker bindchange="onBestOfChange" value="{{bestOfIndex}}" range="{{bestOfOptions}}">
-        <view class="form-picker">先赢 {{bestOfOptions[bestOfIndex]}} 盘</view>
+      <picker bindchange="onBestOfChange" value="{{bestOfIndex}}" range="{{bestOfLabels}}">
+        <view class="form-picker">{{bestOfLabels[bestOfIndex]}}</view>
       </picker>
     </view>
 
@@ -55,34 +55,47 @@
     </view>
   </view>
 
-  <view class="card">
-    <view class="card-title">赛制设置（可选，抽签时再决定）</view>
-
-    <view class="form-row">
-      <text class="form-label">GROUPS · 分组数量</text>
-      <picker bindchange="onGroupCountChange" value="{{groupCountIndex}}" range="{{groupCountOptions}}">
-        <view class="form-picker">{{groupCountOptions[groupCountIndex]}} 组</view>
-      </picker>
-      <view class="field-hint">可在报名结束后根据实际人数调整</view>
+  <view class="card" wx:if="{{!showTeamOptions}}">
+    <view class="card-title" bindtap="onToggleAdvanced">
+      <text>赛制设置（可选，抽签时再决定）</text>
+      <text class="card-toggle">{{showAdvancedConfig ? '▲' : '▼'}}</text>
     </view>
 
-    <view class="form-row">
-      <text class="form-label">ADVANCE · 每组晋级人数</text>
-      <picker bindchange="onAdvanceChange" value="{{advanceIndex}}" range="{{advanceOptions}}">
-        <view class="form-picker">每组前 {{advanceOptions[advanceIndex]}} 名晋级</view>
-      </picker>
-    </view>
+    <block wx:if="{{showAdvancedConfig}}">
+      <view class="form-row">
+        <text class="form-label">GROUPS · 分组数量</text>
+        <picker bindchange="onGroupCountChange" value="{{groupCountIndex}}" range="{{groupCountOptions}}">
+          <view class="form-picker">{{groupCountOptions[groupCountIndex]}} 组</view>
+        </picker>
+        <view class="field-hint">可在报名结束后根据实际人数调整</view>
+      </view>
 
-    <view class="form-row" wx:if="{{form.level === 'major'}}">
-      <text class="form-label">SEEDS · 种子选手数</text>
-      <input class="form-input" type="number" value="{{form.seedCount}}" data-key="seedCount" bindinput="onInput" placeholder="按积分排名前N名为种子" />
-      <view class="field-hint">种子选手按积分排名分散到各组，避免强强提前相遇</view>
-    </view>
+      <view class="form-row">
+        <text class="form-label">ADVANCE · 每组晋级人数</text>
+        <picker bindchange="onAdvanceChange" value="{{advanceIndex}}" range="{{advanceOptions}}">
+          <view class="form-picker">每组前 {{advanceOptions[advanceIndex]}} 名晋级</view>
+        </picker>
+      </view>
+
+      <view class="form-row" wx:if="{{form.level === 'major'}}">
+        <text class="form-label">SEEDS · 种子选手数</text>
+        <input class="form-input" type="number" value="{{form.seedCount}}" data-key="seedCount" bindinput="onInput" placeholder="按积分排名前N名为种子" />
+        <view class="field-hint">种子选手按积分排名分散到各组，避免强强提前相遇</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="card" wx:if="{{showTeamOptions}}">
+    <view class="card-title">团队赛设置</view>
+    <view class="field-hint" style="padding: 0 0 16rpx 0;">对阵槽数和赛制将在报名结束后抽签时设置</view>
   </view>
 
   <view class="muted tip">
     <block wx:if="{{form.level === 'major'}}">
       赛制说明：种子选手按积分排名分散到各组 → 小组循环赛（两两对战）→ 各组前N名晋级 → 淘汰赛决出冠军。
+    </block>
+    <block wx:elif="{{showTeamOptions}}">
+      赛制说明：报名截止后，创建者指定两位队长并选定盘数（4/6） → 系统蛇形分入 A/B 两队 → 按 SLOTS 数量挂对阵 → 全部录完决团队胜负 → 胜方每人 +40 / 负方每人 +20。
     </block>
     <block wx:else>
       赛制说明：随机抽签分组 → 小组循环赛（两两对战）→ 各组前N名晋级 → 淘汰赛决出冠军。

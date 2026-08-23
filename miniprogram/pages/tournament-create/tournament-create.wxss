@@ -84,3 +84,14 @@
   font-size: 22rpx;
   color: var(--color-muted);
 }
+
+/* Collapsible card toggle */
+.card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-toggle {
+  font-size: 20rpx;
+  color: var(--color-muted);
+}
