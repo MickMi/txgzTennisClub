@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tennis Club · Share Poster (team match)</title>
+<style>
+  :root {
+    --bg:        oklch(96% 0.018 90);
+    --surface:   oklch(98% 0.008 90);
+    --paper:     oklch(99% 0.005 90);
+    --border:    oklch(88% 0.015 90);
+    --hairline:  oklch(85% 0.014 90);
+    --muted:     oklch(45% 0.025 145);
+    --fg:        oklch(22% 0.05 155);
+    --accent:    oklch(62% 0.13 75);          /* 黄铜金 */
+    --emerald-deep: oklch(26% 0.06 155);
+    --hero-bg:   oklch(18% 0.05 155);
+    --positive:  oklch(48% 0.10 155);
+    --loss:      oklch(70% 0.015 90);
+    --font-display: 'Iowan Old Style', 'Charter', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+    --font-body:    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', system-ui, sans-serif;
+    --font-mono:    ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1400px 700px at 50% -120px, oklch(92% 0.02 90), transparent 70%), oklch(89% 0.012 90);
+    font-family: var(--font-body); color: var(--fg);
+    min-height: 100vh; padding: 56px 32px 80px;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  .sheet { max-width: 880px; margin: 0 auto; }
+  .studio-header {
+    display: grid; grid-template-columns: auto 1fr auto; column-gap: 24px; align-items: baseline;
+    color: var(--muted); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-bottom: 1px solid var(--fg); padding-bottom: 18px; margin-bottom: 40px;
+  }
+  .studio-header strong { font-family: var(--font-display); font-weight: 500; font-size: 22px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+  .studio-header em { font-style: normal; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--muted); }
+
+  .posters-row { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; justify-items: center; align-items: start; }
+  .poster-stack { display: flex; flex-direction: column; align-items: center; }
+  .poster-stack .caption {
+    margin-bottom: 18px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    display: grid; grid-template-columns: 1fr auto; column-gap: 14px; align-items: baseline; width: 375px;
+  }
+  .poster-stack .caption strong { font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0; color: var(--fg); text-transform: none; }
+
+  /* poster frame */
+  .poster {
+    width: 375px; min-height: 667px; background: var(--bg); position: relative; overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 60px -16px rgba(20,30,25,0.25), 0 8px 20px -6px rgba(20,30,25,0.12);
+  }
+
+  /* ====== HERO ====== */
+  .pt .hero {
+    position: relative; padding: 32px 28px 26px;
+    background: linear-gradient(168deg, oklch(26% 0.06 155) 0%, oklch(16% 0.05 155) 100%);
+    color: var(--bg); overflow: hidden;
+  }
+  .pt .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 3px 3px; pointer-events: none; mix-blend-mode: overlay; opacity: 0.5;
+  }
+  .pt .hero .brand {
+    position: relative; display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px;
+  }
+  .pt .hero .brand .wordmark { font-family: var(--font-display); font-size: 14px; font-weight: 500; color: var(--bg); opacity: 0.85; }
+  .pt .hero .brand .crest { width: 36px; height: 36px; border: 1px solid var(--accent); border-radius: 50%; display: grid; place-items: center; color: var(--accent); font-family: var(--font-display); font-size: 14px; }
+  .pt .hero .kicker {
+    position: relative; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.28em;
+    color: var(--accent); text-transform: uppercase; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .pt .hero .kicker::before { content: ''; display: inline-block; width: 18px; height: 1px; background: var(--accent); }
+  .pt .hero .title { position: relative; font-family: var(--font-display); font-size: 26px; font-weight: 500; line-height: 1.1; color: var(--bg); margin: 0 0 12px; }
+  .pt .hero .meta-row {
+    position: relative; display: flex; gap: 12px; align-items: center;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: oklch(78% 0.02 90); text-transform: uppercase;
+  }
+  .pt .hero .meta-row .pip { width: 3px; height: 3px; border-radius: 50%; background: oklch(64% 0.02 90); }
+
+  /* ====== SCOREBOARD (主轴) ====== */
+  .pt .board {
+    padding: 28px 28px 22px; border-bottom: 1px solid var(--hairline);
+    position: relative;
+  }
+  .pt .board .grid {
+    display: grid; grid-template-columns: 1fr auto 1fr; column-gap: 18px; align-items: center;
+  }
+  .pt .board .team {
+    text-align: center; line-height: 1.15;
+  }
+  .pt .board .team .crest {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 1.5px solid var(--border); background: var(--paper);
+    display: inline-grid; place-items: center; margin-bottom: 10px;
+    font-family: var(--font-display); font-size: 22px; color: var(--fg);
+  }
+  .pt .board .team.win .crest { border-color: var(--accent); width: 64px; height: 64px; font-size: 26px; }
+  .pt .board .team .name {
+    font-family: var(--font-display); font-size: 16px; font-weight: 500; color: var(--fg);
+    letter-spacing: 0.005em;
+  }
+  .pt .board .team .tag {
+    margin-top: 6px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .pt .board .team.win .tag { color: var(--accent); }
+  .pt .board .score {
+    text-align: center; line-height: 1;
+    font-family: var(--font-display); font-feature-settings: 'tnum','lnum';
+  }
+  .pt .board .score .nums {
+    display: grid; grid-template-columns: auto auto auto; align-items: baseline; column-gap: 8px;
+  }
+  .pt .board .score .a, .pt .board .score .b {
+    font-size: 42px; font-weight: 500; color: var(--fg);
+  }
+  .pt .board .score .a.win, .pt .board .score .b.win { color: var(--accent); }
+  .pt .board .score .sep { font-size: 22px; color: var(--muted); font-weight: 500; }
+  .pt .board .score .sub {
+    margin-top: 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em;
+    color: var(--muted); text-transform: uppercase;
+  }
+
+  /* ====== SLOT LIST ====== */
+  .pt .slots { padding: 18px 28px 8px; border-bottom: 1px solid var(--hairline); }
+  .pt .slots .eyebrow {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px; display: flex; justify-content: space-between;
+  }
+  .pt .slots .eyebrow strong { color: var(--accent); font-weight: normal; }
+  .pt .slots .list { display: grid; row-gap: 0; }
+  .pt .slots .row {
+    display: grid; grid-template-columns: 18px 14px 1fr 14px;
+    column-gap: 12px; align-items: center;
+    padding: 11px 0; border-bottom: 1px solid var(--hairline);
+  }
+  .pt .slots .row:last-child { border-bottom: 0; }
+  .pt .slots .row .idx {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; color: var(--muted);
+    font-feature-settings: 'tnum';
+  }
+  .pt .slots .row .ar-l, .pt .slots .row .ar-r {
+    width: 14px; height: 14px; display: grid; place-items: center;
+    color: var(--accent); font-family: var(--font-mono); font-size: 11px;
+  }
+  .pt .slots .row .ar-l.dim, .pt .slots .row .ar-r.dim { color: transparent; }
+  .pt .slots .row .score {
+    font-family: var(--font-display); font-size: 15px; font-weight: 500; color: var(--fg);
+    font-feature-settings: 'tnum','lnum'; text-align: center;
+    letter-spacing: 0.02em;
+  }
+  .pt .slots .row .score .pair { display: inline-block; margin: 0 4px; }
+  .pt .slots .row .score .pair.dim { color: var(--muted); }
+
+  /* ====== ROSTER ====== */
+  .pt .roster { padding: 16px 28px; border-bottom: 1px solid var(--hairline); display: grid; grid-template-columns: 1fr 1px 1fr; column-gap: 18px; }
+  .pt .roster .col .head {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; color: var(--muted); text-transform: uppercase;
+    margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .pt .roster .col .head .nm { color: var(--fg); font-family: var(--font-display); font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+  .pt .roster .col.win .head .nm { color: var(--accent); }
+  .pt .roster .col .members { display: grid; row-gap: 6px; }
+  .pt .roster .col .member {
+    display: grid; grid-template-columns: 22px 1fr; column-gap: 8px; align-items: center;
+    font-size: 12px; color: var(--fg); line-height: 1.2;
+  }
+  .pt .roster .col .member .av {
+    width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border);
+    display: grid; place-items: center; font-family: var(--font-display); font-size: 10px; color: var(--fg); background: var(--paper);
+  }
+  .pt .roster .col.win .member .av { border-color: var(--accent); }
+  .pt .roster .vrule { background: var(--hairline); }
+
+  /* ====== POINTS STRIP ====== */
+  .pt .points {
+    padding: 14px 28px; display: grid; grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .pt .points .cell { text-align: center; line-height: 1.15; padding: 0 6px; }
+  .pt .points .cell + .cell { border-inline-start: 1px solid var(--hairline); }
+  .pt .points .cell .lbl {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; color: var(--muted); text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pt .points .cell .val {
+    font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--fg);
+    font-feature-settings: 'tnum','lnum';
+  }
+  .pt .points .cell .val .plus { font-size: 14px; color: var(--muted); margin-inline-end: 2px; }
+  .pt .points .cell.win .val { color: var(--accent); }
+
+  /* ====== FOOT ====== */
+  .pt .foot {
+    padding: 18px 28px 22px; display: grid; grid-template-columns: 1fr 56px;
+    column-gap: 14px; align-items: end;
+  }
+  .pt .foot .next { line-height: 1.3; }
+  .pt .foot .next .ey {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 4px;
+  }
+  .pt .foot .next .h { font-family: var(--font-display); font-size: 13px; font-weight: 500; color: var(--fg); }
+  .pt .foot .next .when {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--muted);
+    margin-top: 4px; font-feature-settings: 'tnum';
+  }
+  .pt .foot .qr {
+    width: 52px; height: 52px; border: 1px solid var(--border); display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 8px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; text-align: center; line-height: 1.3;
+  }
+
+  .section-rule {
+    margin: 16px 0 28px; display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; column-gap: 20px;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg);
+  }
+  .section-rule h2 { margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 500; letter-spacing: 0.005em; color: var(--fg); text-transform: none; line-height: 1; }
+  .section-rule .meta { color: var(--muted); }
+
+  .notes {
+    margin-top: 48px; padding: 24px; border: 1px solid var(--hairline); background: var(--paper);
+    font-size: 13px; line-height: 1.7; color: var(--fg);
+  }
+  .notes h3 {
+    margin: 0 0 12px; font-family: var(--font-display); font-weight: 500; font-size: 16px; letter-spacing: 0;
+  }
+  .notes ul { margin: 0; padding-inline-start: 18px; }
+  .notes code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 6px; border: 1px solid var(--hairline); }
+
+  @media (max-width: 900px) { .posters-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="studio-header">
+    <span>Open Design / Tennis Club</span>
+    <strong>Share Poster · Team Match</strong>
+    <em>emerald-heritage · 375 × 667</em>
+  </header>
+
+  <div class="section-rule">
+    <span>T</span>
+    <h2>团队赛战报海报</h2>
+    <span class="meta">slots = N · 队员人数可变</span>
+  </div>
+
+  <div class="posters-row">
+
+    <!-- ============ 海报 1：5 对槽（中场对阵）============ -->
+    <div class="poster-stack">
+      <div class="caption"><strong>示例 A · 5 个对阵槽</strong><span>3 — 2 · A 队胜</span></div>
+      <article class="poster pt">
+
+        <div class="hero">
+          <div class="brand">
+            <span class="wordmark">Tennis Club · GZ</span>
+            <span class="crest">T</span>
+          </div>
+          <div class="kicker">Team Match · 团队赛</div>
+          <h1 class="title">2026 春季交流杯<br>第二轮 团体赛</h1>
+          <div class="meta-row">
+            <span>2026.06.08</span>
+            <span class="pip"></span>
+            <span>5 SLOTS · BO3</span>
+            <span class="pip"></span>
+            <span>FINISHED</span>
+          </div>
+        </div>
+
+        <div class="board">
+          <div class="grid">
+            <div class="team win">
+              <div class="crest">A</div>
+              <div class="name">A 队</div>
+              <div class="tag">WINNER</div>
+            </div>
+            <div class="score">
+              <div class="nums">
+                <span class="a win">3</span>
+                <span class="sep">—</span>
+                <span class="b">2</span>
+              </div>
+              <div class="sub">FINAL · 5 SLOTS</div>
+            </div>
+            <div class="team">
+              <div class="crest">B</div>
+              <div class="name">B 队</div>
+              <div class="tag">RUNNER-UP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slots">
+          <div class="eyebrow"><span>SLOT-BY-SLOT</span><strong>5 / 5 完成</strong></div>
+          <div class="list">
+            <div class="row">
+              <span class="idx">01</span>
+              <span class="ar-l">◀</span>
+              <span class="score"><span class="pair">6-4</span><span class="pair">6-2</span></span>
+              <span class="ar-r dim">▶</span>
+            </div>
+            <div class="row">
+              <span class="idx">02</span>
+              <span class="ar-l dim">◀</span>
+              <span class="score"><span class="pair dim">4-6</span><span class="pair dim">5-7</span></span>
+              <span class="ar-r">▶</span>
+            </div>
+            <div class="row">
+              <span class="idx">03</span>
+              <span class="ar-l">◀</span>
+              <span class="score"><span class="pair">7-5</span><span class="pair dim">4-6</span><span class="pair">10-8</span></span>
+              <span class="ar-r dim">▶</span>
+            </div>
+            <div class="row">
+              <span class="idx">04</span>
+              <span class="ar-l dim">◀</span>
+              <span class="score"><span class="pair dim">3-6</span><span class="pair dim">2-6</span></span>
+              <span class="ar-r">▶</span>
+            </div>
+            <div class="row">
+              <span class="idx">05</span>
+              <span class="ar-l">◀</span>
+              <span class="score"><span class="pair">6-3</span><span class="pair">6-4</span></span>
+              <span class="ar-r dim">▶</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="roster">
+          <div class="col win">
+            <div class="head"><span class="nm">A 队</span><span>5 人</span></div>
+            <div class="members">
+              <div class="member"><span class="av">陈</span><span>陈大伟</span></div>
+              <div class="member"><span class="av">李</span><span>李建国</span></div>
+              <div class="member"><span class="av">王</span><span>王小川</span></div>
+              <div class="member"><span class="av">张</span><span>张明</span></div>
+              <div class="member"><span class="av">赵</span><span>赵立秋</span></div>
+            </div>
+          </div>
+          <div class="vrule"></div>
+          <div class="col">
+            <div class="head"><span class="nm">B 队</span><span>5 人</span></div>
+            <div class="members">
+              <div class="member"><span class="av">林</span><span>林昊</span></div>
+              <div class="member"><span class="av">周</span><span>周明远</span></div>
+              <div class="member"><span class="av">吴</span><span>吴俊杰</span></div>
+              <div class="member"><span class="av">徐</span><span>徐文涛</span></div>
+              <div class="member"><span class="av">郑</span><span>郑思源</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="points">
+          <div class="cell win">
+            <div class="lbl">胜方 · 每人</div>
+            <div class="val"><span class="plus">+</span>40</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">负方 · 每人</div>
+            <div class="val"><span class="plus">+</span>20</div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div class="next">
+            <div class="ey">NEXT MATCH</div>
+            <div class="h">第三轮 · 待开放报名</div>
+            <div class="when">2026.06.15  ·  19:00</div>
+          </div>
+          <div class="qr">SCAN<br>JOIN</div>
+        </div>
+      </article>
+    </div>
+
+    <!-- ============ 海报 2：3 对槽（小场制）============ -->
+    <div class="poster-stack">
+      <div class="caption"><strong>示例 B · 3 个对阵槽</strong><span>2 — 1 · B 队胜</span></div>
+      <article class="poster pt">
+
+        <div class="hero">
+          <div class="brand">
+            <span class="wordmark">Tennis Club · GZ</span>
+            <span class="crest">T</span>
+          </div>
+          <div class="kicker">Team Match · 团队赛</div>
+          <h1 class="title">周中友谊赛<br>三对制</h1>
+          <div class="meta-row">
+            <span>2026.06.07</span>
+            <span class="pip"></span>
+            <span>3 SLOTS · BO1</span>
+            <span class="pip"></span>
+            <span>FINISHED</span>
+          </div>
+        </div>
+
+        <div class="board">
+          <div class="grid">
+            <div class="team">
+              <div class="crest">A</div>
+              <div class="name">A 队</div>
+              <div class="tag">RUNNER-UP</div>
+            </div>
+            <div class="score">
+              <div class="nums">
+                <span class="a">1</span>
+                <span class="sep">—</span>
+                <span class="b win">2</span>
+              </div>
+              <div class="sub">FINAL · 3 SLOTS</div>
+            </div>
+            <div class="team win">
+              <div class="crest">B</div>
+              <div class="name">B 队</div>
+              <div class="tag">WINNER</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slots">
+          <div class="eyebrow"><span>SLOT-BY-SLOT</span><strong>3 / 3 完成</strong></div>
+          <div class="list">
+            <div class="row">
+              <span class="idx">01</span>
+              <span class="ar-l">◀</span>
+              <span class="score"><span class="pair">6-3</span></span>
+              <span class="ar-r dim">▶</span>
+            </div>
+            <div class="row">
+              <span class="idx">02</span>
+              <span class="ar-l dim">◀</span>
+              <span class="score"><span class="pair dim">4-6</span></span>
+              <span class="ar-r">▶</span>
+            </div>
+            <div class="row">
+              <span class="idx">03</span>
+              <span class="ar-l dim">◀</span>
+              <span class="score"><span class="pair dim">5-7</span></span>
+              <span class="ar-r">▶</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="roster">
+          <div class="col">
+            <div class="head"><span class="nm">A 队</span><span>3 人</span></div>
+            <div class="members">
+              <div class="member"><span class="av">陈</span><span>陈大伟</span></div>
+              <div class="member"><span class="av">李</span><span>李建国</span></div>
+              <div class="member"><span class="av">王</span><span>王小川</span></div>
+            </div>
+          </div>
+          <div class="vrule"></div>
+          <div class="col win">
+            <div class="head"><span class="nm">B 队</span><span>3 人</span></div>
+            <div class="members">
+              <div class="member"><span class="av">林</span><span>林昊</span></div>
+              <div class="member"><span class="av">周</span><span>周明远</span></div>
+              <div class="member"><span class="av">吴</span><span>吴俊杰</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="points">
+          <div class="cell">
+            <div class="lbl">负方 · 每人</div>
+            <div class="val"><span class="plus">+</span>20</div>
+          </div>
+          <div class="cell win">
+            <div class="lbl">胜方 · 每人</div>
+            <div class="val"><span class="plus">+</span>40</div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div class="next">
+            <div class="ey">NEXT MATCH</div>
+            <div class="h">周末团体赛 · 待开放报名</div>
+            <div class="when">2026.06.14  ·  09:00</div>
+          </div>
+          <div class="qr">SCAN<br>JOIN</div>
+        </div>
+      </article>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <h3>设计要点</h3>
+    <ul>
+      <li><strong>主轴是"两队对阵"</strong>：hero 下方的 scoreboard 把"队 vs 队 + 大比分"做成视觉锚点，胜方圆徽放大 + 黄铜金描边，<code>WINNER</code> tag 用 accent 色。和现有 6 套海报（单/双打、个人卡）的 podium / matchup 结构完全不同。</li>
+      <li><strong>Slot 列表无人名</strong>：每行只有 <code>序号 · 比分 · 胜方箭头</code>，与你"不记 playerA/B"的数据模型一一对应。胜方一侧 ◀/▶ 用黄铜金，败方一侧灰掉，比分一组组横排（盘比天然支持任意长度）。</li>
+      <li><strong>Slot 数量自适应</strong>：示例给了 5 个槽和 3 个槽两版（你说 1/2/3/4/5 对都可能）。Canvas 实现时按 <code>slots.length</code> 动态算行高，槽数 ≤ 5 时不需要滚动；≥ 6 时缩小行高或字号。</li>
+      <li><strong>Roster 双栏</strong>：左右各列出队员名（首字母圆圈，与现有头像策略一致），胜方一栏黄铜金描边。队员人数不固定，靠 row-gap 自然撑高。</li>
+      <li><strong>积分条直接展示规则</strong>：底部固定写 <code>胜方 +40 / 负方 +20</code>，强化"团队胜负 → 每人都拿同样积分"的认知，不需要看小程序内的规则文档。</li>
+      <li><strong>没有 ELO / 个人 highlight</strong>：和现有海报最大区别——这套海报里没有"最佳一战"、"ELO 变动"、"NTRP 升档"之类的字段，因为团队赛根本不动这些数据。</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

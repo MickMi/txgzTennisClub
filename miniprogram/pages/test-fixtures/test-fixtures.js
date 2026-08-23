@@ -14,7 +14,7 @@ Page({
       { key: 'signup_pending_draw', label: '待抽签 (signup)' },
       // —— 本轮新功能测试场景 ——
       { key: 'short_t7_pending',           label: '抢 7 · 待录入（验证比分校验）' },
-      { key: 'short_t11_a_wins',           label: '抢 11 · A 队完赛胜（验证整队 ELO）' },
+      { key: 'short_t11_a_wins',           label: '抢 11 · A 队完赛胜（验证固定积分）' },
       { key: 'team_lineup_mixed_finished', label: 'Lineup · 混合姿态完赛（海报展示）' },
       { key: 'team_lineup_recording',      label: 'Lineup · 录入中（验证回填）' },
       // —— 排阵/录分解耦 & 中途加人 ——

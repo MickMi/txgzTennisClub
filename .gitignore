@@ -1,0 +1,18 @@
+.harness/
+.harness
+.cursorrules
+.prompts/
+.prompts
+.windsurfrules
+.clinerules
+.github/copilot-instructions.md
+.trae/rules.md
+
+# Local macOS metadata
+.DS_Store
+
+# Harness execution state (generated locally)
+.harness-runtime/
+
+# Temporary screenshots/exports written to the repository root
+/*.png
